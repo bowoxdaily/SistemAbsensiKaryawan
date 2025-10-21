@@ -137,13 +137,15 @@
                 </a>
             </li>
 
-            <!-- Jam Kerja -->
-            <li class="menu-item {{ request()->routeIs('jam-kerja.*') ? 'active' : '' }}">
-                <a href="#" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-time"></i>
-                    <div data-i18n="Jam Kerja">Jam Kerja</div>
+            <!-- Jadwal Kerja -->
+            <li class="menu-item {{ request()->routeIs('admin.settings.work-schedule*') ? 'active' : '' }}">
+                <a href="{{ route('admin.settings.work-schedule') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-time-five"></i>
+                    <div data-i18n="Jadwal Kerja">Jadwal Kerja</div>
                 </a>
             </li>
+
+
 
             <!-- Users -->
             <li class="menu-item {{ request()->routeIs('users.*') ? 'active' : '' }}">

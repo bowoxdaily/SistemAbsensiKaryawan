@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\KaryawanController;
 use App\Http\Controllers\Admin\PositionController;
 use App\Http\Controllers\Admin\OfficeSettingController;
+use App\Http\Controllers\Admin\WorkScheduleController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\LoginController;
@@ -35,6 +36,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/settings/office', [OfficeSettingController::class, 'index'])->name('admin.settings.office');
     Route::post('/admin/settings/office', [OfficeSettingController::class, 'update'])->name('admin.settings.office.update');
     Route::get('/admin/settings/office/show', [OfficeSettingController::class, 'show'])->name('admin.settings.office.show');
+
+    // Work Schedule Settings
+    Route::get('/admin/settings/work-schedule', [WorkScheduleController::class, 'index'])->name('admin.settings.work-schedule');
+    Route::post('/admin/settings/work-schedule', [WorkScheduleController::class, 'store'])->name('admin.settings.work-schedule.store');
+    Route::get('/admin/settings/work-schedule/{id}', [WorkScheduleController::class, 'show'])->name('admin.settings.work-schedule.show');
+    Route::put('/admin/settings/work-schedule/{id}', [WorkScheduleController::class, 'update'])->name('admin.settings.work-schedule.update');
+    Route::delete('/admin/settings/work-schedule/{id}', [WorkScheduleController::class, 'destroy'])->name('admin.settings.work-schedule.destroy');
+    Route::post('/admin/settings/work-schedule/{id}/toggle', [WorkScheduleController::class, 'toggleStatus'])->name('admin.settings.work-schedule.toggle');
 
     // Employee Routes
     Route::get('/employee/attendance', [\App\Http\Controllers\Employee\AttendanceController::class, 'index'])->name('employee.attendance.index');
