@@ -37,10 +37,9 @@
                                     <div class="alert alert-warning p-2 mb-2">
                                         <small><i class="bx bx-time"></i> Anda belum absen hari ini</small>
                                     </div>
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                        data-bs-target="#modalAbsen">
+                                    <a href="{{ route('employee.attendance.index') }}" class="btn btn-sm btn-primary">
                                         <i class="bx bx-fingerprint"></i> Absen Sekarang
-                                    </button>
+                                    </a>
                                 @endif
                             </div>
                         </div>

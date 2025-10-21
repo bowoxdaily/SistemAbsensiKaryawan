@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\KaryawanController;
 use App\Http\Controllers\Admin\PositionController;
+use App\Http\Controllers\Admin\OfficeSettingController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\LoginController;
@@ -27,6 +29,17 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admin/karyawan/import', [KaryawanController::class, 'import'])->name('admin.karyawan.import');
     Route::get('/admin/karyawan/template', [KaryawanController::class, 'downloadTemplate'])->name('admin.karyawan.template');
     Route::get('/admin/positions', [PositionController::class, 'dashboard'])->name('admin.positions.index');
+    Route::get('/admin/attendance', [AttendanceController::class, 'index'])->name('admin.attendance.index');
+
+    // Office Settings
+    Route::get('/admin/settings/office', [OfficeSettingController::class, 'index'])->name('admin.settings.office');
+    Route::post('/admin/settings/office', [OfficeSettingController::class, 'update'])->name('admin.settings.office.update');
+    Route::get('/admin/settings/office/show', [OfficeSettingController::class, 'show'])->name('admin.settings.office.show');
+
+    // Employee Routes
+    Route::get('/employee/attendance', [\App\Http\Controllers\Employee\AttendanceController::class, 'index'])->name('employee.attendance.index');
+
+
 
     // Master Data Routes (Commented - Controllers not yet created)
     // Route::prefix('master')->group(function () {

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\KaryawanController;
 use App\Http\Controllers\Admin\PositionController;
@@ -33,4 +34,25 @@ Route::prefix('positions')->group(function () {
     Route::get('/{id}', [PositionController::class, 'show']);
     Route::put('/{id}', [PositionController::class, 'update']);
     Route::delete('/{id}', [PositionController::class, 'destroy']);
+});
+
+Route::prefix('attendance')->group(function () {
+    Route::get('/', [AttendanceController::class, 'list']);
+    Route::get('/today/{employeeId}', [AttendanceController::class, 'getTodayAttendance']);
+    Route::post('/check-in', [AttendanceController::class, 'checkIn']);
+    Route::post('/check-out', [AttendanceController::class, 'checkOut']);
+    Route::post('/verify-face', [AttendanceController::class, 'verifyFace']);
+    Route::get('/summary', [AttendanceController::class, 'summary']);
+    Route::post('/manual', [AttendanceController::class, 'manualEntry']);
+});
+
+// Employee Routes (for logged-in employees)
+// Use web middleware to access session-based auth
+Route::middleware('web')->prefix('employee')->group(function () {
+    Route::get('/current', [\App\Http\Controllers\Employee\AttendanceController::class, 'getCurrentEmployee']);
+    Route::get('/attendance/today', [\App\Http\Controllers\Employee\AttendanceController::class, 'getTodayAttendance']);
+    Route::post('/attendance/check-in', [\App\Http\Controllers\Employee\AttendanceController::class, 'checkIn']);
+    Route::post('/attendance/check-out', [\App\Http\Controllers\Employee\AttendanceController::class, 'checkOut']);
+    Route::get('/attendance/history', [\App\Http\Controllers\Employee\AttendanceController::class, 'history']);
+    Route::get('/attendance/summary', [\App\Http\Controllers\Employee\AttendanceController::class, 'summary']);
 });

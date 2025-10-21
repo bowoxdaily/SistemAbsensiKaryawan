@@ -19,6 +19,14 @@ class Attendance extends Model
         'location_in',
         'location_out',
         'late_minutes',
+        'gps_accuracy_in',
+        'gps_accuracy_out',
+        'is_mocked_in',
+        'is_mocked_out',
+        'gps_warnings_in',
+        'gps_warnings_out',
+        'is_suspicious_in',
+        'is_suspicious_out',
     ];
 
     protected $casts = [
@@ -26,6 +34,12 @@ class Attendance extends Model
         'check_in' => 'datetime:H:i:s',
         'check_out' => 'datetime:H:i:s',
         'late_minutes' => 'integer',
+        'is_mocked_in' => 'boolean',
+        'is_mocked_out' => 'boolean',
+        'is_suspicious_in' => 'boolean',
+        'is_suspicious_out' => 'boolean',
+        'gps_accuracy_in' => 'float',
+        'gps_accuracy_out' => 'float',
     ];
 
     /**

@@ -129,6 +129,14 @@
                 <span class="menu-header-text">Pengaturan</span>
             </li>
 
+            <!-- Lokasi Kantor -->
+            <li class="menu-item {{ request()->routeIs('admin.settings.office*') ? 'active' : '' }}">
+                <a href="{{ route('admin.settings.office') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-map"></i>
+                    <div data-i18n="Lokasi Kantor">Lokasi Kantor</div>
+                </a>
+            </li>
+
             <!-- Jam Kerja -->
             <li class="menu-item {{ request()->routeIs('jam-kerja.*') ? 'active' : '' }}">
                 <a href="#" class="menu-link">
@@ -212,7 +220,7 @@
 
             <!-- Absen Hari Ini -->
             <li class="menu-item {{ request()->routeIs('my-attendance.*') ? 'active' : '' }}">
-                <a href="#" class="menu-link">
+                <a href="{{ route('employee.attendance.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-fingerprint"></i>
                     <div data-i18n="MyAttendance">Absen Saya</div>
                 </a>
