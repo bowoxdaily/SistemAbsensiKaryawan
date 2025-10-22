@@ -163,7 +163,9 @@
                                 <th>Departemen</th>
                                 <th>Tanggal</th>
                                 <th>Check In</th>
+                                <th>Foto In</th>
                                 <th>Check Out</th>
+                                <th>Foto Out</th>
                                 <th>Status</th>
                                 <th>Terlambat</th>
                                 <th>Aksi</th>
@@ -187,9 +189,33 @@
                                         @endif
                                     </td>
                                     <td>
+                                        @if ($attendance->photo_in)
+                                            <a href="{{ asset('storage/' . $attendance->photo_in) }}" target="_blank">
+                                                <img src="{{ asset('storage/' . $attendance->photo_in) }}"
+                                                    alt="Foto Check In" class="rounded"
+                                                    style="width: 40px; height: 40px; object-fit: cover; cursor: pointer;"
+                                                    data-bs-toggle="tooltip" title="Klik untuk memperbesar">
+                                            </a>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td>
                                         @if ($attendance->check_out)
                                             <span
                                                 class="badge bg-label-warning">{{ \Carbon\Carbon::parse($attendance->check_out)->format('H:i') }}</span>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if ($attendance->photo_out)
+                                            <a href="{{ asset('storage/' . $attendance->photo_out) }}" target="_blank">
+                                                <img src="{{ asset('storage/' . $attendance->photo_out) }}"
+                                                    alt="Foto Check Out" class="rounded"
+                                                    style="width: 40px; height: 40px; object-fit: cover; cursor: pointer;"
+                                                    data-bs-toggle="tooltip" title="Klik untuk memperbesar">
+                                            </a>
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif
@@ -236,7 +262,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10" class="text-center py-4">
+                                    <td colspan="12" class="text-center py-4">
                                         <i class='bx bx-info-circle bx-lg text-muted'></i>
                                         <p class="mt-2 mb-0 text-muted">Tidak ada data absensi</p>
                                     </td>
@@ -275,6 +301,14 @@
 
     @push('scripts')
         <script>
+            // Initialize tooltips
+            $(document).ready(function() {
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            });
+
             // Export Excel
             $('#exportBtn').on('click', function() {
                 const params = new URLSearchParams(window.location.search);
@@ -369,10 +403,57 @@
                                         </tr>
                                     </table>
                                     ${data.notes ? `
-                                                        <div class="alert alert-info mt-3 mb-0">
-                                                            <strong>Catatan:</strong><br>${data.notes}
-                                                        </div>
-                                                    ` : ''}
+                                                                <div class="alert alert-info mt-3 mb-0">
+                                                                    <strong>Catatan:</strong><br>${data.notes}
+                                                                </div>
+                                                            ` : ''}
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="mb-3">Foto Check In</h6>
+                                    ${data.photo_in ? `
+                                                <div class="text-center">
+                                                    <a href="/storage/${data.photo_in}" target="_blank">
+                                                        <img src="/storage/${data.photo_in}"
+                                                             alt="Foto Check In"
+                                                             class="img-fluid rounded border"
+                                                             style="max-height: 300px; cursor: pointer;">
+                                                    </a>
+                                                    <p class="text-muted mt-2 mb-0">
+                                                        <small><i class='bx bx-time-five'></i> ${data.check_in || '-'}</small>
+                                                    </p>
+                                                </div>
+                                            ` : `
+                                                <div class="text-center py-4">
+                                                    <i class='bx bx-image-add bx-lg text-muted'></i>
+                                                    <p class="text-muted mt-2 mb-0">Tidak ada foto check in</p>
+                                                </div>
+                                            `}
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="mb-3">Foto Check Out</h6>
+                                    ${data.photo_out ? `
+                                                <div class="text-center">
+                                                    <a href="/storage/${data.photo_out}" target="_blank">
+                                                        <img src="/storage/${data.photo_out}"
+                                                             alt="Foto Check Out"
+                                                             class="img-fluid rounded border"
+                                                             style="max-height: 300px; cursor: pointer;">
+                                                    </a>
+                                                    <p class="text-muted mt-2 mb-0">
+                                                        <small><i class='bx bx-time-five'></i> ${data.check_out || '-'}</small>
+                                                    </p>
+                                                </div>
+                                            ` : `
+                                                <div class="text-center py-4">
+                                                    <i class='bx bx-image-add bx-lg text-muted'></i>
+                                                    <p class="text-muted mt-2 mb-0">Tidak ada foto check out</p>
+                                                </div>
+                                            `}
                                 </div>
                             </div>
                         `);
