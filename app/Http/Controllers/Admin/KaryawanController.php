@@ -7,6 +7,7 @@ use App\Models\Karyawans;
 use App\Models\Department;
 use App\Models\Position;
 use App\Models\User;
+use App\Models\WorkSchedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -31,7 +32,7 @@ class KaryawanController extends Controller
         $perPage = $request->get('per_page', 10);
         $search = $request->get('search', '');
 
-        $karyawans = Karyawans::with(['department', 'position'])
+        $karyawans = Karyawans::with(['department', 'position', 'workSchedule'])
             ->when($search, function ($query, $search) {
                 return $query->where('name', 'like', "%{$search}%")
                     ->orWhere('employee_code', 'like', "%{$search}%")
@@ -60,7 +61,7 @@ class KaryawanController extends Controller
             'position_id' => 'required|exists:positions,id',
             'join_date' => 'required|date',
             'employment_status' => 'required|in:Tetap,Kontrak,Magang,Outsource',
-            'shift_type' => 'required|in:Pagi,Sore,Malam,Rotasi',
+            'work_schedule_id' => 'required|exists:work_schedules,id',
             'address' => 'required|string',
             'city' => 'required|string|max:50',
             'province' => 'required|string|max:50',
@@ -82,7 +83,8 @@ class KaryawanController extends Controller
             'position_id.required' => 'Posisi wajib dipilih',
             'join_date.required' => 'Tanggal bergabung wajib diisi',
             'employment_status.required' => 'Status kerja wajib dipilih',
-            'shift_type.required' => 'Jenis shift wajib dipilih',
+            'work_schedule_id.required' => 'Jadwal kerja wajib dipilih',
+            'work_schedule_id.exists' => 'Jadwal kerja tidak valid',
             'email.required' => 'Email wajib diisi',
             'email.unique' => 'Email sudah terdaftar',
             'phone.required' => 'Nomor HP wajib diisi',
@@ -116,7 +118,7 @@ class KaryawanController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Karyawan berhasil ditambahkan',
-                'data' => $karyawan->load(['department', 'position'])
+                'data' => $karyawan->load(['department', 'position', 'workSchedule'])
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -132,7 +134,7 @@ class KaryawanController extends Controller
      */
     public function show($id)
     {
-        $karyawan = Karyawans::with(['department', 'position', 'supervisor'])->find($id);
+        $karyawan = Karyawans::with(['department', 'position', 'supervisor', 'workSchedule'])->find($id);
 
         if (!$karyawan) {
             return response()->json([
@@ -173,7 +175,7 @@ class KaryawanController extends Controller
             'position_id' => 'required|exists:positions,id',
             'join_date' => 'required|date',
             'employment_status' => 'required|in:Tetap,Kontrak,Magang,Outsource',
-            'shift_type' => 'required|in:Pagi,Sore,Malam,Rotasi',
+            'work_schedule_id' => 'required|exists:work_schedules,id',
             'address' => 'required|string',
             'city' => 'required|string|max:50',
             'province' => 'required|string|max:50',
@@ -210,7 +212,7 @@ class KaryawanController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Karyawan berhasil diperbarui',
-                'data' => $karyawan->load(['department', 'position'])
+                'data' => $karyawan->load(['department', 'position', 'workSchedule'])
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -269,6 +271,7 @@ class KaryawanController extends Controller
             'data' => [
                 'departments' => Department::orderBy('name')->get(),
                 'positions' => Position::orderBy('name')->get(),
+                'work_schedules' => WorkSchedule::where('is_active', true)->orderBy('name')->get(),
                 'supervisors' => Karyawans::where('status', 'active')
                     ->orderBy('name')
                     ->get(['id', 'name', 'employee_code'])

@@ -17,7 +17,7 @@ class KaryawanExport implements FromCollection, WithHeadings, WithMapping, WithS
      */
     public function collection()
     {
-        return Karyawans::with(['department', 'position'])
+        return Karyawans::with(['department', 'position', 'workSchedule'])
             ->orderBy('employee_code', 'asc')
             ->get();
     }
@@ -39,7 +39,7 @@ class KaryawanExport implements FromCollection, WithHeadings, WithMapping, WithS
             'Posisi',
             'Tanggal Bergabung',
             'Status Kerja',
-            'Jenis Shift',
+            'Jadwal Kerja',
             'Status',
             'Alamat',
             'Kota',
@@ -70,7 +70,7 @@ class KaryawanExport implements FromCollection, WithHeadings, WithMapping, WithS
             $karyawan->position ? $karyawan->position->name : '-',
             $karyawan->join_date,
             $karyawan->employment_status,
-            $karyawan->shift_type,
+            $karyawan->workSchedule ? $karyawan->workSchedule->name : '-',
             $this->getStatusLabel($karyawan->status),
             $karyawan->address,
             $karyawan->city,

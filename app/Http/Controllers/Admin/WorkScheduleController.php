@@ -31,7 +31,6 @@ class WorkScheduleController extends Controller
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'late_tolerance' => 'required|integer|min:0|max:120',
-            'is_active' => 'boolean',
         ], [
             'name.required' => 'Nama jadwal harus diisi',
             'start_time.required' => 'Jam mulai harus diisi',
@@ -59,7 +58,7 @@ class WorkScheduleController extends Controller
                 'start_time' => $request->start_time,
                 'end_time' => $request->end_time,
                 'late_tolerance' => $request->late_tolerance,
-                'is_active' => $request->has('is_active') ? true : false,
+                'is_active' => $request->has('is_active') && $request->is_active ? true : false,
             ]);
 
             return response()->json([
@@ -94,7 +93,6 @@ class WorkScheduleController extends Controller
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'late_tolerance' => 'required|integer|min:0|max:120',
-            'is_active' => 'boolean',
         ], [
             'name.required' => 'Nama jadwal harus diisi',
             'start_time.required' => 'Jam mulai harus diisi',
@@ -122,7 +120,7 @@ class WorkScheduleController extends Controller
                 'start_time' => $request->start_time,
                 'end_time' => $request->end_time,
                 'late_tolerance' => $request->late_tolerance,
-                'is_active' => $request->has('is_active') ? true : false,
+                'is_active' => $request->has('is_active') && $request->is_active ? true : false,
             ]);
 
             return response()->json([

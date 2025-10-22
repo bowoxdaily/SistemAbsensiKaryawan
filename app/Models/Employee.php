@@ -23,7 +23,7 @@ class Employee extends Model
         'position_id',
         'join_date',
         'employment_status',
-        'shift_type',
+        'work_schedule_id',
         'supervisor_id',
         'salary_base',
 
@@ -71,6 +71,14 @@ class Employee extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Relasi ke WorkSchedule
+     */
+    public function workSchedule(): BelongsTo
+    {
+        return $this->belongsTo(WorkSchedule::class, 'work_schedule_id');
     }
 
     /**

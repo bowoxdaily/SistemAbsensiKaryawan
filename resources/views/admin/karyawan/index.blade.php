@@ -228,16 +228,13 @@
                                         <div class="invalid-feedback" id="employment_statusError"></div>
                                     </div>
                                     <div class="col-md-4 mb-3">
-                                        <label for="shift_type" class="form-label">Jenis Shift <span
+                                        <label for="work_schedule_id" class="form-label">Jadwal Kerja <span
                                                 class="text-danger">*</span></label>
-                                        <select class="form-select" id="shift_type" name="shift_type" required>
-                                            <option value="">Pilih...</option>
-                                            <option value="Pagi">Pagi</option>
-                                            <option value="Sore">Sore</option>
-                                            <option value="Malam">Malam</option>
-                                            <option value="Rotasi">Rotasi</option>
+                                        <select class="form-select" id="work_schedule_id" name="work_schedule_id"
+                                            required>
+                                            <option value="">Pilih Jadwal...</option>
                                         </select>
-                                        <div class="invalid-feedback" id="shift_typeError"></div>
+                                        <div class="invalid-feedback" id="work_schedule_idError"></div>
                                     </div>
                                 </div>
 
@@ -540,6 +537,7 @@
                     masterData = response.data;
                     populateDepartments();
                     populatePositions();
+                    populateWorkSchedules();
                 }
             });
         }
@@ -557,6 +555,14 @@
             select.find('option:not(:first)').remove();
             masterData.positions.forEach(pos => {
                 select.append(`<option value="${pos.id}">${pos.name}</option>`);
+            });
+        }
+
+        function populateWorkSchedules() {
+            const select = $('#work_schedule_id');
+            select.find('option:not(:first)').remove();
+            masterData.work_schedules.forEach(schedule => {
+                select.append(`<option value="${schedule.id}">${schedule.name}</option>`);
             });
         }
 
@@ -752,13 +758,25 @@
                     $('#name').val(k.name);
                     $('#gender').val(k.gender);
                     $('#birth_place').val(k.birth_place);
-                    $('#birth_date').val(k.birth_date);
+
+                    // Format tanggal untuk input type="date" (YYYY-MM-DD)
+                    if (k.birth_date) {
+                        const birthDate = new Date(k.birth_date);
+                        $('#birth_date').val(birthDate.toISOString().split('T')[0]);
+                    }
+
                     $('#marital_status').val(k.marital_status);
                     $('#department_id').val(k.department_id);
                     $('#position_id').val(k.position_id);
-                    $('#join_date').val(k.join_date);
+
+                    // Format tanggal bergabung
+                    if (k.join_date) {
+                        const joinDate = new Date(k.join_date);
+                        $('#join_date').val(joinDate.toISOString().split('T')[0]);
+                    }
+
                     $('#employment_status').val(k.employment_status);
-                    $('#shift_type').val(k.shift_type);
+                    $('#work_schedule_id').val(k.work_schedule_id);
                     $('#address').val(k.address);
                     $('#city').val(k.city);
                     $('#province').val(k.province);
@@ -792,7 +810,7 @@
                 position_id: $('#position_id').val(),
                 join_date: $('#join_date').val(),
                 employment_status: $('#employment_status').val(),
-                shift_type: $('#shift_type').val(),
+                work_schedule_id: $('#work_schedule_id').val(),
                 address: $('#address').val(),
                 city: $('#city').val(),
                 province: $('#province').val(),
@@ -843,17 +861,32 @@
                 method: 'GET',
                 success: function(response) {
                     const k = response.data;
+
+                    // Format tanggal lahir (hanya tanggal, tanpa jam)
+                    let birthDateFormatted = k.birth_date;
+                    if (k.birth_date) {
+                        const birthDate = new Date(k.birth_date);
+                        birthDateFormatted = birthDate.toISOString().split('T')[0];
+                    }
+
+                    // Format tanggal bergabung (hanya tanggal, tanpa jam)
+                    let joinDateFormatted = k.join_date;
+                    if (k.join_date) {
+                        const joinDate = new Date(k.join_date);
+                        joinDateFormatted = joinDate.toISOString().split('T')[0];
+                    }
+
                     $('#detailEmployeeCode').text(k.employee_code);
                     $('#detailNik').text(k.nik || '-');
                     $('#detailName').text(k.name);
                     $('#detailGender').text(k.gender === 'L' ? 'Laki-laki' : 'Perempuan');
-                    $('#detailBirth').text(`${k.birth_place}, ${k.birth_date}`);
+                    $('#detailBirth').text(`${k.birth_place}, ${birthDateFormatted}`);
                     $('#detailMaritalStatus').text(k.marital_status);
                     $('#detailDepartment').text(k.department ? k.department.name : '-');
                     $('#detailPosition').text(k.position ? k.position.name : '-');
-                    $('#detailJoinDate').text(k.join_date);
+                    $('#detailJoinDate').text(joinDateFormatted);
                     $('#detailEmploymentStatus').text(k.employment_status);
-                    $('#detailShiftType').text(k.shift_type);
+                    $('#detailShiftType').text(k.work_schedule ? k.work_schedule.name : '-');
                     $('#detailStatus').html(getStatusBadge(k.status));
                     $('#detailAddress').text(k.address);
                     $('#detailCity').text(k.city);

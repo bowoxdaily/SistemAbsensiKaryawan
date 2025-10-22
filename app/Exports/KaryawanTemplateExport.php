@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Models\Department;
 use App\Models\Position;
+use App\Models\WorkSchedule;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
@@ -16,6 +17,7 @@ class KaryawanTemplateExport implements WithHeadings, WithStyles, WithColumnWidt
 {
     protected $departments;
     protected $positions;
+    protected $workSchedules;
 
     public function __construct()
     {
@@ -25,6 +27,11 @@ class KaryawanTemplateExport implements WithHeadings, WithStyles, WithColumnWidt
             ->toArray();
 
         $this->positions = Position::where('status', 'active')
+            ->orderBy('name')
+            ->pluck('name')
+            ->toArray();
+
+        $this->workSchedules = WorkSchedule::where('is_active', true)
             ->orderBy('name')
             ->pluck('name')
             ->toArray();
@@ -46,7 +53,7 @@ class KaryawanTemplateExport implements WithHeadings, WithStyles, WithColumnWidt
             'Posisi',
             'Tanggal Bergabung',
             'Status Kerja',
-            'Jenis Shift',
+            'Jadwal Kerja',
             'Status',
             'Alamat',
             'Kota',
@@ -107,7 +114,7 @@ class KaryawanTemplateExport implements WithHeadings, WithStyles, WithColumnWidt
         $sheet->setCellValue('I2', 'Staff');
         $sheet->setCellValue('J2', '2020-01-01');
         $sheet->setCellValue('K2', 'Tetap');
-        $sheet->setCellValue('L2', 'Pagi');
+        $sheet->setCellValue('L2', 'Shift Pagi');
         $sheet->setCellValue('M2', 'Aktif');
         $sheet->setCellValue('N2', 'Jl. Contoh No. 123');
         $sheet->setCellValue('O2', 'Jakarta Selatan');
@@ -268,22 +275,24 @@ class KaryawanTemplateExport implements WithHeadings, WithStyles, WithColumnWidt
                     $sheet->getCell('K' . $i)->setDataValidation(clone $empStatusValidation);
                 }
 
-                // Set dropdown untuk Jenis Shift (Column L)
-                $shiftValidation = $sheet->getCell('L2')->getDataValidation();
-                $shiftValidation->setType(DataValidation::TYPE_LIST);
-                $shiftValidation->setErrorStyle(DataValidation::STYLE_INFORMATION);
-                $shiftValidation->setAllowBlank(false);
-                $shiftValidation->setShowInputMessage(true);
-                $shiftValidation->setShowErrorMessage(true);
-                $shiftValidation->setShowDropDown(true);
-                $shiftValidation->setErrorTitle('Input error');
-                $shiftValidation->setError('Pilih dari dropdown');
-                $shiftValidation->setPromptTitle('Jenis Shift');
-                $shiftValidation->setPrompt('Pilih jenis shift kerja');
-                $shiftValidation->setFormula1('"Pagi,Sore,Malam,Rotasi"');
+                // Set dropdown untuk Jadwal Kerja (Column L) - dari database
+                if (!empty($this->workSchedules)) {
+                    $scheduleValidation = $sheet->getCell('L2')->getDataValidation();
+                    $scheduleValidation->setType(DataValidation::TYPE_LIST);
+                    $scheduleValidation->setErrorStyle(DataValidation::STYLE_INFORMATION);
+                    $scheduleValidation->setAllowBlank(false);
+                    $scheduleValidation->setShowInputMessage(true);
+                    $scheduleValidation->setShowErrorMessage(true);
+                    $scheduleValidation->setShowDropDown(true);
+                    $scheduleValidation->setErrorTitle('Input error');
+                    $scheduleValidation->setError('Pilih dari dropdown');
+                    $scheduleValidation->setPromptTitle('Jadwal Kerja');
+                    $scheduleValidation->setPrompt('Pilih jadwal kerja dari list');
+                    $scheduleValidation->setFormula1('"' . implode(',', $this->workSchedules) . '"');
 
-                for ($i = 2; $i <= 1000; $i++) {
-                    $sheet->getCell('L' . $i)->setDataValidation(clone $shiftValidation);
+                    for ($i = 2; $i <= 1000; $i++) {
+                        $sheet->getCell('L' . $i)->setDataValidation(clone $scheduleValidation);
+                    }
                 }
 
                 // Set dropdown untuk Status Karyawan (Column M)

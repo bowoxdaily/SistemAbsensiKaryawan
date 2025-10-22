@@ -6,6 +6,7 @@ use App\Models\Karyawans;
 use App\Models\Department;
 use App\Models\Position;
 use App\Models\User;
+use App\Models\WorkSchedule;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -23,12 +24,14 @@ class KaryawanImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
 
     protected $departmentCache = [];
     protected $positionCache = [];
+    protected $workScheduleCache = [];
 
     public function __construct()
     {
         // Cache departments and positions to avoid repeated queries
         $this->departmentCache = Department::pluck('id', 'name')->toArray();
         $this->positionCache = Position::pluck('id', 'name')->toArray();
+        $this->workScheduleCache = WorkSchedule::where('is_active', true)->pluck('id', 'name')->toArray();
     }
 
     /**
@@ -59,7 +62,7 @@ class KaryawanImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
             'posisi',
             'tanggal_bergabung',
             'status_kerja',
-            'jenis_shift',
+            'jadwal_kerja',
             'status',
             'alamat',
             'kota',
@@ -82,6 +85,9 @@ class KaryawanImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
 
         // Get position ID
         $positionId = $this->positionCache[$row['posisi']] ?? null;
+
+        // Get work schedule ID
+        $workScheduleId = $this->workScheduleCache[$row['jadwal_kerja']] ?? null;
 
         // Convert gender
         $gender = $this->convertGender($row['jenis_kelamin']);
@@ -111,7 +117,7 @@ class KaryawanImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
                 'position_id' => $positionId,
                 'join_date' => $this->convertDate($row['tanggal_bergabung']),
                 'employment_status' => $row['status_kerja'],
-                'shift_type' => $row['jenis_shift'],
+                'work_schedule_id' => $workScheduleId,
                 'status' => $status,
                 'address' => $row['alamat'],
                 'city' => $row['kota'],

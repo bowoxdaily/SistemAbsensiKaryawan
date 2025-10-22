@@ -186,10 +186,8 @@ class AttendanceController extends Controller
 
             // Get work schedule to check if late
             $checkInTime = now();
-            // Match schedule by name with employee's shift_type
-            $schedule = WorkSchedule::where('name', 'LIKE', '%' . $employee->shift_type . '%')
-                ->where('is_active', true)
-                ->first();
+            // Get employee's work schedule
+            $schedule = $employee->workSchedule;
 
             $lateMinutes = 0;
             $status = 'hadir';

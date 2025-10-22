@@ -21,7 +21,7 @@ class Karyawans extends Model
         'position_id',
         'join_date',
         'employment_status',
-        'shift_type',
+        'work_schedule_id',
         'supervisor_id',
         'salary_base',
         'address',
@@ -61,5 +61,10 @@ class Karyawans extends Model
     public function supervisor(): BelongsTo
     {
         return $this->belongsTo(Karyawans::class, 'supervisor_id');
+    }
+
+    public function workSchedule(): BelongsTo
+    {
+        return $this->belongsTo(WorkSchedule::class, 'work_schedule_id');
     }
 }

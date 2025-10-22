@@ -215,8 +215,9 @@
 
                         <div class="mb-3">
                             <div class="form-check form-switch">
+                                <input type="hidden" name="is_active" value="0">
                                 <input class="form-check-input" type="checkbox" id="add_is_active" name="is_active"
-                                    checked>
+                                    value="1" checked>
                                 <label class="form-check-label" for="add_is_active">
                                     Aktifkan Jadwal
                                 </label>
@@ -281,7 +282,9 @@
 
                         <div class="mb-3">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="edit_is_active" name="is_active">
+                                <input type="hidden" name="is_active" value="0">
+                                <input class="form-check-input" type="checkbox" id="edit_is_active" name="is_active"
+                                    value="1">
                                 <label class="form-check-label" for="edit_is_active">
                                     Aktifkan Jadwal
                                 </label>
@@ -355,7 +358,8 @@
                                 const input = $(`#add_${key}`);
                                 input.addClass('is-invalid');
                                 input.siblings('.invalid-feedback').text(errors[key][
-                                0]);
+                                    0
+                                ]);
                             });
 
                             Swal.fire({
@@ -441,7 +445,8 @@
                                 const input = $(`#edit_${key}`);
                                 input.addClass('is-invalid');
                                 input.siblings('.invalid-feedback').text(errors[key][
-                                0]);
+                                    0
+                                ]);
                             });
 
                             Swal.fire({
