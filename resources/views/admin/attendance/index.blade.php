@@ -224,6 +224,12 @@
                                                     data-id="{{ $attendance->id }}">
                                                     <i class="bx bx-detail me-1"></i> Detail
                                                 </a>
+                                                <a class="dropdown-item text-danger delete-btn" href="javascript:void(0);"
+                                                    data-id="{{ $attendance->id }}"
+                                                    data-name="{{ $attendance->employee->name }}"
+                                                    data-date="{{ \Carbon\Carbon::parse($attendance->attendance_date)->locale('id')->translatedFormat('d F Y') }}">
+                                                    <i class="bx bx-trash me-1"></i> Hapus
+                                                </a>
                                             </div>
                                         </div>
                                     </td>
@@ -363,10 +369,10 @@
                                         </tr>
                                     </table>
                                     ${data.notes ? `
-                                                <div class="alert alert-info mt-3 mb-0">
-                                                    <strong>Catatan:</strong><br>${data.notes}
-                                                </div>
-                                            ` : ''}
+                                                        <div class="alert alert-info mt-3 mb-0">
+                                                            <strong>Catatan:</strong><br>${data.notes}
+                                                        </div>
+                                                    ` : ''}
                                 </div>
                             </div>
                         `);
@@ -377,6 +383,71 @@
                                 Gagal memuat detail absensi
                             </div>
                         `);
+                    }
+                });
+            });
+
+            // Delete attendance
+            $('.delete-btn').on('click', function() {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+                const date = $(this).data('date');
+
+                Swal.fire({
+                    title: 'Hapus Data Absensi?',
+                    html: `Apakah Anda yakin ingin menghapus data absensi:<br><strong>${name}</strong><br>Tanggal: <strong>${date}</strong>?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading
+                        Swal.fire({
+                            title: 'Menghapus...',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        // Send delete request
+                        $.ajax({
+                            url: `/admin/attendance/${id}`,
+                            method: 'DELETE',
+                            data: {
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function(response) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: response.message,
+                                    showConfirmButton: false,
+                                    timer: 2000
+                                }).then(() => {
+                                    // Reload page
+                                    window.location.reload();
+                                });
+                            },
+                            error: function(xhr) {
+                                let errorMessage = 'Gagal menghapus data absensi';
+                                if (xhr.responseJSON && xhr.responseJSON.message) {
+                                    errorMessage = xhr.responseJSON.message;
+                                }
+
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal!',
+                                    text: errorMessage,
+                                    confirmButtonText: 'OK'
+                                });
+                            }
+                        });
                     }
                 });
             });

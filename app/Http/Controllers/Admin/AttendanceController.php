@@ -573,6 +573,41 @@ class AttendanceController extends Controller
     }
 
     /**
+     * Delete attendance record
+     */
+    public function destroy($id)
+    {
+        try {
+            $attendance = Attendance::findOrFail($id);
+
+            // Store info for response
+            $employeeName = $attendance->employee->name;
+            $attendanceDate = Carbon::parse($attendance->attendance_date)->locale('id')->translatedFormat('d F Y');
+
+            // Delete photos if exist
+            if ($attendance->photo_in) {
+                Storage::disk('public')->delete($attendance->photo_in);
+            }
+            if ($attendance->photo_out) {
+                Storage::disk('public')->delete($attendance->photo_out);
+            }
+
+            // Delete attendance record
+            $attendance->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Data absensi {$employeeName} tanggal {$attendanceDate} berhasil dihapus"
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data absensi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Export attendance to Excel
      */
     public function export(Request $request)
