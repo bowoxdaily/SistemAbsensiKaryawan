@@ -731,7 +731,7 @@
                     return;
                 }
 
-                // Verify face is still detected
+
                 try {
                     await verifyFaceBeforeAction();
                 } catch (error) {
@@ -773,7 +773,23 @@
                         checkTodayAttendance();
                         loadMonthlySummary();
                     } else {
-                        Swal.fire('Error', result.message, 'error');
+
+                        if (response.status === 403 && result.shift_end) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Belum Saatnya Check-Out',
+                                html: `<div class="text-center">
+                                           <p class="mb-3"><strong>${result.message}</strong></p>
+                                           <div class="alert alert-warning mb-0">
+                                               <i class="bx bx-time"></i> Shift berakhir jam <strong>${result.shift_end}</strong><br>
+                                               <i class="bx bx-clock"></i> Sekarang jam <strong>${result.current_time}</strong>
+                                           </div>
+                                       </div>`,
+                                confirmButtonText: 'OK, Saya Mengerti'
+                            });
+                        } else {
+                            Swal.fire('Error', result.message, 'error');
+                        }
                         btn.disabled = false;
                         btn.innerHTML = '<i class="bx bx-log-out-circle me-2"></i>Check Out Sekarang';
                     }

@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class AttendanceController extends Controller
@@ -49,7 +50,7 @@ class AttendanceController extends Controller
             }
 
             $employee = Employee::where('user_id', $user->id)
-                ->with(['department', 'position'])
+                ->with(['department', 'position', 'workSchedule'])
                 ->first();
 
             if (!$employee) {
@@ -57,6 +58,14 @@ class AttendanceController extends Controller
                     'success' => false,
                     'message' => 'Data karyawan tidak ditemukan untuk user ini. Silakan hubungi administrator.'
                 ], 404);
+            }
+
+            // Format shift info
+            $employee->shift_type = $employee->workSchedule ? $employee->workSchedule->name : '-';
+            if ($employee->workSchedule) {
+                $startTime = Carbon::parse($employee->workSchedule->start_time)->format('H:i');
+                $endTime = Carbon::parse($employee->workSchedule->end_time)->format('H:i');
+                $employee->shift_type .= ' (' . $startTime . ' - ' . $endTime . ')';
             }
 
             return response()->json([
@@ -321,6 +330,44 @@ class AttendanceController extends Controller
                     'success' => false,
                     'message' => 'Anda sudah melakukan check-out hari ini pada ' . $attendance->check_out
                 ], 400);
+            }
+
+            // Validate check-out time based on work schedule
+            $schedule = $employee->workSchedule;
+
+            // Check if schedule exists
+            if (!$schedule || !$schedule->end_time) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Jadwal shift tidak ditemukan. Hubungi admin.'
+                ], 403);
+            }
+
+            try {
+                $now = Carbon::now();
+
+                // Parse end_time using Carbon (same as work-schedule.blade.php)
+                $endTime = Carbon::parse($schedule->end_time);
+                $endTimeFormatted = $endTime->format('H:i');
+
+                // Create scheduled end time for today
+                $scheduledEndTime = Carbon::today()->setTime($endTime->hour, $endTime->minute, 0);
+
+                // Block checkout if current time is before scheduled end time
+                if ($now->lessThan($scheduledEndTime)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Belum saatnya check-out',
+                        'shift_end' => $endTimeFormatted,
+                        'current_time' => $now->format('H:i')
+                    ], 403);
+                }
+            } catch (\Exception $e) {
+                // If parsing fails, log and allow checkout (fail-safe)
+                Log::warning('Failed to parse work schedule end_time: ' . $e->getMessage(), [
+                    'schedule_id' => $schedule->id,
+                    'end_time' => $schedule->end_time
+                ]);
             }
 
             // Save photo
