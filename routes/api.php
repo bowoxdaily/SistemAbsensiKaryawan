@@ -46,6 +46,11 @@ Route::prefix('attendance')->group(function () {
     Route::post('/manual', [AttendanceController::class, 'manualEntry']);
 });
 
+// Admin Attendance API
+Route::prefix('admin/attendance')->group(function () {
+    Route::get('/{id}/detail', [AttendanceController::class, 'detail']);
+});
+
 // Employee Routes (for logged-in employees)
 // Use web middleware to access session-based auth
 Route::middleware('web')->prefix('employee')->group(function () {
@@ -55,4 +60,5 @@ Route::middleware('web')->prefix('employee')->group(function () {
     Route::post('/attendance/check-out', [\App\Http\Controllers\Employee\AttendanceController::class, 'checkOut']);
     Route::get('/attendance/history', [\App\Http\Controllers\Employee\AttendanceController::class, 'history']);
     Route::get('/attendance/summary', [\App\Http\Controllers\Employee\AttendanceController::class, 'summary']);
+    Route::get('/attendance/{id}/detail', [\App\Http\Controllers\Employee\AttendanceController::class, 'detail']);
 });

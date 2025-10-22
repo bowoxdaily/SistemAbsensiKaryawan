@@ -30,7 +30,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admin/karyawan/import', [KaryawanController::class, 'import'])->name('admin.karyawan.import');
     Route::get('/admin/karyawan/template', [KaryawanController::class, 'downloadTemplate'])->name('admin.karyawan.template');
     Route::get('/admin/positions', [PositionController::class, 'dashboard'])->name('admin.positions.index');
+
+    // Attendance Routes
     Route::get('/admin/attendance', [AttendanceController::class, 'index'])->name('admin.attendance.index');
+    Route::get('/admin/attendance/face-detection', [AttendanceController::class, 'faceDetection'])->name('admin.attendance.face-detection');
+    Route::get('/admin/attendance/report', [AttendanceController::class, 'report'])->name('admin.attendance.report');
+    Route::get('/admin/attendance/export', [AttendanceController::class, 'export'])->name('admin.attendance.export');
 
     // Office Settings
     Route::get('/admin/settings/office', [OfficeSettingController::class, 'index'])->name('admin.settings.office');
@@ -47,6 +52,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Employee Routes
     Route::get('/employee/attendance', [\App\Http\Controllers\Employee\AttendanceController::class, 'index'])->name('employee.attendance.index');
+    Route::get('/employee/attendance/history', [\App\Http\Controllers\Employee\AttendanceController::class, 'historyPage'])->name('employee.attendance.history');
 
 
 

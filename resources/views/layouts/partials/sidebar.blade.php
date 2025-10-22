@@ -100,18 +100,26 @@
                 <span class="menu-header-text">Absensi</span>
             </li>
 
-            <!-- Absensi Harian -->
-            <li class="menu-item {{ request()->routeIs('absensi.*') ? 'active' : '' }}">
-                <a href="#" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-calendar-check"></i>
-                    <div data-i18n="Absensi">Absensi Semua</div>
+            <!-- Daftar Absensi -->
+            <li class="menu-item {{ request()->routeIs('admin.attendance.index') ? 'active' : '' }}">
+                <a href="{{ route('admin.attendance.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-list-ul"></i>
+                    <div data-i18n="Absensi">Daftar Absensi</div>
+                </a>
+            </li>
+
+            <!-- Face Detection -->
+            <li class="menu-item {{ request()->routeIs('admin.attendance.face-detection') ? 'active' : '' }}">
+                <a href="{{ route('admin.attendance.face-detection') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-camera"></i>
+                    <div data-i18n="FaceDetection">Face Detection</div>
                 </a>
             </li>
 
             <!-- Rekap Absensi -->
-            <li class="menu-item {{ request()->routeIs('rekap.*') ? 'active' : '' }}">
-                <a href="#" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-file"></i>
+            <li class="menu-item {{ request()->routeIs('admin.attendance.report') ? 'active' : '' }}">
+                <a href="{{ route('admin.attendance.report') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-bar-chart-alt-2"></i>
                     <div data-i18n="Rekap">Rekap & Laporan</div>
                 </a>
             </li>
@@ -221,7 +229,7 @@
             </li>
 
             <!-- Absen Hari Ini -->
-            <li class="menu-item {{ request()->routeIs('my-attendance.*') ? 'active' : '' }}">
+            <li class="menu-item {{ request()->routeIs('employee.attendance.index') ? 'active' : '' }}">
                 <a href="{{ route('employee.attendance.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-fingerprint"></i>
                     <div data-i18n="MyAttendance">Absen Saya</div>
@@ -229,8 +237,8 @@
             </li>
 
             <!-- Riwayat Absensi -->
-            <li class="menu-item {{ request()->routeIs('rekap.*') ? 'active' : '' }}">
-                <a href="#" class="menu-link">
+            <li class="menu-item {{ request()->routeIs('employee.attendance.history') ? 'active' : '' }}">
+                <a href="{{ route('employee.attendance.history') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-history"></i>
                     <div data-i18n="Rekap">Riwayat Absensi</div>
                 </a>

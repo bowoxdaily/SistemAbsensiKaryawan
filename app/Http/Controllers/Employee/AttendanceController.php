@@ -482,6 +482,105 @@ class AttendanceController extends Controller
     }
 
     /**
+     * Display attendance history page
+     */
+    public function historyPage(Request $request)
+    {
+        $user = Auth::user();
+        $employee = Employee::where('user_id', $user->id)->first();
+
+        if (!$employee) {
+            return redirect()->route('admin.attendance.index')
+                ->with('info', 'Anda tidak memiliki data karyawan. Silakan gunakan panel admin.');
+        }
+
+        // Get filter parameters - convert to integer to avoid Carbon error
+        $month = (int) $request->get('month', date('m'));
+        $year = (int) $request->get('year', date('Y'));
+        $status = $request->get('status');
+
+        // Build query
+        $query = Attendance::where('employee_id', $employee->id)
+            ->whereYear('attendance_date', $year)
+            ->whereMonth('attendance_date', $month);
+
+        // Apply status filter if provided
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        // Get attendance records with pagination
+        $attendances = $query->orderBy('attendance_date', 'desc')
+            ->paginate(20)
+            ->appends($request->all());
+
+        // Calculate statistics for the filtered period
+        $stats = [
+            'hadir' => Attendance::where('employee_id', $employee->id)
+                ->whereYear('attendance_date', $year)
+                ->whereMonth('attendance_date', $month)
+                ->where('status', 'hadir')
+                ->count(),
+            'terlambat' => Attendance::where('employee_id', $employee->id)
+                ->whereYear('attendance_date', $year)
+                ->whereMonth('attendance_date', $month)
+                ->where('status', 'terlambat')
+                ->count(),
+            'izin' => Attendance::where('employee_id', $employee->id)
+                ->whereYear('attendance_date', $year)
+                ->whereMonth('attendance_date', $month)
+                ->where('status', 'izin')
+                ->count(),
+            'alpha' => Attendance::where('employee_id', $employee->id)
+                ->whereYear('attendance_date', $year)
+                ->whereMonth('attendance_date', $month)
+                ->where('status', 'alpha')
+                ->count(),
+        ];
+
+        return view('employee.attendance.history', compact('attendances', 'stats', 'month', 'year', 'employee'));
+    }
+
+    /**
+     * Get attendance detail
+     */
+    public function detail($id)
+    {
+        try {
+            $user = Auth::user();
+            $employee = Employee::where('user_id', $user->id)->first();
+
+            if (!$employee) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data karyawan tidak ditemukan'
+                ], 404);
+            }
+
+            $attendance = Attendance::where('id', $id)
+                ->where('employee_id', $employee->id)
+                ->first();
+
+            if (!$attendance) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data absensi tidak ditemukan'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $attendance
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil detail absensi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Save base64 image to storage
      */
     private function saveBase64Image($base64String, $path)

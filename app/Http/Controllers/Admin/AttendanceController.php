@@ -10,15 +10,64 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AttendanceController extends Controller
 {
     /**
      * Display attendance dashboard
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('admin.attendance.index');
+        // Get filter parameters
+        $search = $request->get('search');
+        $dateFrom = $request->get('date_from', now()->startOfMonth()->format('Y-m-d'));
+        $dateTo = $request->get('date_to', now()->format('Y-m-d'));
+        $status = $request->get('status');
+        $department = $request->get('department');
+
+        // Build query
+        $query = Attendance::with(['employee.department', 'employee.position', 'employee.workSchedule']);
+
+        // Apply filters
+        if ($search) {
+            $query->whereHas('employee', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('employee_code', 'like', "%{$search}%");
+            });
+        }
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        if ($department) {
+            $query->whereHas('employee', function ($q) use ($department) {
+                $q->where('department_id', $department);
+            });
+        }
+
+        $query->whereBetween('attendance_date', [$dateFrom, $dateTo]);
+
+        // Get paginated results
+        $attendances = $query->orderBy('attendance_date', 'desc')
+            ->orderBy('check_in', 'desc')
+            ->paginate(20)
+            ->appends($request->all());
+
+        // Get statistics
+        $stats = [
+            'total' => Attendance::whereBetween('attendance_date', [$dateFrom, $dateTo])->count(),
+            'hadir' => Attendance::where('status', 'hadir')->whereBetween('attendance_date', [$dateFrom, $dateTo])->count(),
+            'terlambat' => Attendance::where('status', 'terlambat')->whereBetween('attendance_date', [$dateFrom, $dateTo])->count(),
+            'izin' => Attendance::where('status', 'izin')->whereBetween('attendance_date', [$dateFrom, $dateTo])->count(),
+            'alpha' => Attendance::where('status', 'alpha')->whereBetween('attendance_date', [$dateFrom, $dateTo])->count(),
+        ];
+
+        // Get departments for filter
+        $departments = \App\Models\Department::orderBy('name')->get();
+
+        return view('admin.attendance.index', compact('attendances', 'stats', 'departments', 'dateFrom', 'dateTo'));
     }
 
     /**
@@ -376,5 +425,167 @@ class AttendanceController extends Controller
                 'message' => 'Gagal menyimpan data absensi: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Display face detection page
+     */
+    public function faceDetection()
+    {
+        return view('admin.attendance.face-detection');
+    }
+
+    /**
+     * Display report and analytics page
+     */
+    public function report(Request $request)
+    {
+        $year = $request->get('year', now()->year);
+        $month = $request->get('month', now()->month);
+        $department = $request->get('department');
+
+        // Get date range for selected month
+        $startDate = Carbon::create($year, $month, 1)->startOfMonth();
+        $endDate = Carbon::create($year, $month, 1)->endOfMonth();
+
+        // Base query
+        $query = Attendance::whereBetween('attendance_date', [$startDate, $endDate]);
+
+        if ($department) {
+            $query->whereHas('employee', function ($q) use ($department) {
+                $q->where('department_id', $department);
+            });
+        }
+
+        // Get statistics
+        $totalAttendance = $query->count();
+        $hadirCount = (clone $query)->where('status', 'hadir')->count();
+        $terlambatCount = (clone $query)->where('status', 'terlambat')->count();
+        $izinCount = (clone $query)->where('status', 'izin')->count();
+        $alphaCount = (clone $query)->where('status', 'alpha')->count();
+
+        // Get daily statistics for chart
+        $dailyStats = Attendance::selectRaw('DATE(attendance_date) as date, status, COUNT(*) as count')
+            ->whereBetween('attendance_date', [$startDate, $endDate])
+            ->when($department, function ($q) use ($department) {
+                return $q->whereHas('employee', function ($subQ) use ($department) {
+                    $subQ->where('department_id', $department);
+                });
+            })
+            ->groupBy('date', 'status')
+            ->orderBy('date')
+            ->get();
+
+        // Get department statistics
+        $departmentStats = Attendance::selectRaw('departments.name as department, attendances.status, COUNT(*) as count')
+            ->join('employees', 'attendances.employee_id', '=', 'employees.id')
+            ->join('departments', 'employees.department_id', '=', 'departments.id')
+            ->whereBetween('attendance_date', [$startDate, $endDate])
+            ->when($department, function ($q) use ($department) {
+                return $q->where('departments.id', $department);
+            })
+            ->groupBy('departments.name', 'attendances.status')
+            ->get();
+
+        // Get top late employees
+        $topLateEmployees = Attendance::selectRaw('employees.name, employees.employee_code, SUM(attendances.late_minutes) as total_late, COUNT(*) as late_count')
+            ->join('employees', 'attendances.employee_id', '=', 'employees.id')
+            ->where('attendances.status', 'terlambat')
+            ->whereBetween('attendance_date', [$startDate, $endDate])
+            ->when($department, function ($q) use ($department) {
+                return $q->where('employees.department_id', $department);
+            })
+            ->groupBy('employees.id', 'employees.name', 'employees.employee_code')
+            ->orderBy('total_late', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Get departments for filter
+        $departments = \App\Models\Department::orderBy('name')->get();
+
+        // Prepare chart data
+        $chartData = $this->prepareChartData($dailyStats, $startDate, $endDate);
+
+        return view('admin.attendance.report', compact(
+            'totalAttendance',
+            'hadirCount',
+            'terlambatCount',
+            'izinCount',
+            'alphaCount',
+            'dailyStats',
+            'departmentStats',
+            'topLateEmployees',
+            'departments',
+            'chartData',
+            'year',
+            'month',
+            'department'
+        ));
+    }
+
+    /**
+     * Prepare data for charts
+     */
+    private function prepareChartData($dailyStats, $startDate, $endDate)
+    {
+        $dates = [];
+        $hadir = [];
+        $terlambat = [];
+        $izin = [];
+        $alpha = [];
+
+        $current = $startDate->copy();
+        while ($current <= $endDate) {
+            $dateStr = $current->format('Y-m-d');
+            $dates[] = $current->format('d/m');
+
+            $dayStats = $dailyStats->where('date', $dateStr);
+
+            $hadir[] = $dayStats->where('status', 'hadir')->sum('count');
+            $terlambat[] = $dayStats->where('status', 'terlambat')->sum('count');
+            $izin[] = $dayStats->where('status', 'izin')->sum('count');
+            $alpha[] = $dayStats->where('status', 'alpha')->sum('count');
+
+            $current->addDay();
+        }
+
+        return [
+            'dates' => $dates,
+            'hadir' => $hadir,
+            'terlambat' => $terlambat,
+            'izin' => $izin,
+            'alpha' => $alpha,
+        ];
+    }
+
+    /**
+     * Get attendance detail
+     */
+    public function detail($id)
+    {
+        $attendance = Attendance::with(['employee.department', 'employee.position', 'employee.workSchedule'])
+            ->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $attendance
+        ]);
+    }
+
+    /**
+     * Export attendance to Excel
+     */
+    public function export(Request $request)
+    {
+        $dateFrom = $request->get('date_from', now()->startOfMonth()->format('Y-m-d'));
+        $dateTo = $request->get('date_to', now()->format('Y-m-d'));
+        $status = $request->get('status');
+        $department = $request->get('department');
+        $search = $request->get('search');
+
+        return Excel::download(
+            new \App\Exports\AttendanceExport($dateFrom, $dateTo, $status, $department, $search),
+            'absensi_' . $dateFrom . '_' . $dateTo . '.xlsx'
+        );
     }
 }
