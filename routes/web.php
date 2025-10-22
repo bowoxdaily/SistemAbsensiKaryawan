@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\KaryawanController;
 use App\Http\Controllers\Admin\PositionController;
 use App\Http\Controllers\Admin\OfficeSettingController;
 use App\Http\Controllers\Admin\WorkScheduleController;
+use App\Http\Controllers\Admin\CronJobController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\LoginController;
@@ -50,6 +51,14 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/admin/settings/work-schedule/{id}', [WorkScheduleController::class, 'update'])->name('admin.settings.work-schedule.update');
     Route::delete('/admin/settings/work-schedule/{id}', [WorkScheduleController::class, 'destroy'])->name('admin.settings.work-schedule.destroy');
     Route::post('/admin/settings/work-schedule/{id}/toggle', [WorkScheduleController::class, 'toggleStatus'])->name('admin.settings.work-schedule.toggle');
+
+    // Cron Job Settings
+    Route::get('/admin/settings/cronjob', [CronJobController::class, 'index'])->name('admin.settings.cronjob');
+    Route::post('/admin/settings/cronjob/test', [CronJobController::class, 'testCommand'])->name('admin.settings.cronjob.test');
+    Route::post('/admin/settings/cronjob/run', [CronJobController::class, 'runScheduler'])->name('admin.settings.cronjob.run');
+    Route::get('/admin/settings/cronjob/list', [CronJobController::class, 'getScheduleList'])->name('admin.settings.cronjob.list');
+    Route::get('/admin/settings/cronjob/status', [CronJobController::class, 'checkStatus'])->name('admin.settings.cronjob.status');
+    Route::get('/admin/settings/cronjob/command', [CronJobController::class, 'getCronCommand'])->name('admin.settings.cronjob.command');
 
     // Employee Routes
     Route::get('/employee/attendance', [\App\Http\Controllers\Employee\AttendanceController::class, 'index'])->name('employee.attendance.index');

@@ -153,7 +153,13 @@
                 </a>
             </li>
 
-
+            <!-- Cron Job -->
+            <li class="menu-item {{ request()->routeIs('admin.settings.cronjob*') ? 'active' : '' }}">
+                <a href="{{ route('admin.settings.cronjob') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-calendar-check"></i>
+                    <div data-i18n="Cron Job">Cron Job</div>
+                </a>
+            </li>
 
             <!-- Users -->
             <li class="menu-item {{ request()->routeIs('users.*') ? 'active' : '' }}">

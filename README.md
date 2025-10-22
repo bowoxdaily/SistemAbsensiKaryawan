@@ -224,11 +224,32 @@ Akses aplikasi di: `http://localhost:8000`
 
 ## ⚙️ Konfigurasi
 
-### 1. Setup Cron Job (Untuk Auto-Generate Alpha)
+### 1. Setup Cron Job (PENTING! - Untuk Auto-Generate Alpha)
 
-Agar sistem otomatis menandai karyawan yang tidak absen sebagai alpha, setup cron job berikut:
+**📌 Cara Mudah via Dashboard Admin:**
 
-**Linux/Mac:**
+1. Login sebagai Admin
+2. Buka menu **Pengaturan → Cron Job**
+3. Pilih platform hosting Anda (Linux/Windows)
+4. Klik tombol **Copy** untuk copy command
+5. Paste ke cPanel/Plesk/Task Scheduler
+6. Klik **Check Status** untuk verifikasi
+
+**✅ Fitur Auto-Detect:**
+
+-   System otomatis detect OS, PHP path, dan base path
+-   Command sudah siap pakai, tinggal copy-paste
+-   Panduan lengkap untuk cPanel, Plesk, VPS, dan Windows
+-   Monitor status cron real-time
+
+**📖 Dokumentasi Lengkap:**
+
+-   Quick Start: Lihat file `CRONJOB_QUICKSTART.md`
+-   Tutorial Detail: Lihat file `CRONJOB_SETUP.md`
+
+**🔧 Manual Setup (jika tidak pakai dashboard):**
+
+**Linux/Mac (cPanel/Plesk/VPS):**
 
 ```bash
 # Edit crontab
@@ -241,18 +262,17 @@ crontab -e
 **Windows (Task Scheduler):**
 
 ```powershell
-# Buka Task Scheduler, buat task baru dengan action:
+# Buka Task Scheduler, buat task baru dengan:
 # Program: C:\Path\To\PHP\php.exe
 # Arguments: artisan schedule:run
 # Start in: D:\Project\SistemAbsensiKaryawan
 # Trigger: Daily, repeat every 1 minute
 ```
 
-Atau jalankan command PowerShell:
-
-```powershell
-schtasks /create /sc minute /mo 1 /tn "Laravel Scheduler - Absensi" /tr "cd D:\Project\SistemAbsensiKaryawan && php artisan schedule:run"
-```
+**📊 Scheduled Tasks yang Berjalan:**
+| Command | Jadwal | Fungsi |
+|---------|--------|--------|
+| `attendance:generate-absent` | Setiap hari 23:59 | Auto-generate absensi alpha |
 
 ### 2. Verifikasi Schedule
 
