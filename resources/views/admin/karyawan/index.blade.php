@@ -14,10 +14,10 @@
             </div>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#importModal">
-                    <i class='bx bx-upload me-1'></i> <span class="d-none d-sm-inline">Import</span>
+                    <i class='bx bx-download me-1'></i> <span class="d-none d-sm-inline">Import</span>
                 </button>
                 <a href="#" class="btn btn-success btn-sm" id="exportBtn" onclick="exportKaryawan(); return false;">
-                    <i class='bx bx-download me-1'></i> <span class="d-none d-sm-inline">Export Excel</span>
+                    <i class='bx bx-upload me-1'></i> <span class="d-none d-sm-inline">Export Excel</span>
                 </a>
                 <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#karyawanModal"
                     onclick="openCreateModal()">
