@@ -869,6 +869,12 @@ Sistem menggunakan Laravel Scheduler untuk menjalankan task otomatis:
 | ---------------------------- | ----------- | ---------------------------------------------- |
 | `attendance:generate-absent` | 23:59 daily | Generate alpha untuk karyawan yang tidak absen |
 
+**⚠️ PENTING - Integrasi dengan Sistem Cuti:**
+
+-   Cronjob **TIDAK AKAN** mark karyawan sebagai alpha jika mereka punya cuti/izin yang sudah di-approve
+-   Hanya karyawan yang benar-benar tidak masuk tanpa izin yang akan di-mark alpha
+-   Detail lengkap: [CRONJOB_LEAVE_INTEGRATION.md](./CRONJOB_LEAVE_INTEGRATION.md)
+
 **Monitoring:**
 
 ```bash
@@ -877,6 +883,9 @@ php artisan schedule:list
 
 # Test run schedule (tanpa tunggu waktu)
 php artisan schedule:run
+
+# Test untuk tanggal spesifik
+php artisan attendance:generate-absent 2025-10-25
 
 # Monitor execution logs
 tail -f storage/logs/laravel.log
@@ -898,6 +907,7 @@ Dokumentasi lengkap tersedia di folder root project:
 -   **[LAYOUT_README.md](./LAYOUT_README.md)**: Dokumentasi struktur layout dan template
 -   **[SWEETALERT_IMPLEMENTATION.md](./SWEETALERT_IMPLEMENTATION.md)**: Dokumentasi implementasi SweetAlert
 -   **[AUTO_ALPHA_ATTENDANCE.md](./AUTO_ALPHA_ATTENDANCE.md)**: Dokumentasi sistem auto-generate alpha
+-   **[CRONJOB_LEAVE_INTEGRATION.md](./CRONJOB_LEAVE_INTEGRATION.md)**: 🔥 Integrasi cronjob dengan sistem cuti/izin
 
 ---
 

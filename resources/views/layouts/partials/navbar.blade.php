@@ -34,13 +34,13 @@
                     <div class="avatar avatar-online">
                         @if (Auth::user()->role == 'admin' && Auth::user()->profile_photo)
                             <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt
-                                class="w-px-40 h-auto rounded-circle" style="object-fit: cover;" />
+                                class="w-px-40 h-px-40 rounded-circle" style="object-fit: cover;" />
                         @elseif (Auth::user()->employee && Auth::user()->employee->profile_photo)
                             <img src="{{ asset('storage/' . Auth::user()->employee->profile_photo) }}" alt
-                                class="w-px-40 h-auto rounded-circle" style="object-fit: cover;" />
+                                class="w-px-40 h-px-40 rounded-circle" style="object-fit: cover;" />
                         @else
                             <img src="{{ asset('sneat-1.0.0/assets/img/avatars/1.png') }}" alt
-                                class="w-px-40 h-auto rounded-circle" />
+                                class="w-px-40 h-px-40 rounded-circle" />
                         @endif
                     </div>
                 </a>
@@ -52,13 +52,13 @@
                                     <div class="avatar avatar-online">
                                         @if (Auth::user()->role == 'admin' && Auth::user()->profile_photo)
                                             <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt
-                                                class="w-px-40 h-auto rounded-circle" style="object-fit: cover;" />
+                                                class="w-px-40 h-px-40 rounded-circle" style="object-fit: cover;" />
                                         @elseif (Auth::user()->employee && Auth::user()->employee->profile_photo)
                                             <img src="{{ asset('storage/' . Auth::user()->employee->profile_photo) }}"
-                                                alt class="w-px-40 h-auto rounded-circle" style="object-fit: cover;" />
+                                                alt class="w-px-40 h-px-40 rounded-circle" style="object-fit: cover;" />
                                         @else
                                             <img src="{{ asset('sneat-1.0.0/assets/img/avatars/1.png') }}" alt
-                                                class="w-px-40 h-auto rounded-circle" />
+                                                class="w-px-40 h-px-40 rounded-circle" />
                                         @endif
                                     </div>
                                 </div>
@@ -109,6 +109,31 @@
         </ul>
     </div>
 </nav>
+
+@push('styles')
+    <style>
+        /* Ensure dropdown appears below navbar */
+        .navbar-dropdown .dropdown-menu {
+            z-index: 1050 !important;
+            margin-top: 0.5rem !important;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Fix for dropdown positioning */
+        .layout-navbar {
+            position: relative;
+            z-index: 1000;
+        }
+
+        /* Avatar in dropdown should be visible */
+        .dropdown-menu .avatar,
+        .dropdown-menu .avatar img,
+        .dropdown-menu .avatar-initial {
+            position: relative;
+            z-index: 1051;
+        }
+    </style>
+@endpush
 
 @push('scripts')
     <script>

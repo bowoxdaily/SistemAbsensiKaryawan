@@ -20,6 +20,11 @@ class ProfileController extends Controller
      */
     public function index()
     {
+        // Security: Ensure only employee can access their own profile
+        if (Auth::user()->role === 'admin') {
+            return redirect()->route('admin.profile.index');
+        }
+
         $employee = Employee::with(['department', 'position'])
             ->where('user_id', Auth::id())
             ->firstOrFail();
@@ -51,6 +56,11 @@ class ProfileController extends Controller
      */
     public function update(Request $request)
     {
+        // Security: Ensure only employee can update their own profile
+        if (Auth::user()->role === 'admin') {
+            abort(403, 'Unauthorized action.');
+        }
+
         $employee = Employee::where('user_id', Auth::id())->firstOrFail();
 
         $validated = $request->validate([
@@ -80,6 +90,11 @@ class ProfileController extends Controller
      */
     public function updatePhoto(Request $request)
     {
+        // Security: Ensure only employee can update their own photo
+        if (Auth::user()->role === 'admin') {
+            abort(403, 'Unauthorized action.');
+        }
+
         $employee = Employee::where('user_id', Auth::id())->firstOrFail();
 
         $request->validate([
@@ -122,6 +137,11 @@ class ProfileController extends Controller
      */
     public function updatePassword(Request $request)
     {
+        // Security: Ensure only employee can update their own password
+        if (Auth::user()->role === 'admin') {
+            abort(403, 'Unauthorized action.');
+        }
+
         $employee = Employee::where('user_id', Auth::id())->firstOrFail();
 
         $request->validate([

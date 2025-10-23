@@ -175,6 +175,10 @@
                                                 <span class="badge bg-label-info">Izin</span>
                                             @elseif($absensi->status == 'sakit')
                                                 <span class="badge bg-label-secondary">Sakit</span>
+                                            @elseif($absensi->status == 'cuti')
+                                                <span class="badge bg-label-primary">Cuti</span>
+                                            @elseif($absensi->status == 'alpha')
+                                                <span class="badge bg-label-danger">Alpha</span>
                                             @else
                                                 <span class="badge bg-label-danger">{{ ucfirst($absensi->status) }}</span>
                                             @endif
@@ -220,6 +224,10 @@
                                                 <span class="badge bg-info">Izin</span>
                                             @elseif($absensi->status == 'sakit')
                                                 <span class="badge bg-secondary">Sakit</span>
+                                            @elseif($absensi->status == 'cuti')
+                                                <span class="badge bg-primary">Cuti</span>
+                                            @elseif($absensi->status == 'alpha')
+                                                <span class="badge bg-danger">Alpha</span>
                                             @else
                                                 <span class="badge bg-danger">{{ ucfirst($absensi->status) }}</span>
                                             @endif

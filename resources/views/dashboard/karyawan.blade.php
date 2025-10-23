@@ -287,37 +287,102 @@
                             <span class="d-none d-sm-inline">Pengajuan Cuti Anda</span>
                             <span class="d-sm-none">Pengajuan Cuti</span>
                         </h5>
-                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalCuti">
-                            <i class="bx bx-plus"></i>
-                            <span class="d-none d-sm-inline">Ajukan Cuti</span>
-                            <span class="d-sm-none">Ajukan</span>
-                        </button>
+                        <div>
+                            <a href="{{ route('employee.leave.index') }}" class="btn btn-sm btn-outline-primary me-2">
+                                <span class="d-none d-sm-inline">Lihat Semua</span>
+                                <span class="d-sm-none">Semua</span>
+                            </a>
+                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalCuti">
+                                <i class="bx bx-plus"></i>
+                                <span class="d-none d-sm-inline">Ajukan Cuti</span>
+                                <span class="d-sm-none">Ajukan</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body">
                         @forelse($cutiPending as $cuti)
-                            <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
-                                <div class="flex-grow-1 me-2">
-                                    <h6 class="mb-1">{{ ucfirst($cuti->leave_type) }} - {{ $cuti->total_days }} hari
-                                    </h6>
-                                    <small
-                                        class="text-muted">{{ \Carbon\Carbon::parse($cuti->start_date)->format('d M Y') }}
-                                        - {{ \Carbon\Carbon::parse($cuti->end_date)->format('d M Y') }}</small><br>
-                                    <small><strong>Alasan:</strong> {{ Str::limit($cuti->reason, 50) }}</small>
+                            <div class="mb-3 pb-3 border-bottom">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1 me-2">
+                                        <h6 class="mb-1">
+                                            @if ($cuti->leave_type == 'cuti')
+                                                <i class='bx bx-calendar text-primary'></i>
+                                            @elseif($cuti->leave_type == 'izin')
+                                                <i class='bx bx-time-five text-info'></i>
+                                            @else
+                                                <i class='bx bx-first-aid text-secondary'></i>
+                                            @endif
+                                            {{ ucfirst($cuti->leave_type) }} - {{ $cuti->total_days }} hari
+                                        </h6>
+                                        <small class="text-muted">
+                                            <i class='bx bx-calendar-check'></i>
+                                            {{ \Carbon\Carbon::parse($cuti->start_date)->format('d M Y') }}
+                                            - {{ \Carbon\Carbon::parse($cuti->end_date)->format('d M Y') }}
+                                        </small><br>
+                                        <small><strong>Alasan:</strong> {{ Str::limit($cuti->reason, 50) }}</small>
+
+                                        @if ($cuti->attachment)
+                                            <br><small class="text-muted">
+                                                <i class='bx bx-paperclip'></i> Ada lampiran
+                                            </small>
+                                        @endif
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        @if ($cuti->status == 'pending')
+                                            <span class="badge bg-warning">
+                                                <i class='bx bx-time'></i> Pending
+                                            </span>
+                                        @elseif($cuti->status == 'approved')
+                                            <span class="badge bg-success">
+                                                <i class='bx bx-check-circle'></i> Disetujui
+                                            </span>
+                                        @else
+                                            <span class="badge bg-danger">
+                                                <i class='bx bx-x-circle'></i> Ditolak
+                                            </span>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div class="flex-shrink-0">
-                                    @if ($cuti->status == 'pending')
-                                        <span class="badge bg-label-warning">Pending</span>
-                                    @elseif($cuti->status == 'approved')
-                                        <span class="badge bg-label-success">Disetujui</span>
-                                    @else
-                                        <span class="badge bg-label-danger">Ditolak</span>
-                                    @endif
-                                </div>
+
+                                @if ($cuti->status == 'approved')
+                                    <div class="mt-2">
+                                        <div class="alert alert-success p-2 mb-0">
+                                            <small>
+                                                <i class='bx bx-info-circle'></i>
+                                                <strong>Info:</strong> Absensi Anda akan otomatis tercatat sebagai
+                                                <strong>"{{ ucfirst($cuti->leave_type) }}"</strong> oleh sistem pada
+                                                tanggal cuti.
+                                            </small>
+                                        </div>
+                                    </div>
+                                @elseif($cuti->status == 'pending')
+                                    <div class="mt-2">
+                                        <form action="{{ route('employee.leave.cancel', $cuti->id) }}" method="POST"
+                                            class="d-inline"
+                                            onsubmit="return confirm('Yakin ingin membatalkan pengajuan cuti ini?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class='bx bx-x'></i> Batalkan
+                                            </button>
+                                        </form>
+                                    </div>
+                                @elseif($cuti->status == 'rejected' && $cuti->rejection_reason)
+                                    <div class="mt-2">
+                                        <div class="alert alert-danger p-2 mb-0">
+                                            <small>
+                                                <i class='bx bx-error-circle'></i>
+                                                <strong>Alasan Ditolak:</strong> {{ $cuti->rejection_reason }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         @empty
                             <div class="text-center py-3">
                                 <i class='bx bx-calendar-event' style="font-size: 48px; color: #ccc;"></i>
                                 <p class="text-muted mt-2 mb-0">Tidak ada pengajuan cuti</p>
+                                <small class="text-muted">Klik "Ajukan Cuti" untuk mengajukan cuti/izin/sakit</small>
                             </div>
                         @endforelse
                     </div>
@@ -383,41 +448,88 @@
                         <h5 class="modal-title">Ajukan Cuti/Izin</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <form action="#" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('employee.leave.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="modal-body">
                             <div class="mb-3">
-                                <label class="form-label">Jenis</label>
-                                <select name="leave_type" class="form-control" required>
-                                    <option value="cuti">Cuti</option>
-                                    <option value="izin">Izin</option>
-                                    <option value="sakit">Sakit</option>
+                                <label class="form-label">Jenis <span class="text-danger">*</span></label>
+                                <select name="leave_type" class="form-select @error('leave_type') is-invalid @enderror"
+                                    required>
+                                    <option value="">Pilih Jenis</option>
+                                    <option value="cuti" {{ old('leave_type') == 'cuti' ? 'selected' : '' }}>Cuti
+                                    </option>
+                                    <option value="izin" {{ old('leave_type') == 'izin' ? 'selected' : '' }}>Izin
+                                    </option>
+                                    <option value="sakit" {{ old('leave_type') == 'sakit' ? 'selected' : '' }}>Sakit
+                                    </option>
                                 </select>
+                                @error('leave_type')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Tanggal Mulai</label>
-                                    <input type="date" name="start_date" class="form-control" required>
+                                    <label class="form-label">Tanggal Mulai <span class="text-danger">*</span></label>
+                                    <input type="date" name="start_date"
+                                        class="form-control @error('start_date') is-invalid @enderror"
+                                        value="{{ old('start_date', date('Y-m-d')) }}" min="{{ date('Y-m-d') }}"
+                                        required>
+                                    @error('start_date')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Tanggal Selesai</label>
-                                    <input type="date" name="end_date" class="form-control" required>
+                                    <label class="form-label">Tanggal Selesai <span class="text-danger">*</span></label>
+                                    <input type="date" name="end_date"
+                                        class="form-control @error('end_date') is-invalid @enderror"
+                                        value="{{ old('end_date', date('Y-m-d')) }}" min="{{ date('Y-m-d') }}" required>
+                                    @error('end_date')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Alasan</label>
-                                <textarea name="reason" class="form-control" rows="3" required></textarea>
+                                <label class="form-label">Alasan <span class="text-danger">*</span></label>
+                                <textarea name="reason" class="form-control @error('reason') is-invalid @enderror" rows="3"
+                                    placeholder="Jelaskan alasan cuti/izin Anda..." required>{{ old('reason') }}</textarea>
+                                @error('reason')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Lampiran (Opsional)</label>
-                                <input type="file" name="attachment" class="form-control">
-                                <small class="text-muted">Upload surat keterangan dokter jika sakit</small>
+                                <input type="file" name="attachment"
+                                    class="form-control @error('attachment') is-invalid @enderror"
+                                    accept=".jpg,.jpeg,.png,.pdf">
+                                <small class="text-muted">Format: JPG, PNG, PDF. Max 2MB. Upload surat keterangan jika
+                                    sakit.</small>
+                                @error('attachment')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="alert alert-info mb-2">
+                                <small><i class='bx bx-info-circle'></i> <strong>Catatan Penting:</strong></small><br>
+                                <small>✓ Pengajuan akan diproses oleh admin</small><br>
+                                <small>✓ Anda akan menerima notifikasi setelah disetujui/ditolak</small><br>
+                                <small>✓ Sisa cuti tahunan Anda: <strong>{{ $cutiTersedia - $cutiTerpakai }}
+                                        hari</strong></small>
+                            </div>
+
+                            <div class="alert alert-success mb-0">
+                                <small><i class='bx bx-check-shield'></i> <strong>Sistem Otomatis:</strong></small><br>
+                                <small>Jika cuti/izin/sakit Anda <strong>disetujui</strong>, sistem akan otomatis mencatat
+                                    absensi Anda dengan status sesuai jenis cuti pada tanggal yang diajukan.</small><br>
+                                <small class="text-success"><strong>✓ Tidak perlu absen manual</strong> saat cuti
+                                    approved!</small>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-outline-secondary"
                                 data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-primary">Ajukan</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class='bx bx-send'></i> Ajukan
+                            </button>
                         </div>
                     </form>
                 </div>

@@ -124,6 +124,14 @@
                 </a>
             </li>
 
+            <!-- Cuti & Izin -->
+            <li class="menu-item {{ request()->routeIs('admin.leave.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.leave.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-calendar-event"></i>
+                    <div data-i18n="Leave">Cuti & Izin</div>
+                </a>
+            </li>
+
             <!-- Menu Header - Pengaturan -->
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Pengaturan</span>
@@ -244,6 +252,14 @@
                 <a href="{{ route('employee.attendance.history') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-history"></i>
                     <div data-i18n="Rekap">Riwayat Absensi</div>
+                </a>
+            </li>
+
+            <!-- Cuti & Izin -->
+            <li class="menu-item {{ request()->routeIs('employee.leave.*') ? 'active' : '' }}">
+                <a href="{{ route('employee.leave.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-calendar-event"></i>
+                    <div data-i18n="Leave">Cuti & Izin</div>
                 </a>
             </li>
 

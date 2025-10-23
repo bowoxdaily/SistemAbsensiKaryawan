@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Employee;
 use App\Models\Attendance;
+use App\Models\Leave;
 use Carbon\Carbon;
 
 class GenerateAbsentAttendance extends Command
@@ -108,6 +109,32 @@ class GenerateAbsentAttendance extends Command
             if ($existingAttendance) {
                 // Attendance already exists, skip
                 $skippedCount++;
+                continue;
+            }
+
+            // IMPORTANT: Check if employee has approved leave for this date
+            $approvedLeave = Leave::where('employee_id', $employee->id)
+                ->where('status', 'approved')
+                ->whereDate('start_date', '<=', $date)
+                ->whereDate('end_date', '>=', $date)
+                ->first();
+
+            if ($approvedLeave) {
+                // Employee has approved leave, create attendance with leave status
+                $leaveStatus = $approvedLeave->leave_type; // cuti, izin, or sakit
+
+                Attendance::create([
+                    'employee_id' => $employee->id,
+                    'attendance_date' => $date->format('Y-m-d'),
+                    'check_in' => null,
+                    'check_out' => null,
+                    'status' => $leaveStatus,
+                    'late_minutes' => 0,
+                    'notes' => "Auto-generated: {$leaveStatus} (approved) - {$approvedLeave->reason}",
+                ]);
+
+                $this->line("✓ Generated {$leaveStatus} for: {$employee->name} ({$employee->employee_code}) - Approved leave");
+                $generatedCount++;
                 continue;
             }
 
