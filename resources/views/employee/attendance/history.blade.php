@@ -5,16 +5,23 @@
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
         <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h4 class="fw-bold mb-1">
-                    <span class="text-muted fw-light">Karyawan /</span> Riwayat Absensi
-                </h4>
-                <p class="text-muted mb-0">{{ $employee->name }} - {{ $employee->employee_code }}</p>
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                    <h4 class="fw-bold mb-2">
+                        <span class="text-muted fw-light">Karyawan /</span> Riwayat Absensi
+                    </h4>
+                    <p class="text-muted mb-0">
+                        <i class='bx bx-user'></i> {{ $employee->name }}
+                        <span class="d-none d-sm-inline">- {{ $employee->employee_code }}</span>
+                    </p>
+                </div>
+                <a href="{{ route('dashboard') }}" class="btn btn-secondary">
+                    <i class='bx bx-home'></i>
+                    <span class="d-none d-sm-inline">Home</span>
+                    <span class="d-sm-none">Dashboard</span>
+                </a>
             </div>
-            <a href="{{ route('employee.attendance.index') }}" class="btn btn-secondary">
-                <i class='bx bx-arrow-back'></i> Kembali ke Absensi
-            </a>
         </div>
 
         <div class="row">
@@ -90,7 +97,8 @@
                                 <small class="text-muted">Ubah filter untuk melihat data lainnya</small>
                             </div>
                         @else
-                            <div class="table-responsive">
+                            <!-- Desktop Table View -->
+                            <div class="table-responsive d-none d-md-block">
                                 <table class="table table-hover mb-0">
                                     <thead class="table-light">
                                         <tr>
@@ -165,10 +173,93 @@
                                 </table>
                             </div>
 
+                            <!-- Mobile Card View -->
+                            <div class="d-md-none p-3">
+                                @foreach ($attendances as $attendance)
+                                    <div class="card mb-3 shadow-sm">
+                                        <div class="card-body">
+                                            <!-- Header with Date and Status -->
+                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <div>
+                                                    <h6 class="mb-1">
+                                                        {{ \Carbon\Carbon::parse($attendance->attendance_date)->locale('id')->translatedFormat('l') }}
+                                                    </h6>
+                                                    <small class="text-muted">
+                                                        <i class='bx bx-calendar'></i>
+                                                        {{ \Carbon\Carbon::parse($attendance->attendance_date)->format('d/m/Y') }}
+                                                    </small>
+                                                </div>
+                                                <div>
+                                                    @if ($attendance->status == 'hadir')
+                                                        <span class="badge bg-success">Hadir</span>
+                                                    @elseif($attendance->status == 'terlambat')
+                                                        <span class="badge bg-warning">Terlambat</span>
+                                                    @elseif($attendance->status == 'izin')
+                                                        <span class="badge bg-info">Izin</span>
+                                                    @else
+                                                        <span class="badge bg-danger">Alpha</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+
+                                            <!-- Time Info -->
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-6">
+                                                    <div class="border rounded p-2">
+                                                        <small class="text-muted d-block mb-1">
+                                                            <i class='bx bx-log-in'></i> Check In
+                                                        </small>
+                                                        @if ($attendance->check_in)
+                                                            <strong class="text-success">
+                                                                {{ \Carbon\Carbon::parse($attendance->check_in)->format('H:i') }}
+                                                            </strong>
+                                                        @else
+                                                            <strong class="text-muted">-</strong>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="border rounded p-2">
+                                                        <small class="text-muted d-block mb-1">
+                                                            <i class='bx bx-log-out'></i> Check Out
+                                                        </small>
+                                                        @if ($attendance->check_out)
+                                                            <strong class="text-warning">
+                                                                {{ \Carbon\Carbon::parse($attendance->check_out)->format('H:i') }}
+                                                            </strong>
+                                                        @else
+                                                            <strong class="text-muted">-</strong>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Late Info & Action -->
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    @if ($attendance->late_minutes > 0)
+                                                        <span class="badge bg-label-danger">
+                                                            <i class='bx bx-time'></i> Terlambat
+                                                            {{ $attendance->late_minutes }} menit
+                                                        </span>
+                                                    @else
+                                                        <span class="text-muted small">Tepat waktu</span>
+                                                    @endif
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-primary view-detail"
+                                                    data-id="{{ $attendance->id }}">
+                                                    <i class='bx bx-show'></i> Detail
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+
                             <!-- Pagination -->
                             <div class="card-footer">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="text-muted small">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                                    <div class="text-muted small mb-2 mb-md-0">
                                         Menampilkan {{ $attendances->firstItem() }} - {{ $attendances->lastItem() }} dari
                                         {{ $attendances->total() }} data
                                     </div>
@@ -188,60 +279,110 @@
                         <h6 class="mb-0">Statistik Periode Ini</h6>
                     </div>
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="avatar avatar-sm me-2">
-                                    <span class="avatar-initial rounded bg-label-success">
-                                        <i class='bx bx-check'></i>
-                                    </span>
+                        <!-- Desktop Stats -->
+                        <div class="d-none d-lg-block">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-sm me-2">
+                                        <span class="avatar-initial rounded bg-label-success">
+                                            <i class='bx bx-check'></i>
+                                        </span>
+                                    </div>
+                                    <span>Hadir</span>
                                 </div>
-                                <span>Hadir</span>
+                                <strong class="text-success">{{ $stats['hadir'] }}</strong>
                             </div>
-                            <strong class="text-success">{{ $stats['hadir'] }}</strong>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="avatar avatar-sm me-2">
-                                    <span class="avatar-initial rounded bg-label-warning">
-                                        <i class='bx bx-time'></i>
-                                    </span>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-sm me-2">
+                                        <span class="avatar-initial rounded bg-label-warning">
+                                            <i class='bx bx-time'></i>
+                                        </span>
+                                    </div>
+                                    <span>Terlambat</span>
                                 </div>
-                                <span>Terlambat</span>
+                                <strong class="text-warning">{{ $stats['terlambat'] }}</strong>
                             </div>
-                            <strong class="text-warning">{{ $stats['terlambat'] }}</strong>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="avatar avatar-sm me-2">
-                                    <span class="avatar-initial rounded bg-label-info">
-                                        <i class='bx bx-file'></i>
-                                    </span>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-sm me-2">
+                                        <span class="avatar-initial rounded bg-label-info">
+                                            <i class='bx bx-file'></i>
+                                        </span>
+                                    </div>
+                                    <span>Izin</span>
                                 </div>
-                                <span>Izin</span>
+                                <strong class="text-info">{{ $stats['izin'] }}</strong>
                             </div>
-                            <strong class="text-info">{{ $stats['izin'] }}</strong>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="avatar avatar-sm me-2">
-                                    <span class="avatar-initial rounded bg-label-danger">
-                                        <i class='bx bx-x'></i>
-                                    </span>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-sm me-2">
+                                        <span class="avatar-initial rounded bg-label-danger">
+                                            <i class='bx bx-x'></i>
+                                        </span>
+                                    </div>
+                                    <span>Alpha</span>
                                 </div>
-                                <span>Alpha</span>
+                                <strong class="text-danger">{{ $stats['alpha'] }}</strong>
                             </div>
-                            <strong class="text-danger">{{ $stats['alpha'] }}</strong>
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong>Total</strong>
+                                <strong class="text-primary">{{ array_sum($stats) }}</strong>
+                            </div>
                         </div>
-                        <hr>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <strong>Total</strong>
-                            <strong class="text-primary">{{ array_sum($stats) }}</strong>
+
+                        <!-- Mobile Stats (Grid) -->
+                        <div class="d-lg-none">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="text-center p-2 border rounded">
+                                        <i class='bx bx-check text-success' style="font-size: 24px;"></i>
+                                        <div class="mt-1">
+                                            <strong class="d-block text-success">{{ $stats['hadir'] }}</strong>
+                                            <small class="text-muted">Hadir</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center p-2 border rounded">
+                                        <i class='bx bx-time text-warning' style="font-size: 24px;"></i>
+                                        <div class="mt-1">
+                                            <strong class="d-block text-warning">{{ $stats['terlambat'] }}</strong>
+                                            <small class="text-muted">Terlambat</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center p-2 border rounded">
+                                        <i class='bx bx-file text-info' style="font-size: 24px;"></i>
+                                        <div class="mt-1">
+                                            <strong class="d-block text-info">{{ $stats['izin'] }}</strong>
+                                            <small class="text-muted">Izin</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center p-2 border rounded">
+                                        <i class='bx bx-x text-danger' style="font-size: 24px;"></i>
+                                        <div class="mt-1">
+                                            <strong class="d-block text-danger">{{ $stats['alpha'] }}</strong>
+                                            <small class="text-muted">Alpha</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="text-center">
+                                <small class="text-muted">Total Absensi</small>
+                                <h4 class="mb-0 text-primary">{{ array_sum($stats) }}</h4>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Info Card -->
-                <div class="card">
+                <div class="card d-none d-lg-block">
                     <div class="card-body">
                         <h6 class="mb-3">Informasi</h6>
                         <div class="mb-3">
@@ -367,25 +508,25 @@
 
                                 <div class="row mt-3">
                                     ${data.photo_in ? `
-                                                    <div class="col-md-6 text-center">
-                                                        <h6>Foto Check In</h6>
-                                                        <img src="/storage/${data.photo_in}" class="img-fluid rounded border" alt="Check In" style="max-height: 300px;">
-                                                    </div>
-                                                ` : ''}
+                                                                            <div class="col-md-6 text-center">
+                                                                                <h6>Foto Check In</h6>
+                                                                                <img src="/storage/${data.photo_in}" class="img-fluid rounded border" alt="Check In" style="max-height: 300px;">
+                                                                            </div>
+                                                                        ` : ''}
                                     ${data.photo_out ? `
-                                                    <div class="col-md-6 text-center">
-                                                        <h6>Foto Check Out</h6>
-                                                        <img src="/storage/${data.photo_out}" class="img-fluid rounded border" alt="Check Out" style="max-height: 300px;">
-                                                    </div>
-                                                ` : ''}
+                                                                            <div class="col-md-6 text-center">
+                                                                                <h6>Foto Check Out</h6>
+                                                                                <img src="/storage/${data.photo_out}" class="img-fluid rounded border" alt="Check Out" style="max-height: 300px;">
+                                                                            </div>
+                                                                        ` : ''}
                                 </div>
 
                                 ${data.notes ? `
-                                                <div class="mt-3">
-                                                    <h6>Catatan</h6>
-                                                    <div class="alert alert-info">${data.notes}</div>
-                                                </div>
-                                            ` : ''}
+                                                                        <div class="mt-3">
+                                                                            <h6>Catatan</h6>
+                                                                            <div class="alert alert-info">${data.notes}</div>
+                                                                        </div>
+                                                                    ` : ''}
                             `;
 
                             $('#detailContent').html(html);

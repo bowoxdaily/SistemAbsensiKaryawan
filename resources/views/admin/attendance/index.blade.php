@@ -9,11 +9,7 @@
             <h4 class="fw-bold mb-0">
                 <span class="text-muted fw-light">Absensi /</span> Daftar Absensi
             </h4>
-            <div>
-                <a href="{{ route('admin.attendance.face-detection') }}" class="btn btn-primary">
-                    <i class='bx bx-camera me-1'></i> Face Detection
-                </a>
-            </div>
+
         </div>
 
         <!-- Statistics Cards -->
@@ -153,7 +149,8 @@
         <!-- Attendance Table -->
         <div class="card mt-4">
             <div class="card-body">
-                <div class="table-responsive">
+                <!-- Desktop Table View -->
+                <div class="table-responsive d-none d-lg-block">
                     <table class="table table-hover">
                         <thead>
                             <tr>
@@ -270,6 +267,125 @@
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Mobile Card View -->
+                <div class="d-lg-none">
+                    @forelse($attendances as $index => $attendance)
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h6 class="mb-1">{{ $attendance->employee->name }}</h6>
+                                        <small class="text-muted">
+                                            <i class='bx bx-id-card'></i> {{ $attendance->employee->employee_code }}
+                                        </small>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button type="button" class="btn btn-sm btn-icon dropdown-toggle hide-arrow"
+                                            data-bs-toggle="dropdown">
+                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a class="dropdown-item detail-btn" href="javascript:void(0);"
+                                                data-id="{{ $attendance->id }}">
+                                                <i class="bx bx-detail me-1"></i> Detail
+                                            </a>
+                                            <a class="dropdown-item text-danger delete-btn" href="javascript:void(0);"
+                                                data-id="{{ $attendance->id }}"
+                                                data-name="{{ $attendance->employee->name }}"
+                                                data-date="{{ \Carbon\Carbon::parse($attendance->attendance_date)->locale('id')->translatedFormat('d F Y') }}">
+                                                <i class="bx bx-trash me-1"></i> Hapus
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-2">
+                                    <small class="text-muted d-block mb-1">
+                                        <i class='bx bx-buildings'></i> {{ $attendance->employee->department->name }}
+                                    </small>
+                                    <small class="text-muted d-block">
+                                        <i class='bx bx-calendar'></i>
+                                        {{ \Carbon\Carbon::parse($attendance->attendance_date)->locale('id')->translatedFormat('d F Y') }}
+                                    </small>
+                                </div>
+
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <div class="border rounded p-2 text-center">
+                                            <small class="text-muted d-block">Check In</small>
+                                            @if ($attendance->check_in)
+                                                <strong
+                                                    class="text-success">{{ \Carbon\Carbon::parse($attendance->check_in)->format('H:i') }}</strong>
+                                            @else
+                                                <strong class="text-muted">-</strong>
+                                            @endif
+                                            <div class="mt-2">
+                                                @if ($attendance->photo_in)
+                                                    <a href="{{ asset('storage/' . $attendance->photo_in) }}"
+                                                        target="_blank">
+                                                        <img src="{{ asset('storage/' . $attendance->photo_in) }}"
+                                                            alt="Foto In" class="rounded"
+                                                            style="width: 50px; height: 50px; object-fit: cover;">
+                                                    </a>
+                                                @else
+                                                    <i class='bx bx-image-alt text-muted' style="font-size: 24px;"></i>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="border rounded p-2 text-center">
+                                            <small class="text-muted d-block">Check Out</small>
+                                            @if ($attendance->check_out)
+                                                <strong
+                                                    class="text-warning">{{ \Carbon\Carbon::parse($attendance->check_out)->format('H:i') }}</strong>
+                                            @else
+                                                <strong class="text-muted">-</strong>
+                                            @endif
+                                            <div class="mt-2">
+                                                @if ($attendance->photo_out)
+                                                    <a href="{{ asset('storage/' . $attendance->photo_out) }}"
+                                                        target="_blank">
+                                                        <img src="{{ asset('storage/' . $attendance->photo_out) }}"
+                                                            alt="Foto Out" class="rounded"
+                                                            style="width: 50px; height: 50px; object-fit: cover;">
+                                                    </a>
+                                                @else
+                                                    <i class='bx bx-image-alt text-muted' style="font-size: 24px;"></i>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        @if ($attendance->status == 'hadir')
+                                            <span class="badge bg-success">HADIR</span>
+                                        @elseif($attendance->status == 'terlambat')
+                                            <span class="badge bg-warning">TERLAMBAT</span>
+                                        @elseif($attendance->status == 'izin')
+                                            <span class="badge bg-info">IZIN</span>
+                                        @else
+                                            <span class="badge bg-danger">ALPHA</span>
+                                        @endif
+                                    </div>
+                                    @if ($attendance->late_minutes > 0)
+                                        <span class="badge bg-label-warning">
+                                            <i class='bx bx-time'></i> {{ $attendance->late_minutes }} menit
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="text-center py-5">
+                            <i class='bx bx-info-circle' style="font-size: 48px; color: #ccc;"></i>
+                            <p class="mt-2 mb-0 text-muted">Tidak ada data absensi</p>
+                        </div>
+                    @endforelse
                 </div>
 
                 <!-- Pagination -->
@@ -403,10 +519,10 @@
                                         </tr>
                                     </table>
                                     ${data.notes ? `
-                                                                <div class="alert alert-info mt-3 mb-0">
-                                                                    <strong>Catatan:</strong><br>${data.notes}
-                                                                </div>
-                                                            ` : ''}
+                                                                                        <div class="alert alert-info mt-3 mb-0">
+                                                                                            <strong>Catatan:</strong><br>${data.notes}
+                                                                                        </div>
+                                                                                    ` : ''}
                                 </div>
                             </div>
 
@@ -416,44 +532,44 @@
                                 <div class="col-md-6">
                                     <h6 class="mb-3">Foto Check In</h6>
                                     ${data.photo_in ? `
-                                                <div class="text-center">
-                                                    <a href="/storage/${data.photo_in}" target="_blank">
-                                                        <img src="/storage/${data.photo_in}"
-                                                             alt="Foto Check In"
-                                                             class="img-fluid rounded border"
-                                                             style="max-height: 300px; cursor: pointer;">
-                                                    </a>
-                                                    <p class="text-muted mt-2 mb-0">
-                                                        <small><i class='bx bx-time-five'></i> ${data.check_in || '-'}</small>
-                                                    </p>
-                                                </div>
-                                            ` : `
-                                                <div class="text-center py-4">
-                                                    <i class='bx bx-image-add bx-lg text-muted'></i>
-                                                    <p class="text-muted mt-2 mb-0">Tidak ada foto check in</p>
-                                                </div>
-                                            `}
+                                                                        <div class="text-center">
+                                                                            <a href="/storage/${data.photo_in}" target="_blank">
+                                                                                <img src="/storage/${data.photo_in}"
+                                                                                     alt="Foto Check In"
+                                                                                     class="img-fluid rounded border"
+                                                                                     style="max-height: 300px; cursor: pointer;">
+                                                                            </a>
+                                                                            <p class="text-muted mt-2 mb-0">
+                                                                                <small><i class='bx bx-time-five'></i> ${data.check_in || '-'}</small>
+                                                                            </p>
+                                                                        </div>
+                                                                    ` : `
+                                                                        <div class="text-center py-4">
+                                                                            <i class='bx bx-image-add bx-lg text-muted'></i>
+                                                                            <p class="text-muted mt-2 mb-0">Tidak ada foto check in</p>
+                                                                        </div>
+                                                                    `}
                                 </div>
                                 <div class="col-md-6">
                                     <h6 class="mb-3">Foto Check Out</h6>
                                     ${data.photo_out ? `
-                                                <div class="text-center">
-                                                    <a href="/storage/${data.photo_out}" target="_blank">
-                                                        <img src="/storage/${data.photo_out}"
-                                                             alt="Foto Check Out"
-                                                             class="img-fluid rounded border"
-                                                             style="max-height: 300px; cursor: pointer;">
-                                                    </a>
-                                                    <p class="text-muted mt-2 mb-0">
-                                                        <small><i class='bx bx-time-five'></i> ${data.check_out || '-'}</small>
-                                                    </p>
-                                                </div>
-                                            ` : `
-                                                <div class="text-center py-4">
-                                                    <i class='bx bx-image-add bx-lg text-muted'></i>
-                                                    <p class="text-muted mt-2 mb-0">Tidak ada foto check out</p>
-                                                </div>
-                                            `}
+                                                                        <div class="text-center">
+                                                                            <a href="/storage/${data.photo_out}" target="_blank">
+                                                                                <img src="/storage/${data.photo_out}"
+                                                                                     alt="Foto Check Out"
+                                                                                     class="img-fluid rounded border"
+                                                                                     style="max-height: 300px; cursor: pointer;">
+                                                                            </a>
+                                                                            <p class="text-muted mt-2 mb-0">
+                                                                                <small><i class='bx bx-time-five'></i> ${data.check_out || '-'}</small>
+                                                                            </p>
+                                                                        </div>
+                                                                    ` : `
+                                                                        <div class="text-center py-4">
+                                                                            <i class='bx bx-image-add bx-lg text-muted'></i>
+                                                                            <p class="text-muted mt-2 mb-0">Tidak ada foto check out</p>
+                                                                        </div>
+                                                                    `}
                                 </div>
                             </div>
                         `);

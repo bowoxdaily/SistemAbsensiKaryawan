@@ -5,16 +5,27 @@
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
         <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h4 class="fw-bold mb-1">
-                    <span class="text-muted fw-light">Karyawan /</span> Absensi
-                </h4>
-                <span class="badge bg-primary fs-6" id="currentTime"></span>
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                    <h4 class="fw-bold mb-2">
+                        <span class="text-muted fw-light">Karyawan /</span> Absensi
+                    </h4>
+                    <span class="badge bg-primary" id="currentTime"></span>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">
+                        <i class='bx bx-home'></i>
+                        <span class="d-none d-sm-inline">Kembali ke Home</span>
+                        <span class="d-sm-none">Home</span>
+                    </a>
+                    <a href="{{ route('employee.attendance.history') }}" class="btn btn-outline-primary">
+                        <i class='bx bx-history'></i>
+                        <span class="d-none d-sm-inline">Riwayat Absensi</span>
+                        <span class="d-sm-none">Riwayat</span>
+                    </a>
+                </div>
             </div>
-            <a href="{{ route('employee.attendance.history') }}" class="btn btn-outline-primary">
-                <i class='bx bx-history'></i> Riwayat Absensi
-            </a>
         </div>
 
         <div class="row">
@@ -80,14 +91,17 @@
                         <div id="cameraSection" style="display: none;">
                             <!-- Camera Preview -->
                             <div class="position-relative mb-3">
-                                <video id="videoElement" width="100%" height="400" autoplay playsinline
-                                    class="rounded border" style="background: #000;"></video>
+                                <video id="videoElement" width="100%" autoplay playsinline class="rounded border"
+                                    style="background: #000; max-height: 400px; height: auto;"></video>
                                 <canvas id="canvasElement" style="display: none;"></canvas>
 
                                 <!-- Face Detection Indicator -->
-                                <div class="position-absolute top-0 start-0 m-3">
-                                    <span class="badge bg-warning" id="faceDetected" style="display: none;">
-                                        <i class='bx bx-loader-circle bx-spin'></i> Mendeteksi wajah...
+                                <div class="position-absolute top-0 start-0 m-2 m-md-3">
+                                    <span class="badge bg-warning" id="faceDetected"
+                                        style="display: none; font-size: 0.75rem;">
+                                        <i class='bx bx-loader-circle bx-spin'></i> <span
+                                            class="d-none d-sm-inline">Mendeteksi wajah...</span><span
+                                            class="d-sm-none">Deteksi...</span>
                                     </span>
                                 </div>
                             </div>
@@ -95,8 +109,9 @@
                             <!-- Capture Button -->
                             <div class="d-grid gap-2 mb-3" id="captureSection">
                                 <button type="button" class="btn btn-lg btn-secondary" id="captureBtn" disabled>
-                                    <i class='bx bx-camera me-2'></i>
-                                    Ambil Foto (Tunggu Wajah Terdeteksi)
+                                    <i class='bx bx-camera me-1 me-md-2'></i>
+                                    <span class="d-none d-sm-inline">Ambil Foto (Tunggu Wajah Terdeteksi)</span>
+                                    <span class="d-sm-none">Ambil Foto</span>
                                 </button>
                                 <small class="text-muted text-center">
                                     <i class='bx bx-info-circle'></i> Tombol aktif saat wajah terdeteksi
@@ -115,15 +130,17 @@
 
                                 <div class="d-grid gap-2">
                                     <button type="button" class="btn btn-success btn-lg" id="checkInBtn">
-                                        <i class='bx bx-log-in-circle me-2'></i>
-                                        Check In Sekarang
+                                        <i class='bx bx-log-in-circle me-1 me-md-2'></i>
+                                        <span class="d-none d-sm-inline">Check In Sekarang</span>
+                                        <span class="d-sm-none">Check In</span>
                                     </button>
                                     <button type="button" class="btn btn-warning btn-lg" id="checkOutBtn">
-                                        <i class='bx bx-log-out-circle me-2'></i>
-                                        Check Out Sekarang
+                                        <i class='bx bx-log-out-circle me-1 me-md-2'></i>
+                                        <span class="d-none d-sm-inline">Check Out Sekarang</span>
+                                        <span class="d-sm-none">Check Out</span>
                                     </button>
                                     <button type="button" class="btn btn-outline-secondary" id="retakeBtn">
-                                        <i class='bx bx-refresh me-2'></i>
+                                        <i class='bx bx-refresh me-1 me-md-2'></i>
                                         Ambil Ulang
                                     </button>
                                 </div>
@@ -141,7 +158,7 @@
                 </div>
 
                 <!-- Instructions Card -->
-                <div class="card">
+                <div class="card d-none d-lg-block">
                     <div class="card-body">
                         <h6 class="card-title mb-3">
                             <i class='bx bx-info-circle me-2'></i>
@@ -176,54 +193,104 @@
                         <h6 class="mb-0">Ringkasan Bulan Ini</h6>
                     </div>
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="avatar avatar-sm me-2">
-                                    <span class="avatar-initial rounded bg-label-success">
-                                        <i class='bx bx-check'></i>
-                                    </span>
+                        <!-- Desktop View -->
+                        <div class="d-none d-lg-block">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-sm me-2">
+                                        <span class="avatar-initial rounded bg-label-success">
+                                            <i class='bx bx-check'></i>
+                                        </span>
+                                    </div>
+                                    <span>Hadir</span>
                                 </div>
-                                <span>Hadir</span>
+                                <strong id="summaryHadir">0</strong>
                             </div>
-                            <strong id="summaryHadir">0</strong>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="avatar avatar-sm me-2">
-                                    <span class="avatar-initial rounded bg-label-warning">
-                                        <i class='bx bx-time'></i>
-                                    </span>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-sm me-2">
+                                        <span class="avatar-initial rounded bg-label-warning">
+                                            <i class='bx bx-time'></i>
+                                        </span>
+                                    </div>
+                                    <span>Terlambat</span>
                                 </div>
-                                <span>Terlambat</span>
+                                <strong id="summaryTerlambat2">0</strong>
                             </div>
-                            <strong id="summaryTerlambat">0</strong>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="avatar avatar-sm me-2">
-                                    <span class="avatar-initial rounded bg-label-info">
-                                        <i class='bx bx-file'></i>
-                                    </span>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-sm me-2">
+                                        <span class="avatar-initial rounded bg-label-info">
+                                            <i class='bx bx-file'></i>
+                                        </span>
+                                    </div>
+                                    <span>Izin</span>
                                 </div>
-                                <span>Izin</span>
+                                <strong id="summaryIzin2">0</strong>
                             </div>
-                            <strong id="summaryIzin">0</strong>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="avatar avatar-sm me-2">
-                                    <span class="avatar-initial rounded bg-label-danger">
-                                        <i class='bx bx-x'></i>
-                                    </span>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-sm me-2">
+                                        <span class="avatar-initial rounded bg-label-danger">
+                                            <i class='bx bx-x'></i>
+                                        </span>
+                                    </div>
+                                    <span>Alpha</span>
                                 </div>
-                                <span>Alpha</span>
+                                <strong id="summaryAlpha2">0</strong>
                             </div>
-                            <strong id="summaryAlpha">0</strong>
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong>Total</strong>
+                                <strong class="text-primary" id="summaryTotal2">0</strong>
+                            </div>
                         </div>
-                        <hr>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <strong>Total</strong>
-                            <strong class="text-primary" id="summaryTotal">0</strong>
+
+                        <!-- Mobile View (Grid) -->
+                        <div class="d-lg-none">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="text-center p-2 border rounded">
+                                        <i class='bx bx-check text-success' style="font-size: 24px;"></i>
+                                        <div class="mt-1">
+                                            <strong class="d-block text-success" id="summaryHadirMobile">0</strong>
+                                            <small class="text-muted">Hadir</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center p-2 border rounded">
+                                        <i class='bx bx-time text-warning' style="font-size: 24px;"></i>
+                                        <div class="mt-1">
+                                            <strong class="d-block text-warning" id="summaryTerlambatMobile">0</strong>
+                                            <small class="text-muted">Terlambat</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center p-2 border rounded">
+                                        <i class='bx bx-file text-info' style="font-size: 24px;"></i>
+                                        <div class="mt-1">
+                                            <strong class="d-block text-info" id="summaryIzinMobile">0</strong>
+                                            <small class="text-muted">Izin</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center p-2 border rounded">
+                                        <i class='bx bx-x text-danger' style="font-size: 24px;"></i>
+                                        <div class="mt-1">
+                                            <strong class="d-block text-danger" id="summaryAlphaMobile">0</strong>
+                                            <small class="text-muted">Alpha</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="text-center">
+                                <small class="text-muted">Total Absensi</small>
+                                <h4 class="mb-0 text-primary" id="summaryTotalMobile">0</h4>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -233,15 +300,21 @@
                     <div class="card-body">
                         <h6 class="card-title mb-3">Informasi</h6>
                         <div class="mb-3">
-                            <small class="text-muted d-block">Tanggal</small>
+                            <small class="text-muted d-block">
+                                <i class='bx bx-calendar'></i> Tanggal
+                            </small>
                             <strong id="todayDate"></strong>
                         </div>
                         <div class="mb-3">
-                            <small class="text-muted d-block">Jadwal Shift</small>
+                            <small class="text-muted d-block">
+                                <i class='bx bx-time'></i> Jadwal Shift
+                            </small>
                             <strong id="shiftInfo">-</strong>
                         </div>
                         <div>
-                            <small class="text-muted d-block">Lokasi GPS</small>
+                            <small class="text-muted d-block">
+                                <i class='bx bx-map'></i> Lokasi GPS
+                            </small>
                             <small id="gpsLocation" class="text-success">
                                 <i class='bx bx-loader-circle bx-spin'></i> Mendeteksi lokasi...
                             </small>
@@ -517,11 +590,19 @@
 
                     if (result.success) {
                         const summary = result.data;
+                        // Desktop
                         document.getElementById('summaryHadir').textContent = summary.hadir;
-                        document.getElementById('summaryTerlambat').textContent = summary.terlambat;
-                        document.getElementById('summaryIzin').textContent = summary.izin;
-                        document.getElementById('summaryAlpha').textContent = summary.alpha;
-                        document.getElementById('summaryTotal').textContent = summary.total;
+                        document.getElementById('summaryTerlambat2').textContent = summary.terlambat;
+                        document.getElementById('summaryIzin2').textContent = summary.izin;
+                        document.getElementById('summaryAlpha2').textContent = summary.alpha;
+                        document.getElementById('summaryTotal2').textContent = summary.total;
+
+                        // Mobile
+                        document.getElementById('summaryHadirMobile').textContent = summary.hadir;
+                        document.getElementById('summaryTerlambatMobile').textContent = summary.terlambat;
+                        document.getElementById('summaryIzinMobile').textContent = summary.izin;
+                        document.getElementById('summaryAlphaMobile').textContent = summary.alpha;
+                        document.getElementById('summaryTotalMobile').textContent = summary.total;
                     }
                 } catch (error) {
                     console.error('Error loading summary:', error);
