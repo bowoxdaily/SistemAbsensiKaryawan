@@ -12,12 +12,28 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class KaryawanExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithColumnWidths
 {
+    protected $filters;
+
+    public function __construct($filters = [])
+    {
+        $this->filters = $filters;
+    }
+
     /**
      * @return \Illuminate\Support\Collection
      */
     public function collection()
     {
         return Karyawans::with(['department', 'position', 'workSchedule'])
+            ->when(!empty($this->filters['department_id']), function ($query) {
+                return $query->where('department_id', $this->filters['department_id']);
+            })
+            ->when(!empty($this->filters['position_id']), function ($query) {
+                return $query->where('position_id', $this->filters['position_id']);
+            })
+            ->when(!empty($this->filters['status']), function ($query) {
+                return $query->where('status', $this->filters['status']);
+            })
             ->orderBy('employee_code', 'asc')
             ->get();
     }

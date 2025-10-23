@@ -16,7 +16,7 @@
                 <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#importModal">
                     <i class='bx bx-upload me-1'></i> <span class="d-none d-sm-inline">Import</span>
                 </button>
-                <a href="{{ route('admin.karyawan.export') }}" class="btn btn-success btn-sm">
+                <a href="#" class="btn btn-success btn-sm" id="exportBtn" onclick="exportKaryawan(); return false;">
                     <i class='bx bx-download me-1'></i> <span class="d-none d-sm-inline">Export Excel</span>
                 </a>
                 <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#karyawanModal"
@@ -28,6 +28,50 @@
 
         <!-- Alert Messages -->
         <div id="alertContainer"></div>
+
+        <!-- Filter Card -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label for="filterDepartment" class="form-label small mb-1">Departemen</label>
+                        <select class="form-select form-select-sm" id="filterDepartment">
+                            <option value="">Semua Departemen</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filterPosition" class="form-label small mb-1">Posisi</label>
+                        <select class="form-select form-select-sm" id="filterPosition">
+                            <option value="">Semua Posisi</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filterStatus" class="form-label small mb-1">Status</label>
+                        <select class="form-select form-select-sm" id="filterStatus">
+                            <option value="">Semua Status</option>
+                            <option value="active">Aktif</option>
+                            <option value="inactive">Tidak Aktif</option>
+                            <option value="resign">Resign</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-primary flex-grow-1" onclick="applyFilter()">
+                                <i class='bx bx-filter-alt me-1'></i> Filter
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetFilter()"
+                                title="Reset Filter">
+                                <i class='bx bx-reset'></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="activeFilters" class="mt-3 d-none">
+                    <small class="text-muted">Filter aktif:</small>
+                    <div id="filterBadges" class="d-inline-flex gap-2 ms-2"></div>
+                </div>
+            </div>
+        </div>
 
         <!-- Karyawan List Card -->
         <div class="card">
@@ -513,6 +557,11 @@
         let currentPage = 1;
         let karyawanModal, detailModal, importModal;
         let masterData = {};
+        let currentFilters = {
+            department_id: '',
+            position_id: '',
+            status: ''
+        };
 
         $(document).ready(function() {
             karyawanModal = new bootstrap.Modal(document.getElementById('karyawanModal'));
@@ -539,6 +588,8 @@
                     populateDepartments();
                     populatePositions();
                     populateWorkSchedules();
+                    populateFilterDepartments();
+                    populateFilterPositions();
                 }
             });
         }
@@ -567,9 +618,94 @@
             });
         }
 
+        function populateFilterDepartments() {
+            const select = $('#filterDepartment');
+            select.find('option:not(:first)').remove();
+            masterData.departments.forEach(dept => {
+                select.append(`<option value="${dept.id}">${dept.name}</option>`);
+            });
+        }
+
+        function populateFilterPositions() {
+            const select = $('#filterPosition');
+            select.find('option:not(:first)').remove();
+            masterData.positions.forEach(pos => {
+                select.append(`<option value="${pos.id}">${pos.name}</option>`);
+            });
+        }
+
+        function applyFilter() {
+            currentFilters.department_id = $('#filterDepartment').val();
+            currentFilters.position_id = $('#filterPosition').val();
+            currentFilters.status = $('#filterStatus').val();
+            updateFilterBadges();
+            loadKaryawans(1);
+        }
+
+        function resetFilter() {
+            currentFilters = {
+                department_id: '',
+                position_id: '',
+                status: ''
+            };
+            $('#filterDepartment').val('');
+            $('#filterPosition').val('');
+            $('#filterStatus').val('');
+            updateFilterBadges();
+            loadKaryawans(1);
+        }
+
+        function updateFilterBadges() {
+            const container = $('#filterBadges');
+            container.empty();
+
+            let hasFilter = false;
+
+            if (currentFilters.department_id) {
+                const deptName = $('#filterDepartment option:selected').text();
+                container.append(`<span class="badge bg-label-primary">Dept: ${deptName}</span>`);
+                hasFilter = true;
+            }
+
+            if (currentFilters.position_id) {
+                const posName = $('#filterPosition option:selected').text();
+                container.append(`<span class="badge bg-label-info">Posisi: ${posName}</span>`);
+                hasFilter = true;
+            }
+
+            if (currentFilters.status) {
+                const statusLabel = {
+                    'active': 'Aktif',
+                    'inactive': 'Tidak Aktif',
+                    'resign': 'Resign'
+                };
+                container.append(
+                    `<span class="badge bg-label-warning">Status: ${statusLabel[currentFilters.status]}</span>`);
+                hasFilter = true;
+            }
+
+            if (hasFilter) {
+                $('#activeFilters').removeClass('d-none');
+            } else {
+                $('#activeFilters').addClass('d-none');
+            }
+        }
+
         function loadKaryawans(page = 1) {
+            let url = '/api/karyawan?page=' + page + '&per_page=10';
+
+            if (currentFilters.department_id) {
+                url += '&department_id=' + currentFilters.department_id;
+            }
+            if (currentFilters.position_id) {
+                url += '&position_id=' + currentFilters.position_id;
+            }
+            if (currentFilters.status) {
+                url += '&status=' + currentFilters.status;
+            }
+
             $.ajax({
-                url: '/api/karyawan?page=' + page + '&per_page=10',
+                url: url,
                 method: 'GET',
                 beforeSend: function() {
                     $('#loadingRow').show();
@@ -583,6 +719,22 @@
                     showAlert('Gagal memuat data karyawan', 'danger');
                 }
             });
+        }
+
+        function exportKaryawan() {
+            let url = '{{ route('admin.karyawan.export') }}?1=1';
+
+            if (currentFilters.department_id) {
+                url += '&department_id=' + currentFilters.department_id;
+            }
+            if (currentFilters.position_id) {
+                url += '&position_id=' + currentFilters.position_id;
+            }
+            if (currentFilters.status) {
+                url += '&status=' + currentFilters.status;
+            }
+
+            window.location.href = url;
         }
 
         function renderKaryawans(data) {

@@ -31,12 +31,24 @@ class KaryawanController extends Controller
     {
         $perPage = $request->get('per_page', 10);
         $search = $request->get('search', '');
+        $departmentId = $request->get('department_id');
+        $positionId = $request->get('position_id');
+        $status = $request->get('status');
 
         $karyawans = Karyawans::with(['department', 'position', 'workSchedule'])
             ->when($search, function ($query, $search) {
                 return $query->where('name', 'like', "%{$search}%")
                     ->orWhere('employee_code', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
+            })
+            ->when($departmentId, function ($query, $departmentId) {
+                return $query->where('department_id', $departmentId);
+            })
+            ->when($positionId, function ($query, $positionId) {
+                return $query->where('position_id', $positionId);
+            })
+            ->when($status, function ($query, $status) {
+                return $query->where('status', $status);
             })
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
@@ -282,9 +294,25 @@ class KaryawanController extends Controller
     /**
      * Export karyawan to Excel
      */
-    public function export()
+    public function export(Request $request)
     {
-        return Excel::download(new KaryawanExport, 'Data_Karyawan_' . date('Y-m-d_His') . '.xlsx');
+        $departmentId = $request->get('department_id');
+        $positionId = $request->get('position_id');
+        $status = $request->get('status');
+
+        $filters = [
+            'department_id' => $departmentId,
+            'position_id' => $positionId,
+            'status' => $status,
+        ];
+
+        $filename = 'Data_Karyawan';
+        if ($departmentId || $positionId || $status) {
+            $filename .= '_Filtered';
+        }
+        $filename .= '_' . date('Y-m-d_His') . '.xlsx';
+
+        return Excel::download(new KaryawanExport($filters), $filename);
     }
 
     /**
