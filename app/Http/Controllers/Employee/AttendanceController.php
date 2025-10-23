@@ -526,10 +526,20 @@ class AttendanceController extends Controller
                 ->whereMonth('attendance_date', $month)
                 ->where('status', 'terlambat')
                 ->count(),
+            'cuti' => Attendance::where('employee_id', $employee->id)
+                ->whereYear('attendance_date', $year)
+                ->whereMonth('attendance_date', $month)
+                ->where('status', 'cuti')
+                ->count(),
             'izin' => Attendance::where('employee_id', $employee->id)
                 ->whereYear('attendance_date', $year)
                 ->whereMonth('attendance_date', $month)
                 ->where('status', 'izin')
+                ->count(),
+            'sakit' => Attendance::where('employee_id', $employee->id)
+                ->whereYear('attendance_date', $year)
+                ->whereMonth('attendance_date', $month)
+                ->where('status', 'sakit')
                 ->count(),
             'alpha' => Attendance::where('employee_id', $employee->id)
                 ->whereYear('attendance_date', $year)

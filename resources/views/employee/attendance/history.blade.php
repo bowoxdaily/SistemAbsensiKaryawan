@@ -60,7 +60,11 @@
                                         </option>
                                         <option value="terlambat" {{ request('status') == 'terlambat' ? 'selected' : '' }}>
                                             Terlambat</option>
+                                        <option value="cuti" {{ request('status') == 'cuti' ? 'selected' : '' }}>Cuti
+                                        </option>
                                         <option value="izin" {{ request('status') == 'izin' ? 'selected' : '' }}>Izin
+                                        </option>
+                                        <option value="sakit" {{ request('status') == 'sakit' ? 'selected' : '' }}>Sakit
                                         </option>
                                         <option value="alpha" {{ request('status') == 'alpha' ? 'selected' : '' }}>Alpha
                                         </option>
@@ -146,10 +150,17 @@
                                                         <span class="badge bg-success">Hadir</span>
                                                     @elseif($attendance->status == 'terlambat')
                                                         <span class="badge bg-warning">Terlambat</span>
+                                                    @elseif($attendance->status == 'cuti')
+                                                        <span class="badge bg-primary">Cuti</span>
                                                     @elseif($attendance->status == 'izin')
                                                         <span class="badge bg-info">Izin</span>
-                                                    @else
+                                                    @elseif($attendance->status == 'sakit')
+                                                        <span class="badge bg-secondary">Sakit</span>
+                                                    @elseif($attendance->status == 'alpha')
                                                         <span class="badge bg-danger">Alpha</span>
+                                                    @else
+                                                        <span
+                                                            class="badge bg-dark">{{ ucfirst($attendance->status) }}</span>
                                                     @endif
                                                 </td>
                                                 <td>
@@ -194,10 +205,17 @@
                                                         <span class="badge bg-success">Hadir</span>
                                                     @elseif($attendance->status == 'terlambat')
                                                         <span class="badge bg-warning">Terlambat</span>
+                                                    @elseif($attendance->status == 'cuti')
+                                                        <span class="badge bg-primary">Cuti</span>
                                                     @elseif($attendance->status == 'izin')
                                                         <span class="badge bg-info">Izin</span>
-                                                    @else
+                                                    @elseif($attendance->status == 'sakit')
+                                                        <span class="badge bg-secondary">Sakit</span>
+                                                    @elseif($attendance->status == 'alpha')
                                                         <span class="badge bg-danger">Alpha</span>
+                                                    @else
+                                                        <span
+                                                            class="badge bg-dark">{{ ucfirst($attendance->status) }}</span>
                                                     @endif
                                                 </div>
                                             </div>
@@ -306,6 +324,17 @@
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div class="d-flex align-items-center">
                                     <div class="avatar avatar-sm me-2">
+                                        <span class="avatar-initial rounded bg-label-primary">
+                                            <i class='bx bx-calendar'></i>
+                                        </span>
+                                    </div>
+                                    <span>Cuti</span>
+                                </div>
+                                <strong class="text-primary">{{ $stats['cuti'] ?? 0 }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-sm me-2">
                                         <span class="avatar-initial rounded bg-label-info">
                                             <i class='bx bx-file'></i>
                                         </span>
@@ -313,6 +342,17 @@
                                     <span>Izin</span>
                                 </div>
                                 <strong class="text-info">{{ $stats['izin'] }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-sm me-2">
+                                        <span class="avatar-initial rounded bg-label-secondary">
+                                            <i class='bx bx-plus-medical'></i>
+                                        </span>
+                                    </div>
+                                    <span>Sakit</span>
+                                </div>
+                                <strong class="text-secondary">{{ $stats['sakit'] ?? 0 }}</strong>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div class="d-flex align-items-center">
@@ -355,10 +395,28 @@
                                 </div>
                                 <div class="col-6">
                                     <div class="text-center p-2 border rounded">
+                                        <i class='bx bx-calendar text-primary' style="font-size: 24px;"></i>
+                                        <div class="mt-1">
+                                            <strong class="d-block text-primary">{{ $stats['cuti'] ?? 0 }}</strong>
+                                            <small class="text-muted">Cuti</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center p-2 border rounded">
                                         <i class='bx bx-file text-info' style="font-size: 24px;"></i>
                                         <div class="mt-1">
                                             <strong class="d-block text-info">{{ $stats['izin'] }}</strong>
                                             <small class="text-muted">Izin</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center p-2 border rounded">
+                                        <i class='bx bx-plus-medical text-secondary' style="font-size: 24px;"></i>
+                                        <div class="mt-1">
+                                            <strong class="d-block text-secondary">{{ $stats['sakit'] ?? 0 }}</strong>
+                                            <small class="text-muted">Sakit</small>
                                         </div>
                                     </div>
                                 </div>
@@ -475,7 +533,14 @@
                                             </tr>
                                             <tr>
                                                 <td><strong>Status</strong></td>
-                                                <td>: <span class="badge bg-${data.status == 'hadir' ? 'success' : (data.status == 'terlambat' ? 'warning' : (data.status == 'izin' ? 'info' : 'danger'))}">${data.status.toUpperCase()}</span></td>
+                                                <td>: <span class="badge bg-${
+                                                    data.status == 'hadir' ? 'success' :
+                                                    data.status == 'terlambat' ? 'warning' :
+                                                    data.status == 'cuti' ? 'primary' :
+                                                    data.status == 'izin' ? 'info' :
+                                                    data.status == 'sakit' ? 'secondary' :
+                                                    data.status == 'alpha' ? 'danger' : 'dark'
+                                                }">${data.status.toUpperCase()}</span></td>
                                             </tr>
                                             <tr>
                                                 <td><strong>Terlambat</strong></td>
@@ -508,25 +573,25 @@
 
                                 <div class="row mt-3">
                                     ${data.photo_in ? `
-                                                                            <div class="col-md-6 text-center">
-                                                                                <h6>Foto Check In</h6>
-                                                                                <img src="/storage/${data.photo_in}" class="img-fluid rounded border" alt="Check In" style="max-height: 300px;">
-                                                                            </div>
-                                                                        ` : ''}
+                                                                                <div class="col-md-6 text-center">
+                                                                                    <h6>Foto Check In</h6>
+                                                                                    <img src="/storage/${data.photo_in}" class="img-fluid rounded border" alt="Check In" style="max-height: 300px;">
+                                                                                </div>
+                                                                            ` : ''}
                                     ${data.photo_out ? `
-                                                                            <div class="col-md-6 text-center">
-                                                                                <h6>Foto Check Out</h6>
-                                                                                <img src="/storage/${data.photo_out}" class="img-fluid rounded border" alt="Check Out" style="max-height: 300px;">
-                                                                            </div>
-                                                                        ` : ''}
+                                                                                <div class="col-md-6 text-center">
+                                                                                    <h6>Foto Check Out</h6>
+                                                                                    <img src="/storage/${data.photo_out}" class="img-fluid rounded border" alt="Check Out" style="max-height: 300px;">
+                                                                                </div>
+                                                                            ` : ''}
                                 </div>
 
                                 ${data.notes ? `
-                                                                        <div class="mt-3">
-                                                                            <h6>Catatan</h6>
-                                                                            <div class="alert alert-info">${data.notes}</div>
-                                                                        </div>
-                                                                    ` : ''}
+                                                                            <div class="mt-3">
+                                                                                <h6>Catatan</h6>
+                                                                                <div class="alert alert-info">${data.notes}</div>
+                                                                            </div>
+                                                                        ` : ''}
                             `;
 
                             $('#detailContent').html(html);
