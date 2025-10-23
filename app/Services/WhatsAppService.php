@@ -157,6 +157,7 @@ class WhatsAppService
         $message = $this->replaceVariables($template, [
             'name' => $employee->name,
             'time' => $attendance->check_out ?? '-',
+            'duration' => $duration,
             'status' => $this->getStatusLabel($attendance->status),
             'location' => $attendance->location_out ?? 'Tidak ada data lokasi',
         ]);
