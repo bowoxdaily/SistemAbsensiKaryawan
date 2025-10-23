@@ -64,6 +64,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/settings/cronjob/status', [CronJobController::class, 'checkStatus'])->name('admin.settings.cronjob.status');
         Route::get('/admin/settings/cronjob/command', [CronJobController::class, 'getCronCommand'])->name('admin.settings.cronjob.command');
 
+        // WhatsApp Settings
+        Route::get('/admin/settings/whatsapp', [\App\Http\Controllers\Admin\WhatsAppSettingController::class, 'index'])->name('admin.settings.whatsapp');
+        Route::post('/admin/settings/whatsapp', [\App\Http\Controllers\Admin\WhatsAppSettingController::class, 'update'])->name('admin.settings.whatsapp.update');
+        Route::post('/admin/settings/whatsapp/test-connection', [\App\Http\Controllers\Admin\WhatsAppSettingController::class, 'testConnection'])->name('admin.settings.whatsapp.test-connection');
+        Route::post('/admin/settings/whatsapp/send-test', [\App\Http\Controllers\Admin\WhatsAppSettingController::class, 'sendTest'])->name('admin.settings.whatsapp.send-test');
+        Route::post('/admin/settings/whatsapp/reset-templates', [\App\Http\Controllers\Admin\WhatsAppSettingController::class, 'resetTemplates'])->name('admin.settings.whatsapp.reset-templates');
+
         // Leave Management
         Route::get('/admin/leave', [\App\Http\Controllers\Admin\LeaveController::class, 'index'])->name('admin.leave.index');
         Route::get('/admin/leave/{id}', [\App\Http\Controllers\Admin\LeaveController::class, 'show'])->name('admin.leave.show');

@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Leave;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class LeaveController extends Controller
 {
@@ -91,6 +93,17 @@ class LeaveController extends Controller
             'approved_at' => now(),
         ]);
 
+        // Load relations for WhatsApp notification
+        $leave->load(['employee', 'approver']);
+
+        // Send WhatsApp notification to employee
+        try {
+            $whatsappService = new WhatsAppService();
+            $whatsappService->sendLeaveApprovedNotification($leave);
+        } catch (\Exception $e) {
+            Log::warning('Failed to send WhatsApp leave approved notification: ' . $e->getMessage());
+        }
+
         return redirect()
             ->route('admin.leave.index')
             ->with('success', 'Pengajuan cuti berhasil disetujui');
@@ -122,6 +135,17 @@ class LeaveController extends Controller
             'approved_at' => now(),
             'rejection_reason' => $validated['rejection_reason'],
         ]);
+
+        // Load relations for WhatsApp notification
+        $leave->load(['employee', 'approver']);
+
+        // Send WhatsApp notification to employee
+        try {
+            $whatsappService = new WhatsAppService();
+            $whatsappService->sendLeaveRejectedNotification($leave);
+        } catch (\Exception $e) {
+            Log::warning('Failed to send WhatsApp leave rejected notification: ' . $e->getMessage());
+        }
 
         return redirect()
             ->route('admin.leave.index')

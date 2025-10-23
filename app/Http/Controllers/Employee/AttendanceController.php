@@ -7,6 +7,7 @@ use App\Models\Attendance;
 use App\Models\Employee;
 use App\Models\WorkSchedule;
 use App\Models\OfficeSetting;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
@@ -230,6 +231,18 @@ class AttendanceController extends Controller
                 ]
             );
 
+            // Load employee relation for WhatsApp
+            $attendance->load('employee');
+
+            // Send WhatsApp notification
+            try {
+                $whatsappService = new WhatsAppService();
+                $whatsappService->sendCheckinNotification($attendance);
+            } catch (\Exception $e) {
+                Log::warning('Failed to send WhatsApp check-in notification: ' . $e->getMessage());
+                // Don't fail the check-in if WhatsApp fails
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Check-in berhasil',
@@ -383,6 +396,18 @@ class AttendanceController extends Controller
                 'gps_warnings_out' => $request->fake_gps_warnings ? json_encode($request->fake_gps_warnings) : null,
                 'is_suspicious_out' => !empty($request->fake_gps_warnings),
             ]);
+
+            // Load employee relation for WhatsApp
+            $attendance->load('employee');
+
+            // Send WhatsApp notification
+            try {
+                $whatsappService = new WhatsAppService();
+                $whatsappService->sendCheckoutNotification($attendance);
+            } catch (\Exception $e) {
+                Log::warning('Failed to send WhatsApp check-out notification: ' . $e->getMessage());
+                // Don't fail the check-out if WhatsApp fails
+            }
 
             return response()->json([
                 'success' => true,

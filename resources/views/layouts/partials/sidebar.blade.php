@@ -108,13 +108,7 @@
                 </a>
             </li>
 
-            <!-- Face Detection -->
-            <li class="menu-item {{ request()->routeIs('admin.attendance.face-detection') ? 'active' : '' }}">
-                <a href="{{ route('admin.attendance.face-detection') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-camera"></i>
-                    <div data-i18n="FaceDetection">Face Detection</div>
-                </a>
-            </li>
+
 
             <!-- Rekap Absensi -->
             <li class="menu-item {{ request()->routeIs('admin.attendance.report') ? 'active' : '' }}">
@@ -158,6 +152,14 @@
                 <a href="{{ route('admin.settings.cronjob') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-calendar-check"></i>
                     <div data-i18n="Cron Job">Cron Job</div>
+                </a>
+            </li>
+
+            <!-- WhatsApp -->
+            <li class="menu-item {{ request()->routeIs('admin.settings.whatsapp*') ? 'active' : '' }}">
+                <a href="{{ route('admin.settings.whatsapp') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bxl-whatsapp"></i>
+                    <div data-i18n="WhatsApp">WhatsApp</div>
                 </a>
             </li>
 
