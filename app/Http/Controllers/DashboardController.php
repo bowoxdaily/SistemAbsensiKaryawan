@@ -41,7 +41,7 @@ class DashboardController extends Controller
             'hadirHariIni' => Attendance::whereDate('attendance_date', today())
                 ->whereIn('status', ['hadir', 'terlambat'])->count(),
             'tidakHadirHariIni' => Attendance::whereDate('attendance_date', today())
-                ->whereIn('status', ['alpha', 'izin', 'sakit'])->count(),
+                ->where('status', 'alpha')->count(),
             'totalCutiPending' => Leave::where('status', 'pending')->count(),
             'absensiTerbaru' => Attendance::with(['employee.department', 'employee.position'])
                 ->whereDate('attendance_date', today())
@@ -91,7 +91,7 @@ class DashboardController extends Controller
                 ->whereIn('status', ['hadir', 'terlambat'])->count(),
             'tidakHadirHariIni' => Attendance::whereIn('employee_id', $teamMemberIds)
                 ->whereDate('attendance_date', today())
-                ->whereIn('status', ['alpha', 'izin', 'sakit'])->count(),
+                ->where('status', 'alpha')->count(),
             'cutiPending' => Leave::whereIn('employee_id', $teamMemberIds)
                 ->where('status', 'pending')
                 ->count(),

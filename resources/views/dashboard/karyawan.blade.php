@@ -131,12 +131,19 @@
             <!-- Riwayat Absensi -->
             <div class="col-12 col-md-8 col-lg-8 order-2 order-md-3 order-lg-2 mb-4">
                 <div class="card">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                        <h5 class="card-title m-0 me-2">Riwayat Absensi Terbaru</h5>
-                        <a href="#" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                    <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <h5 class="card-title m-0 me-2">
+                            <span class="d-none d-sm-inline">Riwayat Absensi Terbaru</span>
+                            <span class="d-sm-none">Riwayat Absensi</span>
+                        </h5>
+                        <a href="{{ route('employee.attendance.history') }}" class="btn btn-sm btn-outline-primary">
+                            <span class="d-none d-sm-inline">Lihat Semua</span>
+                            <span class="d-sm-none">Semua</span>
+                        </a>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive text-nowrap">
+                        <!-- Desktop Table View -->
+                        <div class="table-responsive text-nowrap d-none d-md-block">
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
@@ -190,6 +197,82 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <!-- Mobile Card View -->
+                        <div class="d-md-none">
+                            @forelse($riwayatAbsensi as $absensi)
+                                <div class="card mb-3 shadow-sm">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h6 class="mb-1">
+                                                    {{ \Carbon\Carbon::parse($absensi->attendance_date)->translatedFormat('d M Y') }}
+                                                </h6>
+                                                <small class="text-muted">
+                                                    <i class='bx bx-calendar'></i>
+                                                    {{ \Carbon\Carbon::parse($absensi->attendance_date)->translatedFormat('l') }}
+                                                </small>
+                                            </div>
+                                            <div>
+                                                @if ($absensi->status == 'hadir')
+                                                    <span class="badge bg-success">Hadir</span>
+                                                @elseif($absensi->status == 'terlambat')
+                                                    <span class="badge bg-warning">Terlambat</span>
+                                                @elseif($absensi->status == 'izin')
+                                                    <span class="badge bg-info">Izin</span>
+                                                @elseif($absensi->status == 'sakit')
+                                                    <span class="badge bg-secondary">Sakit</span>
+                                                @elseif($absensi->status == 'cuti')
+                                                    <span class="badge bg-primary">Cuti</span>
+                                                @else
+                                                    <span class="badge bg-danger">{{ ucfirst($absensi->status) }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <div class="border rounded p-2 text-center">
+                                                    <small class="text-muted d-block">Masuk</small>
+                                                    <strong class="text-success">
+                                                        {{ $absensi->check_in ? \Carbon\Carbon::parse($absensi->check_in)->format('H:i') : '-' }}
+                                                    </strong>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="border rounded p-2 text-center">
+                                                    <small class="text-muted d-block">Keluar</small>
+                                                    <strong class="text-warning">
+                                                        {{ $absensi->check_out ? \Carbon\Carbon::parse($absensi->check_out)->format('H:i') : '-' }}
+                                                    </strong>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        @if ($absensi->status == 'terlambat' || $absensi->notes)
+                                            <div class="mt-2">
+                                                @if ($absensi->status == 'terlambat')
+                                                    <span class="badge bg-label-warning">
+                                                        <i class='bx bx-time'></i> Terlambat {{ $absensi->late_minutes }}
+                                                        menit
+                                                    </span>
+                                                @endif
+                                                @if ($absensi->notes)
+                                                    <small class="text-muted d-block mt-1">
+                                                        <i class='bx bx-note'></i> {{ Str::limit($absensi->notes, 50) }}
+                                                    </small>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="text-center py-4">
+                                    <i class='bx bx-calendar-x' style="font-size: 48px; color: #ccc;"></i>
+                                    <p class="text-muted mt-2 mb-0">Belum ada riwayat absensi</p>
+                                </div>
+                            @endforelse
+                        </div>
                     </div>
                 </div>
             </div>
@@ -199,16 +282,21 @@
         <div class="row">
             <div class="col-md-6 col-lg-6 mb-4">
                 <div class="card">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                        <h5 class="card-title m-0">Pengajuan Cuti Anda</h5>
+                    <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <h5 class="card-title m-0">
+                            <span class="d-none d-sm-inline">Pengajuan Cuti Anda</span>
+                            <span class="d-sm-none">Pengajuan Cuti</span>
+                        </h5>
                         <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalCuti">
-                            <i class="bx bx-plus"></i> Ajukan Cuti
+                            <i class="bx bx-plus"></i>
+                            <span class="d-none d-sm-inline">Ajukan Cuti</span>
+                            <span class="d-sm-none">Ajukan</span>
                         </button>
                     </div>
                     <div class="card-body">
                         @forelse($cutiPending as $cuti)
-                            <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                                <div>
+                            <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
+                                <div class="flex-grow-1 me-2">
                                     <h6 class="mb-1">{{ ucfirst($cuti->leave_type) }} - {{ $cuti->total_days }} hari
                                     </h6>
                                     <small
@@ -216,7 +304,7 @@
                                         - {{ \Carbon\Carbon::parse($cuti->end_date)->format('d M Y') }}</small><br>
                                     <small><strong>Alasan:</strong> {{ Str::limit($cuti->reason, 50) }}</small>
                                 </div>
-                                <div>
+                                <div class="flex-shrink-0">
                                     @if ($cuti->status == 'pending')
                                         <span class="badge bg-label-warning">Pending</span>
                                     @elseif($cuti->status == 'approved')
@@ -227,7 +315,10 @@
                                 </div>
                             </div>
                         @empty
-                            <p class="text-center text-muted">Tidak ada pengajuan cuti</p>
+                            <div class="text-center py-3">
+                                <i class='bx bx-calendar-event' style="font-size: 48px; color: #ccc;"></i>
+                                <p class="text-muted mt-2 mb-0">Tidak ada pengajuan cuti</p>
+                            </div>
                         @endforelse
                     </div>
                 </div>

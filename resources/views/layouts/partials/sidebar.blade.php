@@ -124,14 +124,6 @@
                 </a>
             </li>
 
-            <!-- Cuti & Izin -->
-            <li class="menu-item {{ request()->routeIs('cuti.*') ? 'active' : '' }}">
-                <a href="#" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-calendar-event"></i>
-                    <div data-i18n="Cuti">Cuti & Izin</div>
-                </a>
-            </li>
-
             <!-- Menu Header - Pengaturan -->
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">Pengaturan</span>
@@ -161,11 +153,16 @@
                 </a>
             </li>
 
-            <!-- Users -->
-            <li class="menu-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
-                <a href="#" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-group"></i>
-                    <div data-i18n="Users">Users</div>
+            <!-- Menu Header - Akun Admin -->
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Akun</span>
+            </li>
+
+            <!-- Profil Admin -->
+            <li class="menu-item {{ request()->routeIs('admin.profile.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.profile.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-user"></i>
+                    <div data-i18n="Profile">Profil Saya</div>
                 </a>
             </li>
         @elseif(Auth::user()->role == 'manager')
@@ -250,31 +247,26 @@
                 </a>
             </li>
 
-            <!-- Menu Header - Cuti & Izin -->
+            <!-- Menu Header - Profile & Settings -->
             <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Cuti & Izin</span>
+                <span class="menu-header-text">Akun</span>
             </li>
 
-            <!-- Ajukan Cuti -->
-            <li class="menu-item {{ request()->routeIs('my-leave.*') ? 'active' : '' }}">
-                <a href="#" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-calendar-event"></i>
-                    <div data-i18n="MyLeave">Cuti & Izin Saya</div>
-                </a>
+            <!-- Profile -->
+            <li class="menu-item {{ request()->routeIs('employee.profile.*', 'admin.profile.*') ? 'active' : '' }}">
+                @if (Auth::user()->role == 'admin')
+                    <a href="{{ route('admin.profile.index') }}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-user"></i>
+                        <div data-i18n="Profile">Profil Saya</div>
+                    </a>
+                @else
+                    <a href="{{ route('employee.profile.index') }}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-user"></i>
+                        <div data-i18n="Profile">Profil Saya</div>
+                    </a>
+                @endif
             </li>
 
-            <!-- Menu Header - Profil -->
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">Profil</span>
-            </li>
-
-            <!-- Data Pribadi -->
-            <li class="menu-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
-                <a href="#" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-user-circle"></i>
-                    <div data-i18n="Profile">Data Pribadi</div>
-                </a>
-            </li>
         @endif
     </ul>
 </aside>

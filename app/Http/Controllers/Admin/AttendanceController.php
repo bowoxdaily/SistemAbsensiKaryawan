@@ -21,7 +21,7 @@ class AttendanceController extends Controller
     {
         // Get filter parameters
         $search = $request->get('search');
-        $dateFrom = $request->get('date_from', now()->startOfMonth()->format('Y-m-d'));
+        $dateFrom = $request->get('date_from', now()->format('Y-m-d'));
         $dateTo = $request->get('date_to', now()->format('Y-m-d'));
         $status = $request->get('status');
         $department = $request->get('department');
@@ -77,7 +77,7 @@ class AttendanceController extends Controller
     {
         $perPage = $request->get('per_page', 10);
         $search = $request->get('search', '');
-        $dateFrom = $request->get('date_from', now()->startOfMonth()->toDateString());
+        $dateFrom = $request->get('date_from', now()->toDateString());
         $dateTo = $request->get('date_to', now()->toDateString());
         $status = $request->get('status', '');
 
@@ -612,7 +612,7 @@ class AttendanceController extends Controller
      */
     public function export(Request $request)
     {
-        $dateFrom = $request->get('date_from', now()->startOfMonth()->format('Y-m-d'));
+        $dateFrom = $request->get('date_from', now()->format('Y-m-d'));
         $dateTo = $request->get('date_to', now()->format('Y-m-d'));
         $status = $request->get('status');
         $department = $request->get('department');

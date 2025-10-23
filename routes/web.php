@@ -64,6 +64,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/employee/attendance', [\App\Http\Controllers\Employee\AttendanceController::class, 'index'])->name('employee.attendance.index');
     Route::get('/employee/attendance/history', [\App\Http\Controllers\Employee\AttendanceController::class, 'historyPage'])->name('employee.attendance.history');
 
+    // Employee Profile Routes
+    Route::get('/employee/profile', [\App\Http\Controllers\Employee\ProfileController::class, 'index'])->name('employee.profile.index');
+    Route::put('/employee/profile', [\App\Http\Controllers\Employee\ProfileController::class, 'update'])->name('employee.profile.update');
+    Route::put('/employee/profile/photo', [\App\Http\Controllers\Employee\ProfileController::class, 'updatePhoto'])->name('employee.profile.update-photo');
+    Route::put('/employee/profile/password', [\App\Http\Controllers\Employee\ProfileController::class, 'updatePassword'])->name('employee.profile.update-password');
+
+    // Admin Profile Routes
+    Route::get('/admin/profile', [\App\Http\Controllers\Admin\AdminProfileController::class, 'index'])->name('admin.profile.index');
+    Route::put('/admin/profile', [\App\Http\Controllers\Admin\AdminProfileController::class, 'update'])->name('admin.profile.update');
+    Route::put('/admin/profile/photo', [\App\Http\Controllers\Admin\AdminProfileController::class, 'updatePhoto'])->name('admin.profile.update-photo');
+    Route::put('/admin/profile/password', [\App\Http\Controllers\Admin\AdminProfileController::class, 'updatePassword'])->name('admin.profile.update-password');
+
 
 
     // Master Data Routes (Commented - Controllers not yet created)

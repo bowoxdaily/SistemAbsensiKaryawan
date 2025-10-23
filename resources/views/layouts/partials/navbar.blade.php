@@ -20,15 +20,28 @@
         <ul class="navbar-nav flex-row align-items-center ms-auto">
             <!-- Tanggal dan Waktu -->
             <li class="nav-item lh-1 me-3">
-                <span class="text-muted" id="current-datetime"></span>
+                <!-- Full datetime for large screens -->
+                <span class="text-muted d-none d-lg-inline" id="current-datetime-full"></span>
+                <!-- Date only for medium screens -->
+                <span class="text-muted d-none d-md-inline d-lg-none" id="current-datetime-medium"></span>
+                <!-- Time only for small screens -->
+                <span class="text-muted d-inline d-md-none" id="current-datetime-small"></span>
             </li>
 
             <!-- User -->
             <li class="nav-item navbar-dropdown dropdown-user dropdown">
                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
                     <div class="avatar avatar-online">
-                        <img src="{{ Auth::user()->avatar ?? asset('sneat-1.0.0/assets/img/avatars/1.png') }}" alt
-                            class="w-px-40 h-auto rounded-circle" />
+                        @if (Auth::user()->role == 'admin' && Auth::user()->profile_photo)
+                            <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt
+                                class="w-px-40 h-auto rounded-circle" style="object-fit: cover;" />
+                        @elseif (Auth::user()->employee && Auth::user()->employee->profile_photo)
+                            <img src="{{ asset('storage/' . Auth::user()->employee->profile_photo) }}" alt
+                                class="w-px-40 h-auto rounded-circle" style="object-fit: cover;" />
+                        @else
+                            <img src="{{ asset('sneat-1.0.0/assets/img/avatars/1.png') }}" alt
+                                class="w-px-40 h-auto rounded-circle" />
+                        @endif
                     </div>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
@@ -37,8 +50,16 @@
                             <div class="d-flex">
                                 <div class="flex-shrink-0 me-3">
                                     <div class="avatar avatar-online">
-                                        <img src="{{ Auth::user()->avatar ?? asset('sneat-1.0.0/assets/img/avatars/1.png') }}"
-                                            alt class="w-px-40 h-auto rounded-circle" />
+                                        @if (Auth::user()->role == 'admin' && Auth::user()->profile_photo)
+                                            <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt
+                                                class="w-px-40 h-auto rounded-circle" style="object-fit: cover;" />
+                                        @elseif (Auth::user()->employee && Auth::user()->employee->profile_photo)
+                                            <img src="{{ asset('storage/' . Auth::user()->employee->profile_photo) }}"
+                                                alt class="w-px-40 h-auto rounded-circle" style="object-fit: cover;" />
+                                        @else
+                                            <img src="{{ asset('sneat-1.0.0/assets/img/avatars/1.png') }}" alt
+                                                class="w-px-40 h-auto rounded-circle" />
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="flex-grow-1">
@@ -52,10 +73,17 @@
                         <div class="dropdown-divider"></div>
                     </li>
                     <li>
-                        <a class="dropdown-item" href="#">
-                            <i class="bx bx-user me-2"></i>
-                            <span class="align-middle">Profil Saya</span>
-                        </a>
+                        @if (Auth::user()->role == 'admin')
+                            <a class="dropdown-item" href="{{ route('admin.profile.index') }}">
+                                <i class="bx bx-user me-2"></i>
+                                <span class="align-middle">Profil Saya</span>
+                            </a>
+                        @else
+                            <a class="dropdown-item" href="{{ route('employee.profile.index') }}">
+                                <i class="bx bx-user me-2"></i>
+                                <span class="align-middle">Profil Saya</span>
+                            </a>
+                        @endif
                     </li>
                     <li>
                         <a class="dropdown-item" href="#">
@@ -87,7 +115,9 @@
         // Update waktu real-time
         function updateDateTime() {
             const now = new Date();
-            const options = {
+
+            // Full datetime for large screens (lg+)
+            const optionsFull = {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
@@ -96,8 +126,30 @@
                 minute: '2-digit',
                 second: '2-digit'
             };
-            const dateTimeString = now.toLocaleDateString('id-ID', options);
-            document.getElementById('current-datetime').textContent = dateTimeString;
+            const fullDateTime = now.toLocaleDateString('id-ID', optionsFull);
+            const fullElement = document.getElementById('current-datetime-full');
+            if (fullElement) fullElement.textContent = fullDateTime;
+
+            // Date only for medium screens (md-lg)
+            const optionsMedium = {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            const mediumDateTime = now.toLocaleDateString('id-ID', optionsMedium);
+            const mediumElement = document.getElementById('current-datetime-medium');
+            if (mediumElement) mediumElement.textContent = mediumDateTime;
+
+            // Time only for small screens (sm and below)
+            const optionsSmall = {
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            const smallDateTime = now.toLocaleTimeString('id-ID', optionsSmall);
+            const smallElement = document.getElementById('current-datetime-small');
+            if (smallElement) smallElement.textContent = smallDateTime;
         }
 
         // Update setiap detik
