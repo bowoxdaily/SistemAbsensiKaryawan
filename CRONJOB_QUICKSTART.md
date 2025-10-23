@@ -56,9 +56,22 @@ crontab -e
 
 ## 🎯 Yang Akan Berjalan Otomatis
 
-| Command                      | Jadwal            | Fungsi                                        |
-| ---------------------------- | ----------------- | --------------------------------------------- |
-| `attendance:generate-absent` | Setiap hari 23:59 | Generate absensi alpha untuk yang tidak hadir |
+| Command                      | Jadwal                                | Fungsi                                                          |
+| ---------------------------- | ------------------------------------- | --------------------------------------------------------------- |
+| `attendance:generate-absent` | Setiap jam (08:00-23:59, Senin-Jumat) | Generate absensi alpha setelah melewati jam checkout + 30 menit |
+
+**⏰ Cara Kerja:**
+
+1. Command berjalan setiap jam
+2. Cek semua karyawan yang belum absen hari ini
+3. Jika sudah melewati **jam checkout + 30 menit**, otomatis tandai sebagai **alpha**
+4. Grace period 30 menit memberikan toleransi
+
+**Contoh:**
+
+-   Shift siang checkout jam 17:00
+-   Karyawan belum check-in sampai jam 17:30
+-   Sistem otomatis tandai alpha pada pengecekan jam 18:00
 
 ---
 

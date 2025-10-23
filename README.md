@@ -272,7 +272,14 @@ crontab -e
 **📊 Scheduled Tasks yang Berjalan:**
 | Command | Jadwal | Fungsi |
 |---------|--------|--------|
-| `attendance:generate-absent` | Setiap hari 23:59 | Auto-generate absensi alpha |
+| `attendance:generate-absent` | Setiap jam (08:00-23:59, Senin-Jumat) | Auto-generate absensi alpha setelah melewati jam checkout + 30 menit |
+
+**🔔 Catatan Penting:**
+
+-   Karyawan akan otomatis dianggap **alpha** jika tidak melakukan check-in **30 menit setelah jam checkout**
+-   Grace period 30 menit memberikan toleransi untuk karyawan yang lupa absen
+-   Command berjalan setiap jam untuk memastikan deteksi real-time
+-   Hanya berjalan pada hari kerja (Senin-Jumat) jam 08:00-23:59
 
 ### 2. Verifikasi Schedule
 

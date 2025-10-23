@@ -9,9 +9,12 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Schedule: Generate absent attendance every day at 23:59
+// Schedule: Generate absent attendance setiap jam
+// Mengecek apakah ada karyawan yang belum absen setelah melewati jam checkout + 30 menit
 Schedule::command('attendance:generate-absent')
-    ->dailyAt('23:59')
+    ->hourly()
+    ->between('08:00', '23:59')
+    ->weekdays()
     ->before(function () {
         Cache::put('cron_last_run', now(), now()->addDays(7));
     })

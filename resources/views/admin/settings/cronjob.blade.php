@@ -9,7 +9,7 @@
         </h4>
 
         <!-- Alert Info -->
-        <div class="alert alert-info alert-dismissible" role="alert">
+        <div class="alert alert-info alert-dismissible shadow-none border" role="alert">
             <h6 class="alert-heading mb-2">
                 <i class='bx bx-info-circle me-2'></i>Apa itu Cron Job?
             </h6>
@@ -127,8 +127,16 @@
                                 <tbody>
                                     <tr>
                                         <td><code>attendance:generate-absent</code></td>
-                                        <td><span class="badge bg-label-primary">Daily at 23:59</span></td>
-                                        <td>Generate absensi alpha untuk karyawan yang tidak hadir</td>
+                                        <td>
+                                            <span class="badge bg-label-primary">Hourly</span>
+                                            <span class="badge bg-label-info">08:00 - 23:59</span>
+                                            <span class="badge bg-label-secondary">Weekdays</span>
+                                        </td>
+                                        <td>
+                                            Generate absensi alpha untuk karyawan yang tidak hadir<br>
+                                            <small class="text-muted">Dijalankan setiap jam, cek apakah karyawan sudah
+                                                melewati jam checkout + 30 menit</small>
+                                        </td>
                                         <td>
                                             <button class="btn btn-sm btn-outline-success"
                                                 onclick="testCommand('attendance:generate-absent')">
@@ -182,7 +190,7 @@
                                     <li>Klik <strong>"Add New Cron Job"</strong></li>
                                     <li>Cron Job akan otomatis berjalan setiap menit</li>
                                 </ol>
-                                <div class="alert alert-warning">
+                                <div class="alert alert-warning shadow-none border">
                                     <strong>Catatan:</strong> Pastikan path PHP sudah benar. Jika error, hubungi hosting
                                     provider untuk path PHP yang tepat.
                                 </div>
@@ -214,7 +222,7 @@
                                     <li>Tekan <kbd>Esc</kbd> kemudian ketik <code>:wq</code> dan Enter</li>
                                     <li>Verifikasi: <code>crontab -l</code></li>
                                 </ol>
-                                <div class="alert alert-info">
+                                <div class="alert alert-info shadow-none border">
                                     <strong>Tips:</strong> Untuk log cron, ubah command menjadi:<br>
                                     <code>* * * * * cd {{ base_path() }} && {{ PHP_BINARY }} artisan schedule:run >>
                                         {{ base_path('storage/logs/cron.log') }} 2>&1</code>
@@ -235,7 +243,7 @@
                                     <li>Start in: <code>{{ base_path() }}</code></li>
                                     <li>Finish & Test</li>
                                 </ol>
-                                <div class="alert alert-warning">
+                                <div class="alert alert-warning shadow-none border">
                                     <strong>Alternatif untuk Development:</strong><br>
                                     Jalankan command: <code>php artisan schedule:work</code> di terminal (untuk testing
                                     saja)
@@ -348,49 +356,28 @@
                 input.setSelectionRange(0, 99999);
 
                 navigator.clipboard.writeText(input.value).then(() => {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Copied!',
-                        text: 'Command berhasil di-copy ke clipboard',
-                        toast: true,
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 2000
-                    });
+                    toastr.success('Command berhasil di-copy ke clipboard', 'Copied!');
                 });
             }
 
             function detectEnvironment() {
                 // Auto detect sudah dilakukan di server side
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Environment Detected',
-                    text: 'Server information telah di-refresh',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 2000
-                });
+                toastr.info('Server information telah di-refresh', 'Environment Detected');
             }
 
             function testCommand(command) {
                 Swal.fire({
                     title: 'Test Command',
-                    text: `Menjalankan command: ${command}`,
+                    text: `Menjalankan command: ${command}?`,
                     icon: 'question',
                     showCancelButton: true,
-                    confirmButtonText: 'Run',
-                    cancelButtonText: 'Cancel'
+                    confirmButtonText: 'Ya, Jalankan',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#696cff',
+                    cancelButtonColor: '#8592a3'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        Swal.fire({
-                            title: 'Running...',
-                            text: 'Please wait',
-                            allowOutsideClick: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
+                        toastr.info('Menjalankan command...', 'Please wait');
 
                         $.ajax({
                             url: '/admin/settings/cronjob/test',
@@ -400,21 +387,11 @@
                                 command: command
                             },
                             success: function(response) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Success!',
-                                    html: response.message + '<br><small>' + response.output +
-                                        '</small>',
-                                    confirmButtonText: 'OK'
-                                });
+                                toastr.success(response.message + '\n' + response.output, 'Success!');
                             },
                             error: function(xhr) {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error!',
-                                    text: xhr.responseJSON?.message || 'Gagal menjalankan command',
-                                    confirmButtonText: 'OK'
-                                });
+                                toastr.error(xhr.responseJSON?.message || 'Gagal menjalankan command',
+                                    'Error!');
                             }
                         });
                     }
@@ -427,18 +404,13 @@
                     text: 'Menjalankan scheduler sekarang?',
                     icon: 'question',
                     showCancelButton: true,
-                    confirmButtonText: 'Run',
-                    cancelButtonText: 'Cancel'
+                    confirmButtonText: 'Ya, Jalankan',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#696cff',
+                    cancelButtonColor: '#8592a3'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        Swal.fire({
-                            title: 'Running...',
-                            text: 'Please wait',
-                            allowOutsideClick: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
+                        toastr.info('Menjalankan scheduler...', 'Please wait');
 
                         $.ajax({
                             url: '/admin/settings/cronjob/run',
@@ -447,22 +419,12 @@
                                 _token: '{{ csrf_token() }}'
                             },
                             success: function(response) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Success!',
-                                    text: response.message,
-                                    confirmButtonText: 'OK'
-                                });
+                                toastr.success(response.message, 'Success!');
                                 checkCronStatus();
                             },
                             error: function(xhr) {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error!',
-                                    text: xhr.responseJSON?.message ||
-                                        'Gagal menjalankan scheduler',
-                                    confirmButtonText: 'OK'
-                                });
+                                toastr.error(xhr.responseJSON?.message || 'Gagal menjalankan scheduler',
+                                    'Error!');
                             }
                         });
                     }
@@ -478,12 +440,7 @@
                         new bootstrap.Modal(document.getElementById('scheduleListModal')).show();
                     },
                     error: function(xhr) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error!',
-                            text: 'Gagal mengambil schedule list',
-                            confirmButtonText: 'OK'
-                        });
+                        toastr.error('Gagal mengambil schedule list', 'Error!');
                     }
                 });
             }
@@ -499,20 +456,15 @@
                         let statusBadge = '';
                         if (response.is_running) {
                             statusBadge = '<span class="badge bg-success">Active</span>';
+                            toastr.success(response.message, 'Cron Active');
                         } else {
                             statusBadge = '<span class="badge bg-danger">Inactive</span>';
+                            toastr.warning(response.message, 'Cron Inactive');
                         }
                         $('#cronStatus').html(statusBadge);
-
-                        Swal.fire({
-                            icon: response.is_running ? 'success' : 'warning',
-                            title: response.is_running ? 'Cron Active' : 'Cron Inactive',
-                            text: response.message,
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 3000
-                        });
+                    },
+                    error: function(xhr) {
+                        toastr.error('Gagal mengecek status cron', 'Error!');
                     }
                 });
             }
