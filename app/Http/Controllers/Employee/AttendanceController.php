@@ -191,6 +191,17 @@ class AttendanceController extends Controller
                 ], 400);
             }
 
+            // Check if employee is on leave, sick, or has permission today
+            if ($existingAttendance) {
+                $blockedStatuses = ['cuti', 'leave', 'izin', 'sick', 'sakit', 'alpha', 'absent'];
+                if (in_array(strtolower($existingAttendance->status), $blockedStatuses)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda tidak dapat melakukan check-in karena sedang dalam status: ' . strtoupper($existingAttendance->status)
+                    ], 403);
+                }
+            }
+
             // Save photo
             $photoPath = $this->saveBase64Image($request->photo, 'attendance/check-in');
 
@@ -343,6 +354,15 @@ class AttendanceController extends Controller
                     'success' => false,
                     'message' => 'Anda sudah melakukan check-out hari ini pada ' . $attendance->check_out
                 ], 400);
+            }
+
+            // Check if employee is on leave, sick, or has permission today
+            $blockedStatuses = ['cuti', 'leave', 'izin', 'sick', 'sakit', 'alpha', 'absent'];
+            if (in_array(strtolower($attendance->status), $blockedStatuses)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak dapat melakukan check-out karena sedang dalam status: ' . strtoupper($attendance->status)
+                ], 403);
             }
 
             // Validate check-out time based on work schedule

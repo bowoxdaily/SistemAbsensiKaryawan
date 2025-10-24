@@ -327,18 +327,20 @@ class KaryawanController extends Controller
      */
     public function export(Request $request)
     {
+        $search = $request->get('search');
         $departmentId = $request->get('department_id');
         $positionId = $request->get('position_id');
         $status = $request->get('status');
 
         $filters = [
+            'search' => $search,
             'department_id' => $departmentId,
             'position_id' => $positionId,
             'status' => $status,
         ];
 
         $filename = 'Data_Karyawan';
-        if ($departmentId || $positionId || $status) {
+        if ($search || $departmentId || $positionId || $status) {
             $filename .= '_Filtered';
         }
         $filename .= '_' . date('Y-m-d_His') . '.xlsx';

@@ -2,6 +2,12 @@
 
 @section('title', 'Dashboard Admin')
 
+@push('head')
+    <!-- Preload LCP image untuk performa optimal -->
+    <link rel="preload" as="image" href="{{ asset('sneat-1.0.0/assets/img/illustrations/man-with-laptop-light.png') }}"
+        fetchpriority="high">
+@endpush
+
 @section('content')
     <div class="row">
         <!-- Welcome Card -->
@@ -23,7 +29,7 @@
                     <div class="col-sm-5 text-center text-sm-left">
                         <div class="card-body pb-0 px-0 px-md-4">
                             <img src="{{ asset('sneat-1.0.0/assets/img/illustrations/man-with-laptop-light.png') }}"
-                                height="140" alt="Admin Dashboard" />
+                                width="200" height="140" alt="Admin Dashboard" fetchpriority="high" decoding="async" />
                         </div>
                     </div>
                 </div>
@@ -148,11 +154,12 @@
                                                 <div class="avatar avatar-sm me-3">
                                                     @if ($absensi->employee->profile_photo)
                                                         <img src="{{ asset('storage/' . $absensi->employee->profile_photo) }}"
-                                                            alt="Avatar" class="rounded-circle"
-                                                            style="width: 38px; height: 38px; object-fit: cover;">
+                                                            alt="Avatar" class="rounded-circle" loading="lazy"
+                                                            width="38" height="38" style="object-fit: cover;">
                                                     @else
                                                         <img src="{{ asset('sneat-1.0.0/assets/img/avatars/1.png') }}"
-                                                            alt="Avatar" class="rounded-circle">
+                                                            alt="Avatar" class="rounded-circle" loading="lazy"
+                                                            width="38" height="38">
                                                     @endif
                                                 </div>
                                                 <div>
@@ -202,11 +209,12 @@
                                         <div class="avatar avatar-sm me-2">
                                             @if ($absensi->employee->profile_photo)
                                                 <img src="{{ asset('storage/' . $absensi->employee->profile_photo) }}"
-                                                    alt="Avatar" class="rounded-circle"
-                                                    style="width: 38px; height: 38px; object-fit: cover;">
+                                                    alt="Avatar" class="rounded-circle" loading="lazy" width="38"
+                                                    height="38" style="object-fit: cover;">
                                             @else
                                                 <img src="{{ asset('sneat-1.0.0/assets/img/avatars/1.png') }}"
-                                                    alt="Avatar" class="rounded-circle">
+                                                    alt="Avatar" class="rounded-circle" loading="lazy" width="38"
+                                                    height="38">
                                             @endif
                                         </div>
                                         <div class="flex-grow-1">
@@ -330,47 +338,49 @@
 @endsection
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Chart Statistik Mingguan
-        const ctx = document.getElementById('chartAbsensiAdmin');
-        if (ctx) {
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: {!! json_encode($statistikMingguIni['labels'] ?? []) !!},
-                    datasets: [{
-                        label: 'Hadir',
-                        data: {!! json_encode($statistikMingguIni['hadir'] ?? []) !!},
-                        borderColor: 'rgb(75, 192, 192)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                        tension: 0.4
-                    }, {
-                        label: 'Tidak Hadir',
-                        data: {!! json_encode($statistikMingguIni['tidak_hadir'] ?? []) !!},
-                        borderColor: 'rgb(255, 99, 132)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        }
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script defer>
+        // Chart Statistik Mingguan - wrapped in DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('chartAbsensiAdmin');
+            if (ctx && typeof Chart !== 'undefined') {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: {!! json_encode($statistikMingguIni['labels'] ?? []) !!},
+                        datasets: [{
+                            label: 'Hadir',
+                            data: {!! json_encode($statistikMingguIni['hadir'] ?? []) !!},
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'Tidak Hadir',
+                            data: {!! json_encode($statistikMingguIni['tidak_hadir'] ?? []) !!},
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                            tension: 0.4
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
                             }
                         }
                     }
-                }
-            });
-        }
+                });
+            }
+        });
     </script>
 @endpush

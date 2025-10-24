@@ -25,6 +25,15 @@ class KaryawanExport implements FromCollection, WithHeadings, WithMapping, WithS
     public function collection()
     {
         return Karyawans::with(['department', 'subDepartment', 'position', 'workSchedule'])
+            ->when(!empty($this->filters['search']), function ($query) {
+                $search = $this->filters['search'];
+                return $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('employee_code', 'like', "%{$search}%")
+                        ->orWhere('nik', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
             ->when(!empty($this->filters['department_id']), function ($query) {
                 return $query->where('department_id', $this->filters['department_id']);
             })

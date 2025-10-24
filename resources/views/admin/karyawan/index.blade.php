@@ -32,6 +32,21 @@
         <!-- Filter Card -->
         <div class="card mb-3">
             <div class="card-body">
+                <!-- Search Bar -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class='bx bx-search'></i></span>
+                            <input type="text" class="form-control" id="searchInput"
+                                placeholder="Cari berdasarkan nama, kode karyawan, atau NIK...">
+                            <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
+                                <i class='bx bx-x'></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Filters -->
                 <div class="row g-3 align-items-end">
                     <div class="col-md-3">
                         <label for="filterDepartment" class="form-label small mb-1">Departemen</label>
@@ -77,7 +92,19 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Data Karyawan</h5>
-                <small class="text-muted" id="totalKaryawan">Total: 0</small>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <small class="text-muted d-none d-md-inline">Tampilkan:</small>
+                        <select class="form-select form-select-sm" id="perPageSelect" style="width: auto;"
+                            onchange="changePerPage()">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                    <small class="text-muted" id="totalKaryawan">Total: 0</small>
+                </div>
             </div>
             <div class="card-body p-0">
                 <!-- Desktop View: Table -->
@@ -754,8 +781,11 @@
         let currentFilters = {
             department_id: '',
             position_id: '',
-            status: ''
+            status: '',
+            search: ''
         };
+        let perPage = 10;
+        let searchTimeout = null;
 
         $(document).ready(function() {
             karyawanModal = new bootstrap.Modal(document.getElementById('karyawanModal'));
@@ -763,6 +793,17 @@
             importModal = new bootstrap.Modal(document.getElementById('importModal'));
             loadMasterData();
             loadKaryawans();
+
+            // Search input with debounce
+            $('#searchInput').on('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function() {
+                    currentFilters.search = $('#searchInput').val();
+                    updateFilterBadges();
+                    loadKaryawans(1);
+                }, 500); // 500ms debounce
+            });
+
             $('#karyawanForm').on('submit', function(e) {
                 e.preventDefault();
                 saveKaryawan();
@@ -862,6 +903,7 @@
             currentFilters.department_id = $('#filterDepartment').val();
             currentFilters.position_id = $('#filterPosition').val();
             currentFilters.status = $('#filterStatus').val();
+            currentFilters.search = $('#searchInput').val();
             updateFilterBadges();
             loadKaryawans(1);
         }
@@ -870,12 +912,26 @@
             currentFilters = {
                 department_id: '',
                 position_id: '',
-                status: ''
+                status: '',
+                search: ''
             };
             $('#filterDepartment').val('');
             $('#filterPosition').val('');
             $('#filterStatus').val('');
+            $('#searchInput').val('');
             updateFilterBadges();
+            loadKaryawans(1);
+        }
+
+        function clearSearch() {
+            $('#searchInput').val('');
+            currentFilters.search = '';
+            updateFilterBadges();
+            loadKaryawans(1);
+        }
+
+        function changePerPage() {
+            perPage = parseInt($('#perPageSelect').val());
             loadKaryawans(1);
         }
 
@@ -884,6 +940,11 @@
             container.empty();
 
             let hasFilter = false;
+
+            if (currentFilters.search) {
+                container.append(`<span class="badge bg-label-secondary">Cari: "${currentFilters.search}"</span>`);
+                hasFilter = true;
+            }
 
             if (currentFilters.department_id) {
                 const deptName = $('#filterDepartment option:selected').text();
@@ -916,8 +977,11 @@
         }
 
         function loadKaryawans(page = 1) {
-            let url = '/api/karyawan?page=' + page + '&per_page=10';
+            let url = '/api/karyawan?page=' + page + '&per_page=' + perPage;
 
+            if (currentFilters.search) {
+                url += '&search=' + encodeURIComponent(currentFilters.search);
+            }
             if (currentFilters.department_id) {
                 url += '&department_id=' + currentFilters.department_id;
             }
@@ -948,6 +1012,9 @@
         function exportKaryawan() {
             let url = '{{ route('admin.karyawan.export') }}?1=1';
 
+            if (currentFilters.search) {
+                url += '&search=' + encodeURIComponent(currentFilters.search);
+            }
             if (currentFilters.department_id) {
                 url += '&department_id=' + currentFilters.department_id;
             }

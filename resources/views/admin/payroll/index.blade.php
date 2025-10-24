@@ -821,15 +821,82 @@
                         console.error('Response:', xhr.responseJSON);
 
                         if (xhr.status === 422) {
-                            let errors = xhr.responseJSON.errors;
-                            console.log('Validation errors:', errors);
-                            $.each(errors, function(field, messages) {
-                                console.log(`  - ${field}: ${messages[0]}`);
-                                $(`#${field}`).addClass('is-invalid');
-                                $(`#${field}Error`).text(messages[0]);
+                            // Check if this is a duplicate payroll error
+                            let responseMessage = xhr.responseJSON?.message || '';
+                            if (responseMessage.includes('sudah ada') || responseMessage.includes(
+                                    'already exists')) {
+                                // This is a duplicate payroll, not a form validation error
+                                console.log('Duplicate payroll detected:', responseMessage);
+
+                                // Show SweetAlert for better UX
+                                Swal.fire({
+                                    title: 'Payroll Sudah Ada',
+                                    html: `
+                                        <div class="text-start">
+                                            <p><i class='bx bx-info-circle text-warning'></i> <strong>${responseMessage}</strong></p>
+                                            <hr>
+                                            <p class="mb-2">Silakan:</p>
+                                            <ul class="text-muted">
+                                                <li>Pilih karyawan yang berbeda, atau</li>
+                                                <li>Pilih periode bulan yang berbeda</li>
+                                            </ul>
+                                        </div>
+                                    `,
+                                    icon: 'warning',
+                                    confirmButtonText: 'Mengerti',
+                                    confirmButtonColor: '#ffc107'
+                                });
+
+                                // Highlight the period and employee fields
+                                $('#employee_id, #period_month').addClass('is-invalid');
+                                $('#employee_idError').text(
+                                    'Payroll untuk karyawan ini di periode tersebut sudah dibuat');
+                                $('#period_monthError').text('Pilih periode yang berbeda');
+                            } else {
+                                // Regular validation errors
+                                let errors = xhr.responseJSON.errors;
+                                console.log('Validation errors:', errors);
+                                $.each(errors, function(field, messages) {
+                                    console.log(`  - ${field}: ${messages[0]}`);
+                                    $(`#${field}`).addClass('is-invalid');
+                                    $(`#${field}Error`).text(messages[0]);
+                                });
+                                toastr.error('Terdapat kesalahan pada form. Silakan periksa kembali.');
+                            }
+                        } else if (xhr.status === 400 || xhr.status === 409) {
+                            // Handle duplicate payroll (400 Bad Request or 409 Conflict)
+                            let message = xhr.responseJSON?.message || 'Payroll sudah ada';
+                            console.log('Duplicate payroll error:', message);
+
+                            // Show SweetAlert for better UX
+                            Swal.fire({
+                                title: 'Payroll Sudah Ada',
+                                html: `
+                                    <div class="text-start">
+                                        <p><i class='bx bx-info-circle text-warning'></i> <strong>${message}</strong></p>
+                                        <hr>
+                                        <p class="mb-2">Silakan:</p>
+                                        <ul class="text-muted">
+                                            <li>Pilih karyawan yang berbeda, atau</li>
+                                            <li>Pilih periode bulan yang berbeda</li>
+                                        </ul>
+                                    </div>
+                                `,
+                                icon: 'warning',
+                                confirmButtonText: 'Mengerti',
+                                confirmButtonColor: '#ffc107'
                             });
+
+                            // Highlight the period and employee fields
+                            $('#employee_id, #period_month').addClass('is-invalid');
+                            $('#employee_idError').text(
+                                'Payroll untuk karyawan ini di periode tersebut sudah dibuat');
+                            $('#period_monthError').text('Silakan pilih periode yang berbeda');
                         } else {
-                            toastr.error(xhr.responseJSON?.message || 'Terjadi kesalahan');
+                            // Handle other errors
+                            let message = xhr.responseJSON?.message ||
+                                'Terjadi kesalahan saat menyimpan payroll';
+                            toastr.error(message);
                         }
                     }
                 });

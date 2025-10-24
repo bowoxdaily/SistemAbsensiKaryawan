@@ -557,10 +557,58 @@
                         document.getElementById('checkInTime').textContent = att.check_in || '-';
                         document.getElementById('checkOutTime').textContent = att.check_out || '-';
 
-                        // Status badge
+                        // Status badge mapping
+                        const statusConfig = {
+                            'hadir': {
+                                label: 'HADIR',
+                                class: 'bg-success'
+                            },
+                            'present': {
+                                label: 'HADIR',
+                                class: 'bg-success'
+                            },
+                            'terlambat': {
+                                label: 'TERLAMBAT',
+                                class: 'bg-warning'
+                            },
+                            'late': {
+                                label: 'TERLAMBAT',
+                                class: 'bg-warning'
+                            },
+                            'cuti': {
+                                label: 'CUTI',
+                                class: 'bg-info'
+                            },
+                            'leave': {
+                                label: 'CUTI',
+                                class: 'bg-info'
+                            },
+                            'izin': {
+                                label: 'IZIN',
+                                class: 'bg-primary'
+                            },
+                            'sick': {
+                                label: 'SAKIT',
+                                class: 'bg-secondary'
+                            },
+                            'sakit': {
+                                label: 'SAKIT',
+                                class: 'bg-secondary'
+                            },
+                            'alpha': {
+                                label: 'ALPHA',
+                                class: 'bg-danger'
+                            }
+                        };
+
+                        // Set status badge
                         const statusBadge = document.getElementById('statusBadge');
-                        statusBadge.textContent = att.status.toUpperCase();
-                        statusBadge.className = 'badge ' + (att.status === 'hadir' ? 'bg-success' : 'bg-warning');
+                        const config = statusConfig[att.status.toLowerCase()] || {
+                            label: att.status.toUpperCase(),
+                            class: 'bg-secondary'
+                        };
+                        statusBadge.textContent = config.label;
+                        statusBadge.className = 'badge ' + config.class;
 
                         // Late badge
                         if (att.late_minutes > 0) {
@@ -569,12 +617,45 @@
                             document.getElementById('lateBadgeContainer').style.display = 'block';
                         }
 
-                        // Hide appropriate buttons
-                        if (att.check_in) {
+                        // Status yang tidak boleh absen lagi - termasuk alpha
+                        const blockedStatuses = ['cuti', 'leave', 'izin', 'sick', 'sakit', 'alpha', 'absent'];
+                        const isBlocked = blockedStatuses.includes(att.status.toLowerCase());
+
+                        // Jika sudah cuti/izin/sakit/alpha, disable semua tombol absensi dan tampilkan pesan
+                        if (isBlocked) {
+                            // Hide semua tombol check in/out
                             document.getElementById('checkInBtn').style.display = 'none';
-                        }
-                        if (att.check_out) {
                             document.getElementById('checkOutBtn').style.display = 'none';
+
+                            // Disable tombol mulai absensi
+                            const startBtn = document.getElementById('startCameraBtn');
+                            startBtn.disabled = true;
+                            startBtn.innerHTML = '<i class="bx bx-block me-2"></i>Absensi Tidak Tersedia';
+
+                            // Tampilkan alert di status today
+                            const statusDiv = document.getElementById('statusToday');
+                            const alertHtml = `
+                                <div class="alert alert-warning mt-3 mb-0">
+                                    <i class="bx bx-info-circle me-2"></i>
+                                    <strong>Absensi Tidak Tersedia</strong><br>
+                                    Anda sedang dalam status <strong>${config.label}</strong>.
+                                    Tidak dapat melakukan absensi hari ini.
+                                </div>
+                            `;
+                            statusDiv.insertAdjacentHTML('beforeend', alertHtml);
+                        } else {
+                            // Logic normal untuk hadir/terlambat
+                            if (att.check_in) {
+                                document.getElementById('checkInBtn').style.display = 'none';
+                            }
+                            if (att.check_out) {
+                                document.getElementById('checkOutBtn').style.display = 'none';
+
+                                // Jika sudah check out, disable tombol mulai absensi
+                                const startBtn = document.getElementById('startCameraBtn');
+                                startBtn.disabled = true;
+                                startBtn.innerHTML = '<i class="bx bx-check-circle me-2"></i>Absensi Hari Ini Selesai';
+                            }
                         }
                     }
                 } catch (error) {
@@ -611,6 +692,17 @@
 
             // Start camera
             document.getElementById('startCameraBtn').addEventListener('click', async function() {
+                // Check if button is disabled (already blocked)
+                if (this.disabled) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Absensi Tidak Tersedia',
+                        text: 'Anda sudah melakukan absensi hari ini atau sedang dalam status cuti/izin/sakit/alpha.',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
+
                 try {
                     // Request location first
                     if (!currentLocation) {
@@ -764,6 +856,21 @@
                     return;
                 }
 
+                // Konfirmasi check in
+                const confirmResult = await Swal.fire({
+                    title: 'Konfirmasi Check In',
+                    text: 'Apakah Anda yakin ingin melakukan check in sekarang?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Check In',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#28a745'
+                });
+
+                if (!confirmResult.isConfirmed) {
+                    return;
+                }
+
                 const btn = this;
                 btn.disabled = true;
                 btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memproses...';
@@ -793,7 +900,20 @@
                         checkTodayAttendance();
                         loadMonthlySummary();
                     } else {
-                        Swal.fire('Error', result.message, 'error');
+                        // Check for specific error messages
+                        if (result.message.includes('cuti') || result.message.includes('izin') || result.message
+                            .includes('sakit') || result.message.includes('alpha')) {
+                            await Swal.fire({
+                                icon: 'warning',
+                                title: 'Absensi Ditolak',
+                                html: `<p class="mb-0">${result.message}</p>`,
+                                confirmButtonText: 'OK, Saya Mengerti'
+                            });
+                            resetCamera();
+                            checkTodayAttendance(); // Refresh status
+                        } else {
+                            Swal.fire('Error', result.message, 'error');
+                        }
                         btn.disabled = false;
                         btn.innerHTML = '<i class="bx bx-log-in-circle me-2"></i>Check In Sekarang';
                     }
@@ -817,7 +937,7 @@
                     return;
                 }
 
-
+                // Verify face is still detected
                 try {
                     await verifyFaceBeforeAction();
                 } catch (error) {
@@ -827,6 +947,21 @@
                         text: error.message,
                         footer: 'Pastikan wajah Anda terlihat jelas di kamera'
                     });
+                    return;
+                }
+
+                // Konfirmasi check out
+                const confirmResult = await Swal.fire({
+                    title: 'Konfirmasi Check Out',
+                    text: 'Apakah Anda yakin ingin melakukan check out sekarang?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Check Out',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#ffc107'
+                });
+
+                if (!confirmResult.isConfirmed) {
                     return;
                 }
 
@@ -859,7 +994,7 @@
                         checkTodayAttendance();
                         loadMonthlySummary();
                     } else {
-
+                        // Handle specific error scenarios
                         if (response.status === 403 && result.shift_end) {
                             Swal.fire({
                                 icon: 'error',
@@ -873,6 +1008,16 @@
                                        </div>`,
                                 confirmButtonText: 'OK, Saya Mengerti'
                             });
+                        } else if (result.message.includes('cuti') || result.message.includes('izin') || result
+                            .message.includes('sakit') || result.message.includes('alpha')) {
+                            await Swal.fire({
+                                icon: 'warning',
+                                title: 'Check Out Ditolak',
+                                html: `<p class="mb-0">${result.message}</p>`,
+                                confirmButtonText: 'OK, Saya Mengerti'
+                            });
+                            resetCamera();
+                            checkTodayAttendance(); // Refresh status
                         } else {
                             Swal.fire('Error', result.message, 'error');
                         }
