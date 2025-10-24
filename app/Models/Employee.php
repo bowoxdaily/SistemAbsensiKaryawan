@@ -17,15 +17,35 @@ class Employee extends Model
         'birth_place',
         'birth_date',
         'marital_status',
+        'agama',
+        'bangsa',
+        'status_kependudukan',
+        'tanggungan_anak',
+        'nama_ibu_kandung',
+        'ktp',
+        'kartu_keluarga',
 
         // Data Pekerjaan
         'department_id',
+        'sub_department',
+        'sub_department_id',
         'position_id',
         'join_date',
         'employment_status',
+        'lulusan_sekolah',
         'work_schedule_id',
         'supervisor_id',
         'salary_base',
+        'tanggal_resign',
+
+        // Data Keuangan
+        'bank',
+        'nomor_rekening',
+
+        // Data Administrasi
+        'tax_npwp',
+        'bpjs_kesehatan',
+        'bpjs_ketenagakerjaan',
 
         // Data Kontak & Alamat
         'address',
@@ -46,7 +66,9 @@ class Employee extends Model
     protected $casts = [
         'birth_date' => 'date',
         'join_date' => 'date',
+        'tanggal_resign' => 'date',
         'salary_base' => 'decimal:2',
+        'tanggungan_anak' => 'integer',
     ];
 
     /**
@@ -63,6 +85,14 @@ class Employee extends Model
     public function position(): BelongsTo
     {
         return $this->belongsTo(Position::class);
+    }
+
+    /**
+     * Relasi ke Sub Department
+     */
+    public function subDepartment(): BelongsTo
+    {
+        return $this->belongsTo(SubDepartment::class, 'sub_department_id');
     }
 
     /**

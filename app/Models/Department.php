@@ -19,4 +19,12 @@ class Department extends Model
     {
         return $this->hasMany(Employee::class);
     }
+
+    /**
+     * Relasi ke Sub Departments
+     */
+    public function subDepartments(): HasMany
+    {
+        return $this->hasMany(SubDepartment::class);
+    }
 }

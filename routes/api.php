@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\DepartmentController;
+use App\Http\Controllers\Admin\SubDepartmentController;
 use App\Http\Controllers\Admin\KaryawanController;
 use App\Http\Controllers\Admin\PositionController;
 use Illuminate\Http\Request;
@@ -17,6 +18,15 @@ Route::prefix('departments')->group(function () {
     Route::get('/{id}', [DepartmentController::class, 'show']);
     Route::put('/{id}', [DepartmentController::class, 'update']);
     Route::delete('/{id}', [DepartmentController::class, 'destroy']);
+});
+
+Route::prefix('sub-departments')->group(function () {
+    Route::get('/', [SubDepartmentController::class, 'list']);
+    Route::post('/', [SubDepartmentController::class, 'store']);
+    Route::get('/by-department/{departmentId}', [SubDepartmentController::class, 'getByDepartment']);
+    Route::get('/{id}', [SubDepartmentController::class, 'show']);
+    Route::put('/{id}', [SubDepartmentController::class, 'update']);
+    Route::delete('/{id}', [SubDepartmentController::class, 'destroy']);
 });
 
 Route::prefix('karyawan')->group(function () {

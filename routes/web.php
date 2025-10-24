@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\DepartmentController;
+use App\Http\Controllers\Admin\SubDepartmentController;
 use App\Http\Controllers\Admin\KaryawanController;
 use App\Http\Controllers\Admin\PositionController;
 use App\Http\Controllers\Admin\OfficeSettingController;
@@ -30,6 +31,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['admin'])->group(function () {
         // Master Data
         Route::get('/admin/department', [DepartmentController::class, 'dashboard'])->name('admin.department.index');
+        Route::get('/admin/sub-departments', [SubDepartmentController::class, 'index'])->name('admin.sub-departments.index');
         Route::get('/admin/karyawan', [KaryawanController::class, 'dashboard'])->name('admin.karyawan.index');
         Route::get('/admin/karyawan/export', [KaryawanController::class, 'export'])->name('admin.karyawan.export');
         Route::post('/admin/karyawan/import', [KaryawanController::class, 'import'])->name('admin.karyawan.import');

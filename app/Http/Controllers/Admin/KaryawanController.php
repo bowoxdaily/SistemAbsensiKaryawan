@@ -35,7 +35,7 @@ class KaryawanController extends Controller
         $positionId = $request->get('position_id');
         $status = $request->get('status');
 
-        $karyawans = Karyawans::with(['department', 'position', 'workSchedule'])
+        $karyawans = Karyawans::with(['department', 'subDepartment', 'position', 'workSchedule'])
             ->when($search, function ($query, $search) {
                 return $query->where('name', 'like', "%{$search}%")
                     ->orWhere('employee_code', 'like', "%{$search}%")
@@ -69,11 +69,26 @@ class KaryawanController extends Controller
             'birth_place' => 'required|string|max:50',
             'birth_date' => 'required|date',
             'marital_status' => 'required|in:Belum Menikah,Menikah,Duda,Janda',
+            'tanggungan_anak' => 'nullable|integer|min:0',
+            'agama' => 'nullable|string|max:50',
+            'bangsa' => 'nullable|string|max:50',
+            'status_kependudukan' => 'nullable|string|max:20',
+            'nama_ibu_kandung' => 'nullable|string|max:100',
+            'ktp' => 'nullable|string|max:20',
+            'kartu_keluarga' => 'nullable|string|max:20',
             'department_id' => 'required|exists:departments,id',
+            'sub_department_id' => 'nullable|exists:sub_departments,id',
             'position_id' => 'required|exists:positions,id',
+            'lulusan_sekolah' => 'nullable|string|max:100',
             'join_date' => 'required|date',
             'employment_status' => 'required|in:Tetap,Kontrak,Magang,Outsource',
             'work_schedule_id' => 'required|exists:work_schedules,id',
+            'tanggal_resign' => 'nullable|date',
+            'bank' => 'nullable|string|max:50',
+            'nomor_rekening' => 'nullable|string|max:50',
+            'tax_npwp' => 'nullable|string|max:20',
+            'bpjs_kesehatan' => 'nullable|string|max:20',
+            'bpjs_ketenagakerjaan' => 'nullable|string|max:20',
             'address' => 'required|string',
             'city' => 'required|string|max:50',
             'province' => 'required|string|max:50',
@@ -146,7 +161,7 @@ class KaryawanController extends Controller
      */
     public function show($id)
     {
-        $karyawan = Karyawans::with(['department', 'position', 'supervisor', 'workSchedule'])->find($id);
+        $karyawan = Karyawans::with(['department', 'subDepartment', 'position', 'supervisor', 'workSchedule'])->find($id);
 
         if (!$karyawan) {
             return response()->json([
@@ -183,11 +198,26 @@ class KaryawanController extends Controller
             'birth_place' => 'required|string|max:50',
             'birth_date' => 'required|date',
             'marital_status' => 'required|in:Belum Menikah,Menikah,Duda,Janda',
+            'tanggungan_anak' => 'nullable|integer|min:0',
+            'agama' => 'nullable|string|max:50',
+            'bangsa' => 'nullable|string|max:50',
+            'status_kependudukan' => 'nullable|string|max:20',
+            'nama_ibu_kandung' => 'nullable|string|max:100',
+            'ktp' => 'nullable|string|max:20',
+            'kartu_keluarga' => 'nullable|string|max:20',
             'department_id' => 'required|exists:departments,id',
+            'sub_department_id' => 'nullable|exists:sub_departments,id',
             'position_id' => 'required|exists:positions,id',
+            'lulusan_sekolah' => 'nullable|string|max:100',
             'join_date' => 'required|date',
             'employment_status' => 'required|in:Tetap,Kontrak,Magang,Outsource',
             'work_schedule_id' => 'required|exists:work_schedules,id',
+            'tanggal_resign' => 'nullable|date',
+            'bank' => 'nullable|string|max:50',
+            'nomor_rekening' => 'nullable|string|max:50',
+            'tax_npwp' => 'nullable|string|max:20',
+            'bpjs_kesehatan' => 'nullable|string|max:20',
+            'bpjs_ketenagakerjaan' => 'nullable|string|max:20',
             'address' => 'required|string',
             'city' => 'required|string|max:50',
             'province' => 'required|string|max:50',
@@ -284,6 +314,7 @@ class KaryawanController extends Controller
                 'departments' => Department::orderBy('name')->get(),
                 'positions' => Position::orderBy('name')->get(),
                 'work_schedules' => WorkSchedule::where('is_active', true)->orderBy('name')->get(),
+                'sub_departments' => \App\Models\SubDepartment::where('is_active', true)->with('department')->orderBy('name')->get(),
                 'supervisors' => Karyawans::where('status', 'active')
                     ->orderBy('name')
                     ->get(['id', 'name', 'employee_code'])

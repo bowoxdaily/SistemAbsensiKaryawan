@@ -72,27 +72,37 @@
             </li>
 
             <!-- Karyawan -->
-            <li class="menu-item {{ request()->routeIs('karyawan.*') ? 'active' : '' }}">
+            <li class="menu-item {{ request()->routeIs('admin.karyawan.*') ? 'active' : '' }}">
                 <a href="{{ route('admin.karyawan.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-user"></i>
                     <div data-i18n="Karyawan">Karyawan</div>
                 </a>
             </li>
 
-            <!-- Departemen -->
-            <li class="menu-item {{ request()->is('admin/departemen*') ? 'active' : '' }}">
-                <a href="{{ route('admin.department.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-building"></i>
-                    <div data-i18n="Departemen">Departemen</div>
+            <!-- Organisasi (Dropdown) -->
+            <li
+                class="menu-item {{ request()->is('admin/department*') || request()->is('admin/sub-departments*') || request()->routeIs('admin.positions.*') ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-buildings"></i>
+                    <div data-i18n="Organisasi">Organisasi</div>
                 </a>
-            </li>
-
-            <!-- Jabatan -->
-            <li class="menu-item {{ request()->routeIs('jabatan.*') ? 'active' : '' }}">
-                <a href="{{ route('admin.positions.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-briefcase"></i>
-                    <div data-i18n="Jabatan">Jabatan</div>
-                </a>
+                <ul class="menu-sub">
+                    <li class="menu-item {{ request()->is('admin/department*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.department.index') }}" class="menu-link">
+                            <div data-i18n="Departemen">Departemen</div>
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/sub-departments*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.sub-departments.index') }}" class="menu-link">
+                            <div data-i18n="Sub Departemen">Sub Departemen</div>
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->routeIs('admin.positions.*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.positions.index') }}" class="menu-link">
+                            <div data-i18n="Jabatan">Jabatan</div>
+                        </a>
+                    </li>
+                </ul>
             </li>
 
             <!-- Menu Header - Absensi -->

@@ -17,13 +17,29 @@ class Karyawans extends Model
         'birth_place',
         'birth_date',
         'marital_status',
+        'agama',
+        'bangsa',
+        'status_kependudukan',
+        'tanggungan_anak',
+        'nama_ibu_kandung',
+        'ktp',
+        'kartu_keluarga',
         'department_id',
+        'sub_department',
+        'sub_department_id',
         'position_id',
         'join_date',
         'employment_status',
+        'lulusan_sekolah',
         'work_schedule_id',
         'supervisor_id',
         'salary_base',
+        'tanggal_resign',
+        'bank',
+        'nomor_rekening',
+        'tax_npwp',
+        'bpjs_kesehatan',
+        'bpjs_ketenagakerjaan',
         'address',
         'city',
         'province',
@@ -40,12 +56,19 @@ class Karyawans extends Model
     protected $casts = [
         'birth_date' => 'date',
         'join_date' => 'date',
+        'tanggal_resign' => 'date',
         'salary_base' => 'decimal:2',
+        'tanggungan_anak' => 'integer',
     ];
 
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
+    }
+
+    public function subDepartment(): BelongsTo
+    {
+        return $this->belongsTo(SubDepartment::class, 'sub_department_id');
     }
 
     public function position(): BelongsTo

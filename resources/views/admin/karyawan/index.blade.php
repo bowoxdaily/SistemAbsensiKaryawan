@@ -162,6 +162,12 @@
                                     <i class='bx bx-phone'></i> Kontak
                                 </button>
                             </li>
+                            <li class="nav-item">
+                                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab"
+                                    data-bs-target="#tabAdministrasi">
+                                    <i class='bx bx-file'></i> Administrasi
+                                </button>
+                            </li>
                         </ul>
 
                         <div class="tab-content mt-3">
@@ -172,12 +178,13 @@
                                         <label for="employee_code" class="form-label">Kode Karyawan <span
                                                 class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="employee_code"
-                                            name="employee_code" required>
+                                            name="employee_code">
                                         <div class="invalid-feedback" id="employee_codeError"></div>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label for="nik" class="form-label">NIK</label>
-                                        <input type="text" class="form-control" id="nik" name="nik">
+                                        <label for="nik" class="form-label">NIK / KTP</label>
+                                        <input type="text" class="form-control" id="nik" name="nik"
+                                            maxlength="20">
                                         <div class="invalid-feedback" id="nikError"></div>
                                     </div>
                                 </div>
@@ -185,7 +192,7 @@
                                 <div class="mb-3">
                                     <label for="name" class="form-label">Nama Lengkap <span
                                             class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="name" name="name" required>
+                                    <input type="text" class="form-control" id="name" name="name">
                                     <div class="invalid-feedback" id="nameError"></div>
                                 </div>
 
@@ -193,7 +200,7 @@
                                     <div class="col-md-4 mb-3">
                                         <label for="gender" class="form-label">Jenis Kelamin <span
                                                 class="text-danger">*</span></label>
-                                        <select class="form-select" id="gender" name="gender" required>
+                                        <select class="form-select" id="gender" name="gender">
                                             <option value="">Pilih...</option>
                                             <option value="L">Laki-laki</option>
                                             <option value="P">Perempuan</option>
@@ -203,30 +210,83 @@
                                     <div class="col-md-4 mb-3">
                                         <label for="birth_place" class="form-label">Tempat Lahir <span
                                                 class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="birth_place" name="birth_place"
-                                            required>
+                                        <input type="text" class="form-control" id="birth_place" name="birth_place">
                                         <div class="invalid-feedback" id="birth_placeError"></div>
                                     </div>
                                     <div class="col-md-4 mb-3">
                                         <label for="birth_date" class="form-label">Tanggal Lahir <span
                                                 class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" id="birth_date" name="birth_date"
-                                            required>
+                                        <input type="date" class="form-control" id="birth_date" name="birth_date">
                                         <div class="invalid-feedback" id="birth_dateError"></div>
                                     </div>
                                 </div>
 
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="marital_status" class="form-label">Status Perkawinan <span
+                                                class="text-danger">*</span></label>
+                                        <select class="form-select" id="marital_status" name="marital_status">
+                                            <option value="">Pilih...</option>
+                                            <option value="Belum Menikah">Belum Menikah</option>
+                                            <option value="Menikah">Menikah</option>
+                                            <option value="Duda">Duda</option>
+                                            <option value="Janda">Janda</option>
+                                        </select>
+                                        <div class="invalid-feedback" id="marital_statusError"></div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="tanggungan_anak" class="form-label">Tanggungan Anak</label>
+                                        <input type="number" class="form-control" id="tanggungan_anak"
+                                            name="tanggungan_anak" min="0" value="0">
+                                        <div class="invalid-feedback" id="tanggungan_anakError"></div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="agama" class="form-label">Agama</label>
+                                        <select class="form-select" id="agama" name="agama">
+                                            <option value="">Pilih...</option>
+                                            <option value="Islam">Islam</option>
+                                            <option value="Kristen">Kristen</option>
+                                            <option value="Katolik">Katolik</option>
+                                            <option value="Hindu">Hindu</option>
+                                            <option value="Buddha">Buddha</option>
+                                            <option value="Konghucu">Konghucu</option>
+                                        </select>
+                                        <div class="invalid-feedback" id="agamaError"></div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="bangsa" class="form-label">Kebangsaan</label>
+                                        <input type="text" class="form-control" id="bangsa" name="bangsa"
+                                            placeholder="Contoh: Indonesia">
+                                        <div class="invalid-feedback" id="bangsaError"></div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="status_kependudukan" class="form-label">Status Kependudukan</label>
+                                        <select class="form-select" id="status_kependudukan" name="status_kependudukan">
+                                            <option value="">Pilih...</option>
+                                            <option value="WNI">WNI</option>
+                                            <option value="WNA">WNA</option>
+                                        </select>
+                                        <div class="invalid-feedback" id="status_kependudukanError"></div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="nama_ibu_kandung" class="form-label">Nama Ibu Kandung</label>
+                                        <input type="text" class="form-control" id="nama_ibu_kandung"
+                                            name="nama_ibu_kandung">
+                                        <div class="invalid-feedback" id="nama_ibu_kandungError"></div>
+                                    </div>
+                                </div>
+
                                 <div class="mb-3">
-                                    <label for="marital_status" class="form-label">Status Perkawinan <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-select" id="marital_status" name="marital_status" required>
-                                        <option value="">Pilih...</option>
-                                        <option value="Belum Menikah">Belum Menikah</option>
-                                        <option value="Menikah">Menikah</option>
-                                        <option value="Duda">Duda</option>
-                                        <option value="Janda">Janda</option>
-                                    </select>
-                                    <div class="invalid-feedback" id="marital_statusError"></div>
+                                    <label for="kartu_keluarga" class="form-label">Nomor Kartu Keluarga</label>
+                                    <input type="text" class="form-control" id="kartu_keluarga" name="kartu_keluarga"
+                                        maxlength="20">
+                                    <div class="invalid-feedback" id="kartu_keluargaError"></div>
                                 </div>
                             </div>
 
@@ -236,18 +296,34 @@
                                     <div class="col-md-6 mb-3">
                                         <label for="department_id" class="form-label">Departemen <span
                                                 class="text-danger">*</span></label>
-                                        <select class="form-select" id="department_id" name="department_id" required>
+                                        <select class="form-select" id="department_id" name="department_id">
                                             <option value="">Pilih Departemen...</option>
                                         </select>
                                         <div class="invalid-feedback" id="department_idError"></div>
                                     </div>
                                     <div class="col-md-6 mb-3">
+                                        <label for="sub_department_id" class="form-label">Sub Departemen / Bagian</label>
+                                        <select class="form-select" id="sub_department_id" name="sub_department_id">
+                                            <option value="">Pilih Sub Departemen...</option>
+                                        </select>
+                                        <div class="invalid-feedback" id="sub_department_idError"></div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
                                         <label for="position_id" class="form-label">Posisi <span
                                                 class="text-danger">*</span></label>
-                                        <select class="form-select" id="position_id" name="position_id" required>
+                                        <select class="form-select" id="position_id" name="position_id">
                                             <option value="">Pilih Posisi...</option>
                                         </select>
                                         <div class="invalid-feedback" id="position_idError"></div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="lulusan_sekolah" class="form-label">Pendidikan Terakhir</label>
+                                        <input type="text" class="form-control" id="lulusan_sekolah"
+                                            name="lulusan_sekolah" placeholder="Contoh: S1 Teknik Informatika">
+                                        <div class="invalid-feedback" id="lulusan_sekolahError"></div>
                                     </div>
                                 </div>
 
@@ -255,15 +331,13 @@
                                     <div class="col-md-4 mb-3">
                                         <label for="join_date" class="form-label">Tanggal Bergabung <span
                                                 class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" id="join_date" name="join_date"
-                                            required>
+                                        <input type="date" class="form-control" id="join_date" name="join_date">
                                         <div class="invalid-feedback" id="join_dateError"></div>
                                     </div>
                                     <div class="col-md-4 mb-3">
                                         <label for="employment_status" class="form-label">Status Kerja <span
                                                 class="text-danger">*</span></label>
-                                        <select class="form-select" id="employment_status" name="employment_status"
-                                            required>
+                                        <select class="form-select" id="employment_status" name="employment_status">
                                             <option value="">Pilih...</option>
                                             <option value="Tetap">Tetap</option>
                                             <option value="Kontrak">Kontrak</option>
@@ -275,24 +349,32 @@
                                     <div class="col-md-4 mb-3">
                                         <label for="work_schedule_id" class="form-label">Jadwal Kerja <span
                                                 class="text-danger">*</span></label>
-                                        <select class="form-select" id="work_schedule_id" name="work_schedule_id"
-                                            required>
+                                        <select class="form-select" id="work_schedule_id" name="work_schedule_id">
                                             <option value="">Pilih Jadwal...</option>
                                         </select>
                                         <div class="invalid-feedback" id="work_schedule_idError"></div>
                                     </div>
                                 </div>
 
-                                <div class="mb-3">
-                                    <label for="status" class="form-label">Status Karyawan <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-select" id="status" name="status" required>
-                                        <option value="">Pilih...</option>
-                                        <option value="active">Aktif</option>
-                                        <option value="inactive">Tidak Aktif</option>
-                                        <option value="resign">Resign</option>
-                                    </select>
-                                    <div class="invalid-feedback" id="statusError"></div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="status" class="form-label">Status Karyawan <span
+                                                class="text-danger">*</span></label>
+                                        <select class="form-select" id="status" name="status"
+                                            onchange="toggleResignDate()">
+                                            <option value="">Pilih...</option>
+                                            <option value="active">Aktif</option>
+                                            <option value="inactive">Tidak Aktif</option>
+                                            <option value="resign">Resign</option>
+                                        </select>
+                                        <div class="invalid-feedback" id="statusError"></div>
+                                    </div>
+                                    <div class="col-md-6 mb-3" id="resignDateContainer" style="display: none;">
+                                        <label for="tanggal_resign" class="form-label">Tanggal Resign</label>
+                                        <input type="date" class="form-control" id="tanggal_resign"
+                                            name="tanggal_resign">
+                                        <div class="invalid-feedback" id="tanggal_resignError"></div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -301,7 +383,7 @@
                                 <div class="mb-3">
                                     <label for="address" class="form-label">Alamat Lengkap <span
                                             class="text-danger">*</span></label>
-                                    <textarea class="form-control" id="address" name="address" rows="2" required></textarea>
+                                    <textarea class="form-control" id="address" name="address" rows="2"></textarea>
                                     <div class="invalid-feedback" id="addressError"></div>
                                 </div>
 
@@ -309,22 +391,19 @@
                                     <div class="col-md-4 mb-3">
                                         <label for="city" class="form-label">Kota <span
                                                 class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="city" name="city"
-                                            required>
+                                        <input type="text" class="form-control" id="city" name="city">
                                         <div class="invalid-feedback" id="cityError"></div>
                                     </div>
                                     <div class="col-md-4 mb-3">
                                         <label for="province" class="form-label">Provinsi <span
                                                 class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="province" name="province"
-                                            required>
+                                        <input type="text" class="form-control" id="province" name="province">
                                         <div class="invalid-feedback" id="provinceError"></div>
                                     </div>
                                     <div class="col-md-4 mb-3">
                                         <label for="postal_code" class="form-label">Kode Pos <span
                                                 class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="postal_code" name="postal_code"
-                                            required>
+                                        <input type="text" class="form-control" id="postal_code" name="postal_code">
                                         <div class="invalid-feedback" id="postal_codeError"></div>
                                     </div>
                                 </div>
@@ -333,15 +412,13 @@
                                     <div class="col-md-6 mb-3">
                                         <label for="phone" class="form-label">Nomor HP <span
                                                 class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="phone" name="phone"
-                                            required>
+                                        <input type="text" class="form-control" id="phone" name="phone">
                                         <div class="invalid-feedback" id="phoneError"></div>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label for="email" class="form-label">Email <span
                                                 class="text-danger">*</span></label>
-                                        <input type="email" class="form-control" id="email" name="email"
-                                            required>
+                                        <input type="email" class="form-control" id="email" name="email">
                                         <div class="invalid-feedback" id="emailError"></div>
                                     </div>
                                 </div>
@@ -353,16 +430,66 @@
                                         <label for="emergency_contact_name" class="form-label">Nama <span
                                                 class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="emergency_contact_name"
-                                            name="emergency_contact_name" required>
+                                            name="emergency_contact_name">
                                         <div class="invalid-feedback" id="emergency_contact_nameError"></div>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label for="emergency_contact_phone" class="form-label">Nomor <span
                                                 class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="emergency_contact_phone"
-                                            name="emergency_contact_phone" required>
+                                            name="emergency_contact_phone">
                                         <div class="invalid-feedback" id="emergency_contact_phoneError"></div>
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- Tab Administrasi -->
+                            <div class="tab-pane fade" id="tabAdministrasi" role="tabpanel">
+                                <h6 class="text-primary mb-3">Data Keuangan</h6>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="bank" class="form-label">Nama Bank</label>
+                                        <input type="text" class="form-control" id="bank" name="bank"
+                                            placeholder="Contoh: BCA">
+                                        <div class="invalid-feedback" id="bankError"></div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="nomor_rekening" class="form-label">Nomor Rekening</label>
+                                        <input type="text" class="form-control" id="nomor_rekening"
+                                            name="nomor_rekening">
+                                        <div class="invalid-feedback" id="nomor_rekeningError"></div>
+                                    </div>
+                                </div>
+
+                                <hr class="my-4">
+                                <h6 class="text-primary mb-3">Data Administrasi & Pajak</h6>
+                                <div class="mb-3">
+                                    <label for="tax_npwp" class="form-label">Nomor NPWP</label>
+                                    <input type="text" class="form-control" id="tax_npwp" name="tax_npwp"
+                                        placeholder="Contoh: 12.345.678.9-012.345">
+                                    <div class="invalid-feedback" id="tax_npwpError"></div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="bpjs_kesehatan" class="form-label">Nomor BPJS Kesehatan</label>
+                                        <input type="text" class="form-control" id="bpjs_kesehatan"
+                                            name="bpjs_kesehatan">
+                                        <div class="invalid-feedback" id="bpjs_kesehatanError"></div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="bpjs_ketenagakerjaan" class="form-label">Nomor BPJS
+                                            Ketenagakerjaan</label>
+                                        <input type="text" class="form-control" id="bpjs_ketenagakerjaan"
+                                            name="bpjs_ketenagakerjaan">
+                                        <div class="invalid-feedback" id="bpjs_ketenagakerjaanError"></div>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info mt-3">
+                                    <i class='bx bx-info-circle me-2'></i>
+                                    <small>Data ini bersifat opsional dan digunakan untuk keperluan administrasi
+                                        perusahaan.</small>
                                 </div>
                             </div>
                         </div>
@@ -381,7 +508,7 @@
 
     <!-- Detail Modal -->
     <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Detail Karyawan</h5>
@@ -389,19 +516,20 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
+                        <!-- Column 1 -->
                         <div class="col-md-6">
                             <h6 class="text-primary mb-3">Identitas Pribadi</h6>
                             <table class="table table-sm table-borderless">
                                 <tr>
-                                    <th width="40%">Kode</th>
+                                    <th width="45%">Kode Karyawan</th>
                                     <td id="detailEmployeeCode">-</td>
                                 </tr>
                                 <tr>
-                                    <th>NIK</th>
+                                    <th>NIK / KTP</th>
                                     <td id="detailNik">-</td>
                                 </tr>
                                 <tr>
-                                    <th>Nama</th>
+                                    <th>Nama Lengkap</th>
                                     <td id="detailName">-</td>
                                 </tr>
                                 <tr>
@@ -409,27 +537,59 @@
                                     <td id="detailGender">-</td>
                                 </tr>
                                 <tr>
-                                    <th>TTL</th>
+                                    <th>Tempat, Tanggal Lahir</th>
                                     <td id="detailBirth">-</td>
                                 </tr>
                                 <tr>
-                                    <th>Status</th>
+                                    <th>Agama</th>
+                                    <td id="detailAgama">-</td>
+                                </tr>
+                                <tr>
+                                    <th>Kebangsaan</th>
+                                    <td id="detailBangsa">-</td>
+                                </tr>
+                                <tr>
+                                    <th>Status Kependudukan</th>
+                                    <td id="detailStatusKependudukan">-</td>
+                                </tr>
+                                <tr>
+                                    <th>Status Perkawinan</th>
                                     <td id="detailMaritalStatus">-</td>
+                                </tr>
+                                <tr>
+                                    <th>Tanggungan Anak</th>
+                                    <td id="detailTanggunganAnak">-</td>
+                                </tr>
+                                <tr>
+                                    <th>Nama Ibu Kandung</th>
+                                    <td id="detailNamaIbuKandung">-</td>
+                                </tr>
+                                <tr>
+                                    <th>Nomor Kartu Keluarga</th>
+                                    <td id="detailKartuKeluarga">-</td>
                                 </tr>
                             </table>
 
                             <h6 class="text-primary mb-3 mt-4">Data Pekerjaan</h6>
                             <table class="table table-sm table-borderless">
                                 <tr>
-                                    <th width="40%">Departemen</th>
+                                    <th width="45%">Departemen</th>
                                     <td id="detailDepartment">-</td>
+                                </tr>
+                                <tr>
+                                    <th>Sub Departemen</th>
+                                    <td id="detailSubDepartment">-</td>
                                 </tr>
                                 <tr>
                                     <th>Posisi</th>
                                     <td id="detailPosition">-</td>
                                 </tr>
                                 <tr>
-                                    <th>Tgl Bergabung</th>
+                                    <th>Pendidikan Terakhir</th>
+                                    <td id="detailLulusanSekolah">-</td>
+                                </tr>
+                                <tr>
+                                    <th>Tanggal Bergabung</th>
                                     <td id="detailJoinDate">-</td>
                                 </tr>
                                 <tr>
@@ -437,20 +597,26 @@
                                     <td id="detailEmploymentStatus">-</td>
                                 </tr>
                                 <tr>
-                                    <th>Shift</th>
+                                    <th>Jadwal Kerja</th>
                                     <td id="detailShiftType">-</td>
                                 </tr>
                                 <tr>
-                                    <th>Status</th>
+                                    <th>Status Karyawan</th>
                                     <td id="detailStatus">-</td>
+                                </tr>
+                                <tr id="detailResignDateRow" style="display: none;">
+                                    <th>Tanggal Resign</th>
+                                    <td id="detailTanggalResign">-</td>
                                 </tr>
                             </table>
                         </div>
+
+                        <!-- Column 2 -->
                         <div class="col-md-6">
                             <h6 class="text-primary mb-3">Kontak & Alamat</h6>
                             <table class="table table-sm table-borderless">
                                 <tr>
-                                    <th width="40%">Alamat</th>
+                                    <th width="45%">Alamat Lengkap</th>
                                     <td id="detailAddress">-</td>
                                 </tr>
                                 <tr>
@@ -466,7 +632,7 @@
                                     <td id="detailPostalCode">-</td>
                                 </tr>
                                 <tr>
-                                    <th>HP</th>
+                                    <th>Nomor HP</th>
                                     <td id="detailPhone">-</td>
                                 </tr>
                                 <tr>
@@ -478,12 +644,40 @@
                             <h6 class="text-primary mb-3 mt-4">Kontak Darurat</h6>
                             <table class="table table-sm table-borderless">
                                 <tr>
-                                    <th width="40%">Nama</th>
+                                    <th width="45%">Nama</th>
                                     <td id="detailEmergencyName">-</td>
                                 </tr>
                                 <tr>
-                                    <th>Nomor</th>
+                                    <th>Nomor Telepon</th>
                                     <td id="detailEmergencyPhone">-</td>
+                                </tr>
+                            </table>
+
+                            <h6 class="text-primary mb-3 mt-4">Data Keuangan</h6>
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <th width="45%">Nama Bank</th>
+                                    <td id="detailBank">-</td>
+                                </tr>
+                                <tr>
+                                    <th>Nomor Rekening</th>
+                                    <td id="detailNomorRekening">-</td>
+                                </tr>
+                            </table>
+
+                            <h6 class="text-primary mb-3 mt-4">Data Administrasi & Pajak</h6>
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <th width="45%">Nomor NPWP</th>
+                                    <td id="detailTaxNpwp">-</td>
+                                </tr>
+                                <tr>
+                                    <th>BPJS Kesehatan</th>
+                                    <td id="detailBpjsKesehatan">-</td>
+                                </tr>
+                                <tr>
+                                    <th>BPJS Ketenagakerjaan</th>
+                                    <td id="detailBpjsKetenagakerjaan">-</td>
                                 </tr>
                             </table>
                         </div>
@@ -633,6 +827,36 @@
                 select.append(`<option value="${pos.id}">${pos.name}</option>`);
             });
         }
+
+        function populateSubDepartments(departmentId = null, selectedSubDeptId = null) {
+            const select = $('#sub_department_id');
+            select.find('option:not(:first)').remove();
+
+            if (departmentId && masterData.sub_departments) {
+                const filtered = masterData.sub_departments.filter(sd =>
+                    sd.department_id == departmentId && sd.is_active
+                );
+
+                filtered.forEach(subDept => {
+                    const option = `<option value="${subDept.id}">${subDept.name}</option>`;
+                    select.append(option);
+                });
+
+                if (selectedSubDeptId) {
+                    select.val(selectedSubDeptId);
+                }
+            }
+        }
+
+        // Cascade: When department changes, load filtered sub departments
+        $(document).on('change', '#department_id', function() {
+            const departmentId = $(this).val();
+            $('#sub_department_id').val('').find('option:not(:first)').remove();
+
+            if (departmentId) {
+                populateSubDepartments(departmentId);
+            }
+        });
 
         function applyFilter() {
             currentFilters.department_id = $('#filterDepartment').val();
@@ -898,6 +1122,18 @@
             $('#karyawanForm')[0].reset();
             $('.form-control, .form-select').removeClass('is-invalid');
             $('.nav-tabs button:first').tab('show');
+            $('#resignDateContainer').hide();
+        }
+
+        function toggleResignDate() {
+            const status = $('#status').val();
+            if (status === 'resign') {
+                $('#resignDateContainer').show();
+                $('#tanggal_resign').prop('required', true);
+            } else {
+                $('#resignDateContainer').hide();
+                $('#tanggal_resign').prop('required', false).val('');
+            }
         }
 
         function editKaryawan(id) {
@@ -921,8 +1157,22 @@
                     }
 
                     $('#marital_status').val(k.marital_status);
+                    $('#tanggungan_anak').val(k.tanggungan_anak || 0);
+                    $('#agama').val(k.agama);
+                    $('#bangsa').val(k.bangsa);
+                    $('#status_kependudukan').val(k.status_kependudukan);
+                    $('#nama_ibu_kandung').val(k.nama_ibu_kandung);
+                    $('#kartu_keluarga').val(k.kartu_keluarga);
+
                     $('#department_id').val(k.department_id);
+
+                    // Populate sub departments based on selected department
+                    if (k.department_id) {
+                        populateSubDepartments(k.department_id, k.sub_department_id);
+                    }
+
                     $('#position_id').val(k.position_id);
+                    $('#lulusan_sekolah').val(k.lulusan_sekolah);
 
                     // Format tanggal bergabung
                     if (k.join_date) {
@@ -932,6 +1182,17 @@
 
                     $('#employment_status').val(k.employment_status);
                     $('#work_schedule_id').val(k.work_schedule_id);
+                    $('#status').val(k.status);
+
+                    // Toggle tanggal resign
+                    if (k.status === 'resign' && k.tanggal_resign) {
+                        const resignDate = new Date(k.tanggal_resign);
+                        $('#tanggal_resign').val(resignDate.toISOString().split('T')[0]);
+                        $('#resignDateContainer').show();
+                    } else {
+                        $('#resignDateContainer').hide();
+                    }
+
                     $('#address').val(k.address);
                     $('#city').val(k.city);
                     $('#province').val(k.province);
@@ -940,7 +1201,14 @@
                     $('#email').val(k.email);
                     $('#emergency_contact_name').val(k.emergency_contact_name);
                     $('#emergency_contact_phone').val(k.emergency_contact_phone);
-                    $('#status').val(k.status);
+
+                    // Data Administrasi
+                    $('#bank').val(k.bank);
+                    $('#nomor_rekening').val(k.nomor_rekening);
+                    $('#tax_npwp').val(k.tax_npwp);
+                    $('#bpjs_kesehatan').val(k.bpjs_kesehatan);
+                    $('#bpjs_ketenagakerjaan').val(k.bpjs_ketenagakerjaan);
+
                     $('.form-control, .form-select').removeClass('is-invalid');
                     $('.nav-tabs button:first').tab('show');
                     karyawanModal.show();
@@ -961,11 +1229,27 @@
                 birth_place: $('#birth_place').val(),
                 birth_date: $('#birth_date').val(),
                 marital_status: $('#marital_status').val(),
+                tanggungan_anak: $('#tanggungan_anak').val() || 0,
+                agama: $('#agama').val(),
+                bangsa: $('#bangsa').val(),
+                status_kependudukan: $('#status_kependudukan').val(),
+                nama_ibu_kandung: $('#nama_ibu_kandung').val(),
+                ktp: $('#nik').val(), // KTP sama dengan NIK
+                kartu_keluarga: $('#kartu_keluarga').val(),
                 department_id: $('#department_id').val(),
+                sub_department_id: $('#sub_department_id').val(),
                 position_id: $('#position_id').val(),
+                lulusan_sekolah: $('#lulusan_sekolah').val(),
                 join_date: $('#join_date').val(),
                 employment_status: $('#employment_status').val(),
                 work_schedule_id: $('#work_schedule_id').val(),
+                status: $('#status').val(),
+                tanggal_resign: $('#tanggal_resign').val(),
+                bank: $('#bank').val(),
+                nomor_rekening: $('#nomor_rekening').val(),
+                tax_npwp: $('#tax_npwp').val(),
+                bpjs_kesehatan: $('#bpjs_kesehatan').val(),
+                bpjs_ketenagakerjaan: $('#bpjs_ketenagakerjaan').val(),
                 address: $('#address').val(),
                 city: $('#city').val(),
                 province: $('#province').val(),
@@ -973,8 +1257,7 @@
                 phone: $('#phone').val(),
                 email: $('#email').val(),
                 emergency_contact_name: $('#emergency_contact_name').val(),
-                emergency_contact_phone: $('#emergency_contact_phone').val(),
-                status: $('#status').val()
+                emergency_contact_phone: $('#emergency_contact_phone').val()
             };
 
             $('.form-control, .form-select').removeClass('is-invalid');
@@ -1024,33 +1307,73 @@
                         birthDateFormatted = birthDate.toISOString().split('T')[0];
                     }
 
-                    // Format tanggal bergabung (hanya tanggal, tanpa jam)
+                    // Format tanggal bergabung
                     let joinDateFormatted = k.join_date;
                     if (k.join_date) {
                         const joinDate = new Date(k.join_date);
                         joinDateFormatted = joinDate.toISOString().split('T')[0];
                     }
 
+                    // Format tanggal resign
+                    let resignDateFormatted = '-';
+                    if (k.tanggal_resign) {
+                        const resignDate = new Date(k.tanggal_resign);
+                        resignDateFormatted = resignDate.toISOString().split('T')[0];
+                    }
+
+                    // Data Pribadi
                     $('#detailEmployeeCode').text(k.employee_code);
                     $('#detailNik').text(k.nik || '-');
                     $('#detailName').text(k.name);
                     $('#detailGender').text(k.gender === 'L' ? 'Laki-laki' : 'Perempuan');
                     $('#detailBirth').text(`${k.birth_place}, ${birthDateFormatted}`);
+                    $('#detailAgama').text(k.agama || '-');
+                    $('#detailBangsa').text(k.bangsa || '-');
+                    $('#detailStatusKependudukan').text(k.status_kependudukan || '-');
                     $('#detailMaritalStatus').text(k.marital_status);
+                    $('#detailTanggunganAnak').text(k.tanggungan_anak || '0');
+                    $('#detailNamaIbuKandung').text(k.nama_ibu_kandung || '-');
+                    $('#detailKartuKeluarga').text(k.kartu_keluarga || '-');
+
+                    // Data Pekerjaan
                     $('#detailDepartment').text(k.department ? k.department.name : '-');
+                    $('#detailSubDepartment').text(k.sub_department ? k.sub_department.name : '-');
                     $('#detailPosition').text(k.position ? k.position.name : '-');
+                    $('#detailLulusanSekolah').text(k.lulusan_sekolah || '-');
                     $('#detailJoinDate').text(joinDateFormatted);
                     $('#detailEmploymentStatus').text(k.employment_status);
                     $('#detailShiftType').text(k.work_schedule ? k.work_schedule.name : '-');
                     $('#detailStatus').html(getStatusBadge(k.status));
+
+                    // Tampilkan tanggal resign jika status resign
+                    if (k.status === 'resign' && k.tanggal_resign) {
+                        $('#detailTanggalResign').text(resignDateFormatted);
+                        $('#detailResignDateRow').show();
+                    } else {
+                        $('#detailResignDateRow').hide();
+                    }
+
+                    // Kontak & Alamat
                     $('#detailAddress').text(k.address);
                     $('#detailCity').text(k.city);
                     $('#detailProvince').text(k.province);
                     $('#detailPostalCode').text(k.postal_code);
                     $('#detailPhone').text(k.phone);
                     $('#detailEmail').text(k.email);
+
+                    // Kontak Darurat
                     $('#detailEmergencyName').text(k.emergency_contact_name);
                     $('#detailEmergencyPhone').text(k.emergency_contact_phone);
+
+                    // Data Keuangan
+                    $('#detailBank').text(k.bank || '-');
+                    $('#detailNomorRekening').text(k.nomor_rekening || '-');
+
+                    // Data Administrasi & Pajak
+                    $('#detailTaxNpwp').text(k.tax_npwp || '-');
+                    $('#detailBpjsKesehatan').text(k.bpjs_kesehatan || '-');
+                    $('#detailBpjsKetenagakerjaan').text(k.bpjs_ketenagakerjaan || '-');
+
                     detailModal.show();
                 }
             });
