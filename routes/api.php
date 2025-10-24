@@ -58,8 +58,9 @@ Route::prefix('attendance')->group(function () {
 });
 
 // Admin Attendance API
-Route::prefix('admin/attendance')->group(function () {
+Route::middleware(['web', 'auth', 'admin'])->prefix('admin/attendance')->group(function () {
     Route::get('/{id}/detail', [AttendanceController::class, 'detail']);
+    Route::delete('/{id}', [AttendanceController::class, 'destroy']);
 });
 
 // Employee Routes (for logged-in employees)
@@ -88,4 +89,75 @@ Route::prefix('payroll')->group(function () {
     Route::put('/{id}', [PayrollController::class, 'update']);
     Route::delete('/{id}', [PayrollController::class, 'destroy']);
     Route::post('/{id}/send', [PayrollController::class, 'sendNotification']);
+});
+
+// Office Settings API
+Route::prefix('settings/office')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\OfficeSettingController::class, 'show']);
+    Route::post('/', [\App\Http\Controllers\Admin\OfficeSettingController::class, 'update']);
+});
+
+// Work Schedule API
+Route::prefix('settings/work-schedule')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\WorkScheduleController::class, 'index']);
+    Route::post('/', [\App\Http\Controllers\Admin\WorkScheduleController::class, 'store']);
+    Route::get('/{id}', [\App\Http\Controllers\Admin\WorkScheduleController::class, 'show']);
+    Route::put('/{id}', [\App\Http\Controllers\Admin\WorkScheduleController::class, 'update']);
+    Route::delete('/{id}', [\App\Http\Controllers\Admin\WorkScheduleController::class, 'destroy']);
+    Route::post('/{id}/toggle', [\App\Http\Controllers\Admin\WorkScheduleController::class, 'toggleStatus']);
+});
+
+// WhatsApp Settings API
+Route::middleware(['web', 'auth', 'admin'])->prefix('settings/whatsapp')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\WhatsAppSettingController::class, 'index']);
+    Route::post('/', [\App\Http\Controllers\Admin\WhatsAppSettingController::class, 'update']);
+    Route::post('/test-connection', [\App\Http\Controllers\Admin\WhatsAppSettingController::class, 'testConnection']);
+    Route::post('/send-test', [\App\Http\Controllers\Admin\WhatsAppSettingController::class, 'sendTest']);
+    Route::post('/reset-templates', [\App\Http\Controllers\Admin\WhatsAppSettingController::class, 'resetTemplates']);
+});
+
+// Leave Management API (Admin)
+Route::middleware(['web', 'auth', 'admin'])->prefix('leave')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\LeaveController::class, 'index']);
+    Route::get('/{id}', [\App\Http\Controllers\Admin\LeaveController::class, 'show']);
+    Route::post('/{id}/approve', [\App\Http\Controllers\Admin\LeaveController::class, 'approve']);
+    Route::post('/{id}/reject', [\App\Http\Controllers\Admin\LeaveController::class, 'reject']);
+    Route::delete('/{id}', [\App\Http\Controllers\Admin\LeaveController::class, 'destroy']);
+});
+
+// Employee Leave API
+Route::middleware(['web', 'auth'])->prefix('employee/leave')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Employee\LeaveController::class, 'index']);
+    Route::post('/', [\App\Http\Controllers\Employee\LeaveController::class, 'store']);
+    Route::delete('/{id}', [\App\Http\Controllers\Employee\LeaveController::class, 'cancel']);
+});
+
+// Employee Profile API
+Route::middleware(['web', 'auth'])->prefix('employee/profile')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Employee\ProfileController::class, 'index']);
+    Route::put('/', [\App\Http\Controllers\Employee\ProfileController::class, 'update']);
+    Route::post('/photo', [\App\Http\Controllers\Employee\ProfileController::class, 'updatePhoto']);
+    Route::put('/password', [\App\Http\Controllers\Employee\ProfileController::class, 'updatePassword']);
+});
+
+// Admin Profile API
+Route::middleware(['web', 'auth'])->prefix('admin/profile')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\AdminProfileController::class, 'index']);
+    Route::put('/', [\App\Http\Controllers\Admin\AdminProfileController::class, 'update']);
+    Route::post('/photo', [\App\Http\Controllers\Admin\AdminProfileController::class, 'updatePhoto']);
+    Route::put('/password', [\App\Http\Controllers\Admin\AdminProfileController::class, 'updatePassword']);
+});
+
+// Cron Job API
+Route::middleware(['web', 'auth', 'admin'])->prefix('settings/cronjob')->group(function () {
+    Route::get('/list', [\App\Http\Controllers\Admin\CronJobController::class, 'getScheduleList']);
+    Route::get('/status', [\App\Http\Controllers\Admin\CronJobController::class, 'checkStatus']);
+    Route::get('/command', [\App\Http\Controllers\Admin\CronJobController::class, 'getCronCommand']);
+    Route::post('/test', [\App\Http\Controllers\Admin\CronJobController::class, 'testCommand']);
+    Route::post('/run', [\App\Http\Controllers\Admin\CronJobController::class, 'runScheduler']);
+});
+
+// Import/Export API
+Route::prefix('karyawan')->group(function () {
+    Route::post('/import', [\App\Http\Controllers\Admin\KaryawanController::class, 'import']);
 });

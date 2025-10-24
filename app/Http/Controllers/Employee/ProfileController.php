@@ -20,7 +20,12 @@ class ProfileController extends Controller
      */
     public function index()
     {
-        // Security: Ensure only employee can access their own profile
+        // Security: Ensure user is logged in
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        // Redirect admin to admin profile
         if (Auth::user()->role === 'admin') {
             return redirect()->route('admin.profile.index');
         }
@@ -56,7 +61,11 @@ class ProfileController extends Controller
      */
     public function update(Request $request)
     {
-        // Security: Ensure only employee can update their own profile
+        // Security: Ensure user is logged in and is an employee
+        if (!Auth::check()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if (Auth::user()->role === 'admin') {
             abort(403, 'Unauthorized action.');
         }
@@ -69,15 +78,25 @@ class ProfileController extends Controller
             'phone' => 'nullable|string|max:20',
             'birth_date' => 'nullable|date',
             'gender' => 'nullable|in:L,P',
-            'nik' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
         ]);
 
+        // Remove NIK from update - only admin can change NIK
         $employee->update($validated);
 
         // Update user name if changed
         if ($employee->user) {
             $employee->user->update(['name' => $validated['name']]);
+        }
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Profil berhasil diperbarui',
+                'data' => [
+                    'employee' => $employee->fresh()
+                ]
+            ]);
         }
 
         return redirect()
@@ -90,7 +109,11 @@ class ProfileController extends Controller
      */
     public function updatePhoto(Request $request)
     {
-        // Security: Ensure only employee can update their own photo
+        // Security: Ensure user is logged in and is an employee
+        if (!Auth::check()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if (Auth::user()->role === 'admin') {
             abort(403, 'Unauthorized action.');
         }
@@ -127,6 +150,15 @@ class ProfileController extends Controller
 
         $employee->update(['profile_photo' => $path]);
 
+        // Return JSON for AJAX requests
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Foto profil berhasil diperbarui',
+                'photo_url' => asset('storage/' . $path)
+            ]);
+        }
+
         return redirect()
             ->route('employee.profile.index')
             ->with('success', 'Foto profil berhasil diperbarui');
@@ -137,7 +169,11 @@ class ProfileController extends Controller
      */
     public function updatePassword(Request $request)
     {
-        // Security: Ensure only employee can update their own password
+        // Security: Ensure user is logged in and is an employee
+        if (!Auth::check()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if (Auth::user()->role === 'admin') {
             abort(403, 'Unauthorized action.');
         }
@@ -151,6 +187,16 @@ class ProfileController extends Controller
 
         // Check current password
         if (!Hash::check($request->current_password, $employee->user->password)) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Password lama tidak sesuai',
+                    'errors' => [
+                        'current_password' => ['Password lama tidak sesuai']
+                    ]
+                ], 422);
+            }
+
             return back()
                 ->withErrors(['current_password' => 'Password lama tidak sesuai'])
                 ->with('error', 'Password lama tidak sesuai');
@@ -160,6 +206,13 @@ class ProfileController extends Controller
         $employee->user->update([
             'password' => Hash::make($request->password)
         ]);
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Password berhasil diubah!'
+            ]);
+        }
 
         return redirect()
             ->route('employee.profile.index')

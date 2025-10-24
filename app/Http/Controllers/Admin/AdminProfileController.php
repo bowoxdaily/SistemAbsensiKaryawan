@@ -19,7 +19,7 @@ class AdminProfileController extends Controller
     public function index()
     {
         // Security: Ensure only admin can access
-        if (Auth::user()->role !== 'admin') {
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
             abort(403, 'Unauthorized action.');
         }
 
@@ -34,7 +34,7 @@ class AdminProfileController extends Controller
     public function update(Request $request)
     {
         // Security: Ensure only admin can access
-        if (Auth::user()->role !== 'admin') {
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
             abort(403, 'Unauthorized action.');
         }
 
@@ -58,7 +58,7 @@ class AdminProfileController extends Controller
     public function updatePhoto(Request $request)
     {
         // Security: Ensure only admin can access
-        if (Auth::user()->role !== 'admin') {
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
             abort(403, 'Unauthorized action.');
         }
 
@@ -105,7 +105,7 @@ class AdminProfileController extends Controller
     public function updatePassword(Request $request)
     {
         // Security: Ensure only admin can access
-        if (Auth::user()->role !== 'admin') {
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
             abort(403, 'Unauthorized action.');
         }
 

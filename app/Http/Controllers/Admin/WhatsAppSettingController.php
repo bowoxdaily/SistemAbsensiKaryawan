@@ -147,12 +147,30 @@ class WhatsAppSettingController extends Controller
                 'api_key' => $setting->api_key ? '***' . substr($setting->api_key, -4) : 'NULL'
             ]);
 
+            // Return JSON for AJAX requests
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Pengaturan WhatsApp berhasil disimpan',
+                    'data' => $setting
+                ]);
+            }
+
             return redirect()->back()->with('success', 'Pengaturan WhatsApp berhasil disimpan');
         } catch (\Exception $e) {
             Log::error('WhatsApp Settings Update Failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
+
+            // Return JSON for AJAX requests
+            if (request()->expectsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menyimpan pengaturan: ' . $e->getMessage()
+                ], 500);
+            }
+
             return redirect()->back()
                 ->with('error', 'Gagal menyimpan pengaturan: ' . $e->getMessage())
                 ->withInput();
@@ -244,11 +262,31 @@ class WhatsAppSettingController extends Controller
                 $setting->update([
                     'checkin_template' => WhatsAppSetting::getDefaultCheckinTemplate(),
                     'checkout_template' => WhatsAppSetting::getDefaultCheckoutTemplate(),
+                    'leave_request_template' => WhatsAppSetting::getDefaultLeaveRequestTemplate(),
+                    'leave_approved_template' => WhatsAppSetting::getDefaultLeaveApprovedTemplate(),
+                    'leave_rejected_template' => WhatsAppSetting::getDefaultLeaveRejectedTemplate(),
+                ]);
+            }
+
+            // Return JSON for AJAX requests
+            if (request()->expectsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Template berhasil direset ke default',
+                    'data' => $setting
                 ]);
             }
 
             return redirect()->back()->with('success', 'Template berhasil direset ke default');
         } catch (\Exception $e) {
+            // Return JSON for AJAX requests
+            if (request()->expectsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal reset template: ' . $e->getMessage()
+                ], 500);
+            }
+
             return redirect()->back()->with('error', 'Gagal reset template: ' . $e->getMessage());
         }
     }

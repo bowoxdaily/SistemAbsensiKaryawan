@@ -18,7 +18,7 @@ class LeaveController extends Controller
     public function index(Request $request)
     {
         // Security: Ensure only admin can access
-        if (Auth::user()->role !== 'admin') {
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
             abort(403, 'Unauthorized action.');
         }
 
@@ -62,7 +62,7 @@ class LeaveController extends Controller
     public function show($id)
     {
         // Security check
-        if (Auth::user()->role !== 'admin') {
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
             abort(403, 'Unauthorized action.');
         }
 
@@ -77,7 +77,7 @@ class LeaveController extends Controller
     public function approve($id)
     {
         // Security check
-        if (Auth::user()->role !== 'admin') {
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
             abort(403, 'Unauthorized action.');
         }
 
@@ -115,7 +115,7 @@ class LeaveController extends Controller
     public function reject(Request $request, $id)
     {
         // Security check
-        if (Auth::user()->role !== 'admin') {
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
             abort(403, 'Unauthorized action.');
         }
 
@@ -158,7 +158,7 @@ class LeaveController extends Controller
     public function destroy($id)
     {
         // Security check
-        if (Auth::user()->role !== 'admin') {
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
             abort(403, 'Unauthorized action.');
         }
 

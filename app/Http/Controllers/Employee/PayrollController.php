@@ -113,14 +113,15 @@ class PayrollController extends Controller
                 ->where('status', '!=', 'draft')
                 ->count();
 
-            // Total earnings this year
+            // Total earnings this year (period_month format: YYYY-MM)
             $totalEarningsThisYear = Payroll::where('employee_id', $employee->id)
                 ->where('status', '!=', 'draft')
-                ->whereYear('period_month', $currentYear)
+                ->where('period_month', 'like', $currentYear . '%')
                 ->sum('net_salary');
 
             // Latest payroll
             $latestPayroll = Payroll::where('employee_id', $employee->id)
+                ->where('status', '!=', 'draft')
                 ->orderBy('period_month', 'desc')
                 ->first();
 

@@ -218,70 +218,25 @@
                                                 <i class="bx bx-show me-1"></i> Lihat Detail
                                             </a>
                                             @if ($leave->status == 'pending')
-                                                <form action="{{ route('admin.leave.approve', $leave->id) }}"
-                                                    method="POST" class="d-inline">
-                                                    @csrf
-                                                    <button type="submit" class="dropdown-item"
-                                                        onclick="return confirm('Yakin ingin menyetujui cuti ini?')">
-                                                        <i class="bx bx-check me-1"></i> Setujui
-                                                    </button>
-                                                </form>
-                                                <button class="dropdown-item" data-bs-toggle="modal"
-                                                    data-bs-target="#rejectModal{{ $leave->id }}">
+                                                <button class="dropdown-item approve-leave"
+                                                    data-id="{{ $leave->id }}">
+                                                    <i class="bx bx-check me-1"></i> Setujui
+                                                </button>
+                                                <button class="dropdown-item reject-leave" data-id="{{ $leave->id }}"
+                                                    data-employee="{{ $leave->employee->name }}"
+                                                    data-type="{{ ucfirst($leave->leave_type) }}"
+                                                    data-dates="{{ \Carbon\Carbon::parse($leave->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($leave->end_date)->format('d M Y') }}">
                                                     <i class="bx bx-x me-1"></i> Tolak
                                                 </button>
                                             @endif
-                                            <form action="{{ route('admin.leave.destroy', $leave->id) }}" method="POST"
-                                                class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="dropdown-item text-danger"
-                                                    onclick="return confirm('Yakin ingin menghapus data ini?')">
-                                                    <i class="bx bx-trash me-1"></i> Hapus
-                                                </button>
-                                            </form>
+                                            <button class="dropdown-item text-danger delete-leave"
+                                                data-id="{{ $leave->id }}">
+                                                <i class="bx bx-trash me-1"></i> Hapus
+                                            </button>
                                         </div>
                                     </div>
                                 </td>
                             </tr>
-
-                            <!-- Reject Modal -->
-                            <div class="modal fade" id="rejectModal{{ $leave->id }}" tabindex="-1"
-                                aria-hidden="true">
-                                <div class="modal-dialog" role="document">
-                                    <form action="{{ route('admin.leave.reject', $leave->id) }}" method="POST">
-                                        @csrf
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">Tolak Pengajuan Cuti</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                    aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <p><strong>Karyawan:</strong> {{ $leave->employee->name }}</p>
-                                                <p><strong>Jenis:</strong> {{ ucfirst($leave->leave_type) }}</p>
-                                                <p><strong>Tanggal:</strong>
-                                                    {{ \Carbon\Carbon::parse($leave->start_date)->format('d M Y') }} -
-                                                    {{ \Carbon\Carbon::parse($leave->end_date)->format('d M Y') }}</p>
-
-                                                <div class="mb-3">
-                                                    <label class="form-label">Alasan Penolakan <span
-                                                            class="text-danger">*</span></label>
-                                                    <textarea name="rejection_reason" class="form-control" rows="3" required
-                                                        placeholder="Jelaskan alasan penolakan..."></textarea>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-outline-secondary"
-                                                    data-bs-dismiss="modal">Batal</button>
-                                                <button type="submit" class="btn btn-danger">
-                                                    <i class='bx bx-x'></i> Tolak Pengajuan
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
                         @empty
                             <tr>
                                 <td colspan="7" class="text-center py-4">
@@ -343,16 +298,13 @@
                                 <i class='bx bx-show'></i> Detail
                             </a>
                             @if ($leave->status == 'pending')
-                                <form action="{{ route('admin.leave.approve', $leave->id) }}" method="POST"
-                                    class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="btn btn-sm btn-success"
-                                        onclick="return confirm('Yakin ingin menyetujui?')">
-                                        <i class='bx bx-check'></i> Setujui
-                                    </button>
-                                </form>
-                                <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
-                                    data-bs-target="#rejectModal{{ $leave->id }}">
+                                <button class="btn btn-sm btn-success approve-leave" data-id="{{ $leave->id }}">
+                                    <i class='bx bx-check'></i> Setujui
+                                </button>
+                                <button class="btn btn-sm btn-danger reject-leave" data-id="{{ $leave->id }}"
+                                    data-employee="{{ $leave->employee->name }}"
+                                    data-type="{{ ucfirst($leave->leave_type) }}"
+                                    data-dates="{{ \Carbon\Carbon::parse($leave->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($leave->end_date)->format('d M Y') }}">
                                     <i class='bx bx-x'></i> Tolak
                                 </button>
                             @endif
@@ -377,3 +329,167 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            // Approve Leave
+            $(document).on('click', '.approve-leave', function() {
+                const leaveId = $(this).data('id');
+                const button = $(this);
+
+                Swal.fire({
+                    title: 'Setujui Pengajuan Cuti?',
+                    text: "Cuti akan disetujui dan karyawan akan menerima notifikasi",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Setujui',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        button.prop('disabled', true);
+
+                        $.ajax({
+                            url: `/api/leave/${leaveId}/approve`,
+                            type: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    toastr.success(response.message ||
+                                        'Pengajuan cuti berhasil disetujui');
+                                    setTimeout(() => location.reload(), 1500);
+                                }
+                            },
+                            error: function(xhr) {
+                                button.prop('disabled', false);
+                                toastr.error(xhr.responseJSON?.message ||
+                                    'Terjadi kesalahan saat menyetujui cuti');
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Reject Leave
+            $(document).on('click', '.reject-leave', function() {
+                const leaveId = $(this).data('id');
+                const employee = $(this).data('employee');
+                const type = $(this).data('type');
+                const dates = $(this).data('dates');
+                const button = $(this);
+
+                Swal.fire({
+                    title: 'Tolak Pengajuan Cuti?',
+                    html: `
+                        <div style="text-align: left;">
+                            <p><strong>Karyawan:</strong> ${employee}</p>
+                            <p><strong>Jenis:</strong> ${type}</p>
+                            <p><strong>Tanggal:</strong> ${dates}</p>
+                        </div>
+                    `,
+                    input: 'textarea',
+                    inputLabel: 'Alasan Penolakan',
+                    inputPlaceholder: 'Jelaskan alasan penolakan...',
+                    inputAttributes: {
+                        'aria-label': 'Alasan penolakan',
+                        'rows': 3
+                    },
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Tolak',
+                    cancelButtonText: 'Batal',
+                    preConfirm: (reason) => {
+                        if (!reason) {
+                            Swal.showValidationMessage('Alasan penolakan harus diisi');
+                        }
+                        return reason;
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        button.prop('disabled', true);
+
+                        $.ajax({
+                            url: `/api/leave/${leaveId}/reject`,
+                            type: 'POST',
+                            data: {
+                                rejection_reason: result.value
+                            },
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    toastr.success(response.message ||
+                                        'Pengajuan cuti berhasil ditolak');
+                                    setTimeout(() => location.reload(), 1500);
+                                }
+                            },
+                            error: function(xhr) {
+                                button.prop('disabled', false);
+                                if (xhr.status === 422) {
+                                    const errors = xhr.responseJSON.errors;
+                                    Object.keys(errors).forEach(key => {
+                                        toastr.error(errors[key][0]);
+                                    });
+                                } else {
+                                    toastr.error(xhr.responseJSON?.message ||
+                                        'Terjadi kesalahan saat menolak cuti');
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Delete Leave
+            $(document).on('click', '.delete-leave', function() {
+                const leaveId = $(this).data('id');
+                const button = $(this);
+
+                Swal.fire({
+                    title: 'Hapus Pengajuan Cuti?',
+                    text: "Data akan dihapus permanen dan tidak dapat dikembalikan",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Hapus',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        button.prop('disabled', true);
+
+                        $.ajax({
+                            url: `/api/leave/${leaveId}`,
+                            type: 'DELETE',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    toastr.success(response.message ||
+                                        'Pengajuan cuti berhasil dihapus');
+                                    setTimeout(() => location.reload(), 1500);
+                                }
+                            },
+                            error: function(xhr) {
+                                button.prop('disabled', false);
+                                toastr.error(xhr.responseJSON?.message ||
+                                    'Terjadi kesalahan saat menghapus cuti');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+@endpush

@@ -229,11 +229,12 @@
             data.enforce_location = document.getElementById('enforce_location').checked ? 1 : 0;
 
             try {
-                const response = await fetch('{{ route('admin.settings.office.update') }}', {
+                const response = await fetch('/api/settings/office', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('[name="_token"]').value
+                        'X-CSRF-TOKEN': document.querySelector('[name="_token"]').value,
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify(data)
                 });

@@ -117,9 +117,8 @@
                         <h5 class="mb-0">Informasi Pribadi</h5>
                     </div>
                     <div class="card-body">
-                        <form action="{{ route('employee.profile.update') }}" method="POST">
+                        <form id="profileForm">
                             @csrf
-                            @method('PUT')
 
                             <div class="row">
                                 <div class="col-md-6 mb-3">
@@ -177,11 +176,12 @@
 
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">NIK</label>
-                                    <input type="text" class="form-control @error('nik') is-invalid @enderror"
-                                        name="nik" value="{{ old('nik', $employee->nik) }}">
-                                    @error('nik')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                    <input type="text" class="form-control" name="nik"
+                                        value="{{ $employee->nik }}" readonly>
+                                    <small class="text-muted">
+                                        <i class='bx bx-info-circle'></i> Tidak dapat diubah. Hubungi admin jika ada
+                                        kesalahan data.
+                                    </small>
                                 </div>
 
                                 <div class="col-12 mb-3">
@@ -190,6 +190,15 @@
                                     @error('address')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
+                                <i class='bx bx-info-circle me-2' style="font-size: 20px;"></i>
+                                <div>
+                                    <strong>Perhatian:</strong> Data NIK, Kode Karyawan, Departemen, dan Posisi hanya dapat
+                                    diubah oleh Admin.
+                                    Jika terdapat kesalahan data, silakan hubungi Admin untuk melakukan perubahan.
                                 </div>
                             </div>
 
@@ -209,9 +218,8 @@
                         <h5 class="mb-0">Ubah Password</h5>
                     </div>
                     <div class="card-body">
-                        <form action="{{ route('employee.profile.update-password') }}" method="POST">
+                        <form id="passwordForm">
                             @csrf
-                            @method('PUT')
 
                             <div class="mb-3">
                                 <label class="form-label">Password Lama <span class="text-danger">*</span></label>
@@ -259,10 +267,8 @@
                     <h5 class="modal-title">Upload Foto Profil</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="{{ route('employee.profile.update-photo') }}" method="POST"
-                    enctype="multipart/form-data">
+                <form id="photoForm" enctype="multipart/form-data">
                     @csrf
-                    @method('PUT')
                     <div class="modal-body">
                         <div class="mb-3 text-center">
                             <img id="preview" src="#" alt="Preview"
@@ -305,6 +311,158 @@
                 }
                 reader.readAsDataURL(file);
             }
+        });
+
+        // Profile Form Submit
+        $('#profileForm').on('submit', function(e) {
+            e.preventDefault();
+
+            const submitBtn = $(this).find('button[type="submit"]');
+            const originalHtml = submitBtn.html();
+
+            // Disable button and show loading
+            submitBtn.prop('disabled', true).html(
+                '<span class="spinner-border spinner-border-sm"></span> Menyimpan...');
+
+            // Add _method field for Laravel method spoofing
+            const formData = $(this).serialize() + '&_method=PUT';
+
+            $.ajax({
+                url: '/api/employee/profile',
+                type: 'POST',
+                data: formData,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    submitBtn.prop('disabled', false).html(originalHtml);
+
+                    if (response.success) {
+                        toastr.success(response.message || 'Profil berhasil diperbarui');
+                        setTimeout(() => location.reload(), 1500);
+                    }
+                },
+                error: function(xhr) {
+                    submitBtn.prop('disabled', false).html(originalHtml);
+
+                    if (xhr.status === 422) {
+                        const errors = xhr.responseJSON?.errors;
+                        if (errors) {
+                            Object.keys(errors).forEach(key => {
+                                toastr.error(errors[key][0]);
+                            });
+                        }
+                    } else {
+                        toastr.error(xhr.responseJSON?.message ||
+                            'Terjadi kesalahan saat memperbarui profil');
+                    }
+                }
+            });
+        });
+
+        // Password Form Submit
+        $('#passwordForm').on('submit', function(e) {
+            e.preventDefault();
+
+            const submitBtn = $(this).find('button[type="submit"]');
+            const originalHtml = submitBtn.html();
+
+            // Disable button and show loading
+            submitBtn.prop('disabled', true).html(
+                '<span class="spinner-border spinner-border-sm"></span> Menyimpan...');
+
+            // Add _method field for Laravel method spoofing
+            const formData = $(this).serialize() + '&_method=PUT';
+
+            $.ajax({
+                url: '/api/employee/profile/password',
+                type: 'POST',
+                data: formData,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    submitBtn.prop('disabled', false).html(originalHtml);
+
+                    if (response.success) {
+                        toastr.success(response.message || 'Password berhasil diubah');
+                        $('#passwordForm')[0].reset();
+                    }
+                },
+                error: function(xhr) {
+                    submitBtn.prop('disabled', false).html(originalHtml);
+
+                    if (xhr.status === 422) {
+                        const errors = xhr.responseJSON?.errors;
+                        if (errors) {
+                            Object.keys(errors).forEach(key => {
+                                toastr.error(errors[key][0]);
+                            });
+                        }
+                    } else {
+                        toastr.error(xhr.responseJSON?.message ||
+                            'Terjadi kesalahan saat memperbarui password');
+                    }
+                }
+            });
+        });
+
+        // Photo Form Submit
+        $('#photoForm').on('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const submitBtn = $(this).find('button[type="submit"]');
+            const originalHtml = submitBtn.html();
+
+            // Disable button and show loading
+            submitBtn.prop('disabled', true).html(
+                '<span class="spinner-border spinner-border-sm"></span> Uploading...');
+
+            $.ajax({
+                url: '/api/employee/profile/photo',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    submitBtn.prop('disabled', false).html(originalHtml);
+
+                    if (response.success) {
+                        toastr.success(response.message || 'Foto profil berhasil diperbarui');
+                        $('#uploadPhotoModal').modal('hide');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        toastr.error(response.message || 'Gagal mengupload foto');
+                    }
+                },
+                error: function(xhr) {
+                    submitBtn.prop('disabled', false).html(originalHtml);
+
+                    if (xhr.status === 422) {
+                        const errors = xhr.responseJSON?.errors;
+                        if (errors) {
+                            Object.keys(errors).forEach(key => {
+                                toastr.error(errors[key][0]);
+                            });
+                        } else {
+                            toastr.error('Validasi gagal');
+                        }
+                    } else {
+                        toastr.error(xhr.responseJSON?.message ||
+                            'Terjadi kesalahan saat mengupload foto');
+                    }
+                }
+            });
         });
 
         // Show toastr notifications

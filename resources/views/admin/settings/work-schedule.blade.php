@@ -332,9 +332,12 @@
                 $('.invalid-feedback').text('');
 
                 $.ajax({
-                    url: '{{ route('admin.settings.work-schedule.store') }}',
+                    url: '/api/settings/work-schedule',
                     type: 'POST',
                     data: $(this).serialize(),
+                    headers: {
+                        'Accept': 'application/json'
+                    },
                     success: function(response) {
                         if (response.success) {
                             $('#addScheduleModal').modal('hide');
@@ -383,8 +386,11 @@
                 const scheduleId = $(this).data('id');
 
                 $.ajax({
-                    url: `/admin/settings/work-schedule/${scheduleId}`,
+                    url: `/api/settings/work-schedule/${scheduleId}`,
                     type: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
                     success: function(response) {
                         if (response.success) {
                             const schedule = response.data;
@@ -420,9 +426,12 @@
                 $('.invalid-feedback').text('');
 
                 $.ajax({
-                    url: `/admin/settings/work-schedule/${scheduleId}`,
+                    url: `/api/settings/work-schedule/${scheduleId}`,
                     type: 'PUT',
                     data: $(this).serialize(),
+                    headers: {
+                        'Accept': 'application/json'
+                    },
                     success: function(response) {
                         if (response.success) {
                             $('#editScheduleModal').modal('hide');
@@ -481,10 +490,13 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: `/admin/settings/work-schedule/${scheduleId}`,
+                            url: `/api/settings/work-schedule/${scheduleId}`,
                             type: 'DELETE',
                             data: {
                                 _token: '{{ csrf_token() }}'
+                            },
+                            headers: {
+                                'Accept': 'application/json'
                             },
                             success: function(response) {
                                 if (response.success) {
@@ -517,10 +529,13 @@
                 const checkbox = $(this);
 
                 $.ajax({
-                    url: `/admin/settings/work-schedule/${scheduleId}/toggle`,
+                    url: `/api/settings/work-schedule/${scheduleId}/toggle`,
                     type: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}'
+                    },
+                    headers: {
+                        'Accept': 'application/json'
                     },
                     success: function(response) {
                         if (response.success) {

@@ -535,10 +535,10 @@
                                         </tr>
                                     </table>
                                     ${data.notes ? `
-                                                                                                <div class="alert alert-info mt-3 mb-0">
-                                                                                                    <strong>Catatan:</strong><br>${data.notes}
-                                                                                                </div>
-                                                                                            ` : ''}
+                                                                                                        <div class="alert alert-info mt-3 mb-0">
+                                                                                                            <strong>Catatan:</strong><br>${data.notes}
+                                                                                                        </div>
+                                                                                                    ` : ''}
                                 </div>
                             </div>
 
@@ -548,44 +548,44 @@
                                 <div class="col-md-6">
                                     <h6 class="mb-3">Foto Check In</h6>
                                     ${data.photo_in ? `
-                                                                                <div class="text-center">
-                                                                                    <a href="/storage/${data.photo_in}" target="_blank">
-                                                                                        <img src="/storage/${data.photo_in}"
-                                                                                             alt="Foto Check In"
-                                                                                             class="img-fluid rounded border"
-                                                                                             style="max-height: 300px; cursor: pointer;">
-                                                                                    </a>
-                                                                                    <p class="text-muted mt-2 mb-0">
-                                                                                        <small><i class='bx bx-time-five'></i> ${data.check_in || '-'}</small>
-                                                                                    </p>
-                                                                                </div>
-                                                                            ` : `
-                                                                                <div class="text-center py-4">
-                                                                                    <i class='bx bx-image-add bx-lg text-muted'></i>
-                                                                                    <p class="text-muted mt-2 mb-0">Tidak ada foto check in</p>
-                                                                                </div>
-                                                                            `}
+                                                                                        <div class="text-center">
+                                                                                            <a href="/storage/${data.photo_in}" target="_blank">
+                                                                                                <img src="/storage/${data.photo_in}"
+                                                                                                     alt="Foto Check In"
+                                                                                                     class="img-fluid rounded border"
+                                                                                                     style="max-height: 300px; cursor: pointer;">
+                                                                                            </a>
+                                                                                            <p class="text-muted mt-2 mb-0">
+                                                                                                <small><i class='bx bx-time-five'></i> ${data.check_in || '-'}</small>
+                                                                                            </p>
+                                                                                        </div>
+                                                                                    ` : `
+                                                                                        <div class="text-center py-4">
+                                                                                            <i class='bx bx-image-add bx-lg text-muted'></i>
+                                                                                            <p class="text-muted mt-2 mb-0">Tidak ada foto check in</p>
+                                                                                        </div>
+                                                                                    `}
                                 </div>
                                 <div class="col-md-6">
                                     <h6 class="mb-3">Foto Check Out</h6>
                                     ${data.photo_out ? `
-                                                                                <div class="text-center">
-                                                                                    <a href="/storage/${data.photo_out}" target="_blank">
-                                                                                        <img src="/storage/${data.photo_out}"
-                                                                                             alt="Foto Check Out"
-                                                                                             class="img-fluid rounded border"
-                                                                                             style="max-height: 300px; cursor: pointer;">
-                                                                                    </a>
-                                                                                    <p class="text-muted mt-2 mb-0">
-                                                                                        <small><i class='bx bx-time-five'></i> ${data.check_out || '-'}</small>
-                                                                                    </p>
-                                                                                </div>
-                                                                            ` : `
-                                                                                <div class="text-center py-4">
-                                                                                    <i class='bx bx-image-add bx-lg text-muted'></i>
-                                                                                    <p class="text-muted mt-2 mb-0">Tidak ada foto check out</p>
-                                                                                </div>
-                                                                            `}
+                                                                                        <div class="text-center">
+                                                                                            <a href="/storage/${data.photo_out}" target="_blank">
+                                                                                                <img src="/storage/${data.photo_out}"
+                                                                                                     alt="Foto Check Out"
+                                                                                                     class="img-fluid rounded border"
+                                                                                                     style="max-height: 300px; cursor: pointer;">
+                                                                                            </a>
+                                                                                            <p class="text-muted mt-2 mb-0">
+                                                                                                <small><i class='bx bx-time-five'></i> ${data.check_out || '-'}</small>
+                                                                                            </p>
+                                                                                        </div>
+                                                                                    ` : `
+                                                                                        <div class="text-center py-4">
+                                                                                            <i class='bx bx-image-add bx-lg text-muted'></i>
+                                                                                            <p class="text-muted mt-2 mb-0">Tidak ada foto check out</p>
+                                                                                        </div>
+                                                                                    `}
                                 </div>
                             </div>
                         `);
@@ -630,10 +630,11 @@
 
                         // Send delete request
                         $.ajax({
-                            url: `/admin/attendance/${id}`,
+                            url: `/api/admin/attendance/${id}`,
                             method: 'DELETE',
-                            data: {
-                                _token: '{{ csrf_token() }}'
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
                             },
                             success: function(response) {
                                 Swal.fire({

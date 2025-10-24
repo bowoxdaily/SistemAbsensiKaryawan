@@ -377,21 +377,40 @@
                     cancelButtonColor: '#8592a3'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        toastr.info('Menjalankan command...', 'Please wait');
+                        Swal.fire({
+                            title: 'Menjalankan command...',
+                            text: 'Mohon tunggu',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
 
                         $.ajax({
-                            url: '/admin/settings/cronjob/test',
+                            url: '/api/settings/cronjob/test',
                             method: 'POST',
                             data: {
                                 _token: '{{ csrf_token() }}',
                                 command: command
                             },
+                            headers: {
+                                'Accept': 'application/json'
+                            },
                             success: function(response) {
-                                toastr.success(response.message + '\n' + response.output, 'Success!');
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: response.message,
+                                    html: '<pre class="text-start small">' + response.output +
+                                        '</pre>'
+                                });
                             },
                             error: function(xhr) {
-                                toastr.error(xhr.responseJSON?.message || 'Gagal menjalankan command',
-                                    'Error!');
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: xhr.responseJSON?.message || 'Gagal menjalankan command'
+                                });
                             }
                         });
                     }
@@ -410,21 +429,39 @@
                     cancelButtonColor: '#8592a3'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        toastr.info('Menjalankan scheduler...', 'Please wait');
+                        Swal.fire({
+                            title: 'Menjalankan scheduler...',
+                            text: 'Mohon tunggu',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
 
                         $.ajax({
-                            url: '/admin/settings/cronjob/run',
+                            url: '/api/settings/cronjob/run',
                             method: 'POST',
                             data: {
                                 _token: '{{ csrf_token() }}'
                             },
+                            headers: {
+                                'Accept': 'application/json'
+                            },
                             success: function(response) {
-                                toastr.success(response.message, 'Success!');
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: response.message,
+                                    timer: 2000
+                                });
                                 checkCronStatus();
                             },
                             error: function(xhr) {
-                                toastr.error(xhr.responseJSON?.message || 'Gagal menjalankan scheduler',
-                                    'Error!');
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: xhr.responseJSON?.message || 'Gagal menjalankan scheduler'
+                                });
                             }
                         });
                     }
@@ -433,8 +470,11 @@
 
             function viewScheduleList() {
                 $.ajax({
-                    url: '/admin/settings/cronjob/list',
+                    url: '/api/settings/cronjob/list',
                     method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
                     success: function(response) {
                         $('#scheduleListContent').text(response.output);
                         new bootstrap.Modal(document.getElementById('scheduleListModal')).show();
@@ -447,10 +487,13 @@
 
             function checkCronStatus() {
                 $.ajax({
-                    url: '/admin/settings/cronjob/status',
+                    url: '/api/settings/cronjob/status',
                     method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
                     success: function(response) {
-                        $('#lastRun').text(response.last_run || 'Belum pernah');
+                        $('#lastRun').text(response.last_run_human || 'Belum pernah');
                         $('#nextRun').text(response.next_run || '-');
 
                         let statusBadge = '';
@@ -464,6 +507,7 @@
                         $('#cronStatus').html(statusBadge);
                     },
                     error: function(xhr) {
+                        $('#cronStatus').html('<span class="badge bg-secondary">Unknown</span>');
                         toastr.error('Gagal mengecek status cron', 'Error!');
                     }
                 });

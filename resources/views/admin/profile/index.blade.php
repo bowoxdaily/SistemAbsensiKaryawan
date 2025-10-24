@@ -75,9 +75,8 @@
                             <span class="badge bg-primary">Administrator</span>
                         </div>
                         <div class="card-body">
-                            <form id="formUpdateProfile" method="POST" action="{{ route('admin.profile.update') }}">
+                            <form id="formUpdateProfile">
                                 @csrf
-                                @method('PUT')
 
                                 <div class="row g-3">
                                     <!-- Nama Lengkap -->
@@ -128,9 +127,8 @@
                             <h5 class="mb-0">Ubah Password</h5>
                         </div>
                         <div class="card-body">
-                            <form action="{{ route('admin.profile.update-password') }}" method="POST">
+                            <form id="formUpdatePassword">
                                 @csrf
-                                @method('PUT')
 
                                 <div class="mb-3">
                                     <label class="form-label">Password Lama <span class="text-danger">*</span></label>
@@ -178,10 +176,8 @@
                         <h5 class="modal-title">Upload Foto Profil</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <form action="{{ route('admin.profile.update-photo') }}" method="POST"
-                        enctype="multipart/form-data">
+                    <form id="formUpdatePhoto" enctype="multipart/form-data">
                         @csrf
-                        @method('PUT')
                         <div class="modal-body">
                             <div class="mb-3 text-center">
                                 <img id="preview" src="#" alt="Preview"
@@ -242,5 +238,125 @@
                     toastr.error('{{ $error }}');
                 @endforeach
             @endif
+
+            // Update Profile Form
+            $('#formUpdateProfile').on('submit', function(e) {
+                e.preventDefault();
+
+                const submitBtn = $(this).find('button[type="submit"]');
+                const originalText = submitBtn.html();
+                submitBtn.prop('disabled', true).html('<i class="bx bx-loader bx-spin"></i> Menyimpan...');
+
+                $.ajax({
+                    url: '/api/admin/profile',
+                    type: 'PUT',
+                    data: $(this).serialize(),
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message || 'Profil berhasil diperbarui');
+                            setTimeout(() => location.reload(), 1500);
+                        }
+                    },
+                    error: function(xhr) {
+                        submitBtn.prop('disabled', false).html(originalText);
+
+                        if (xhr.status === 422) {
+                            const errors = xhr.responseJSON.errors;
+                            Object.keys(errors).forEach(key => {
+                                toastr.error(errors[key][0]);
+                            });
+                        } else {
+                            toastr.error(xhr.responseJSON?.message ||
+                                'Terjadi kesalahan saat memperbarui profil');
+                        }
+                    }
+                });
+            });
+
+            // Update Password Form
+            $('#formUpdatePassword').on('submit', function(e) {
+                e.preventDefault();
+
+                const submitBtn = $(this).find('button[type="submit"]');
+                const originalText = submitBtn.html();
+                submitBtn.prop('disabled', true).html('<i class="bx bx-loader bx-spin"></i> Menyimpan...');
+
+                $.ajax({
+                    url: '/api/admin/profile/password',
+                    type: 'PUT',
+                    data: $(this).serialize(),
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message || 'Password berhasil diubah');
+                            $('#formUpdatePassword')[0].reset();
+                            setTimeout(() => location.reload(), 1500);
+                        }
+                    },
+                    error: function(xhr) {
+                        submitBtn.prop('disabled', false).html(originalText);
+
+                        if (xhr.status === 422) {
+                            const errors = xhr.responseJSON.errors;
+                            Object.keys(errors).forEach(key => {
+                                toastr.error(errors[key][0]);
+                            });
+                        } else {
+                            toastr.error(xhr.responseJSON?.message ||
+                                'Terjadi kesalahan saat mengubah password');
+                        }
+                    }
+                });
+            });
+
+            // Update Photo Form
+            $('#formUpdatePhoto').on('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                const submitBtn = $(this).find('button[type="submit"]');
+                const originalText = submitBtn.html();
+                submitBtn.prop('disabled', true).html('<i class="bx bx-loader bx-spin"></i> Mengunggah...');
+
+                $.ajax({
+                    url: '/api/admin/profile/photo',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message || 'Foto profil berhasil diperbarui');
+                            $('#modalUploadPhoto').modal('hide');
+                            $('#formUpdatePhoto')[0].reset();
+                            setTimeout(() => location.reload(), 1500);
+                        }
+                    },
+                    error: function(xhr) {
+                        submitBtn.prop('disabled', false).html(originalText);
+
+                        if (xhr.status === 422) {
+                            const errors = xhr.responseJSON.errors;
+                            Object.keys(errors).forEach(key => {
+                                toastr.error(errors[key][0]);
+                            });
+                        } else {
+                            toastr.error(xhr.responseJSON?.message ||
+                                'Terjadi kesalahan saat mengunggah foto');
+                        }
+                    }
+                });
+            });
         </script>
     @endpush

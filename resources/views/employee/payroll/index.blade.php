@@ -133,25 +133,202 @@
                     <h5 class="modal-title">Detail Slip Gaji</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body" id="detailContent">
-                    <div class="text-center py-5">
-                        <i class="bx bx-loader bx-spin bx-lg"></i>
-                        <p>Memuat detail...</p>
+                <div class="modal-body">
+                    <div id="detailContent">
+                        <div class="text-center py-5">
+                            <i class="bx bx-loader bx-spin bx-lg"></i>
+                            <p>Memuat detail...</p>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" id="btnPrintSlip">
+                        <i class='bx bx-printer me-1'></i> Cetak Slip Gaji
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Print Container (Hidden) -->
+    <div id="printContainer" class="d-none"></div>
 @endsection
+
+@push('styles')
+    <style>
+        @media screen {
+            .print-only {
+                display: none !important;
+            }
+
+            #printContainer {
+                display: none !important;
+            }
+        }
+
+        @media print {
+
+            /* Hide everything except print container */
+            body * {
+                visibility: hidden;
+            }
+
+            #printContainer,
+            #printContainer * {
+                visibility: visible;
+            }
+
+            #printContainer {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                display: block !important;
+            }
+
+            /* Page setup */
+            @page {
+                size: A4;
+                margin: 10mm 12mm;
+            }
+
+            /* Clean print layout */
+            body {
+                margin: 0;
+                padding: 0;
+                font-size: 10px;
+            }
+
+            /* Print header styling */
+            .print-header {
+                text-align: center;
+                margin-bottom: 12px;
+                padding-bottom: 8px;
+                border-bottom: 2px solid #333;
+            }
+
+            .print-header h2 {
+                margin: 0;
+                font-size: 18px;
+                font-weight: bold;
+            }
+
+            .print-header p {
+                margin: 2px 0;
+                font-size: 10px;
+            }
+
+            /* Table styling for print */
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 10px;
+                page-break-inside: avoid;
+            }
+
+            table th,
+            table td {
+                padding: 4px 6px;
+                border: 1px solid #ddd;
+                font-size: 9px;
+            }
+
+            table thead {
+                background-color: #f8f9fa !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            table tfoot {
+                font-weight: bold;
+                background-color: #e9ecef !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            /* Section styling */
+            .print-section {
+                margin-bottom: 12px;
+            }
+
+            .print-section h6 {
+                font-size: 11px;
+                font-weight: bold;
+                margin-bottom: 6px;
+                color: #333;
+            }
+
+            /* Summary box */
+            .print-summary {
+                background-color: #e3f2fd !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                padding: 8px;
+                border: 2px solid #2196F3;
+                margin: 12px 0;
+                text-align: center;
+            }
+
+            .print-summary h4 {
+                margin: 0;
+                font-size: 12px;
+            }
+
+            .print-summary h3 {
+                margin: 5px 0 0 0;
+                font-size: 16px;
+            }
+
+            /* Footer */
+            .print-footer {
+                margin-top: 15px;
+                padding-top: 8px;
+                border-top: 1px solid #ddd;
+                font-size: 8px;
+                text-align: center;
+            }
+
+            /* Signature area */
+            .signature-area {
+                margin-top: 20px;
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .signature-box {
+                width: 45%;
+                text-align: center;
+                font-size: 9px;
+            }
+
+            .signature-box p {
+                margin: 2px 0;
+            }
+
+            .signature-line {
+                margin-top: 35px;
+                border-top: 1px solid #333;
+                padding-top: 3px;
+            }
+
+            /* Remove background colors that don't print well */
+            .badge,
+            .alert {
+                border: 1px solid #333 !important;
+                background: transparent !important;
+                color: #000 !important;
+            }
+        }
+    </style>
+@endpush
 
 @push('scripts')
     <script>
         $(document).ready(function() {
             console.log('🚀 Employee Payroll History page initialized');
             let currentPage = 1;
+            let currentPayrollData = null;
 
             // Load initial data
             loadStatistics();
@@ -167,6 +344,9 @@
                 e.preventDefault();
                 let page = $(this).data('page');
                 loadPayrolls(page);
+            });
+            $(document).on('click', '#btnPrintSlip', function() {
+                printSlipGaji();
             });
 
             $('#searchInput').on('keyup', debounce(loadPayrolls, 500));
@@ -326,56 +506,89 @@
                 $.get(`/api/employee/payroll/${id}`)
                     .done(function(res) {
                         if (res.success) {
+                            currentPayrollData = res.data;
                             let p = res.data;
+
                             let html = `
                                 <div class="text-start">
                                     <div class="row mb-3">
                                         <div class="col-md-6">
                                             <h6 class="text-primary"><i class='bx bx-user'></i> Data Karyawan</h6>
-                                            <p class="mb-1"><strong>Nama:</strong> ${p.employee.name}</p>
-                                            <p class="mb-1"><strong>NIP:</strong> ${p.employee.employee_code}</p>
-                                            <p class="mb-1"><strong>Departemen:</strong> ${p.employee.department?.name || '-'}</p>
-                                            <p class="mb-1"><strong>Jabatan:</strong> ${p.employee.position?.name || '-'}</p>
+                                            <table class="table table-sm table-borderless">
+                                                <tr><td width="120"><strong>Nama</strong></td><td>: ${p.employee.name}</td></tr>
+                                                <tr><td><strong>NIP</strong></td><td>: ${p.employee.employee_code}</td></tr>
+                                                <tr><td><strong>Departemen</strong></td><td>: ${p.employee.department?.name || '-'}</td></tr>
+                                                <tr><td><strong>Jabatan</strong></td><td>: ${p.employee.position?.name || '-'}</td></tr>
+                                            </table>
                                         </div>
                                         <div class="col-md-6">
                                             <h6 class="text-primary"><i class='bx bx-calendar'></i> Periode Payroll</h6>
-                                            <p class="mb-1"><strong>Kode:</strong> ${p.payroll_code}</p>
-                                            <p class="mb-1"><strong>Periode:</strong> ${formatPeriod(p.period_month)}</p>
-                                            <p class="mb-1"><strong>Tanggal Bayar:</strong> ${formatDate(p.payment_date)}</p>
-                                            <p class="mb-1"><strong>Status:</strong> <span class="badge bg-${p.status === 'draft' ? 'secondary' : p.status === 'sent' ? 'success' : 'primary'}">${p.status === 'draft' ? 'Draft' : p.status === 'sent' ? 'Terkirim' : 'Dibayar'}</span></p>
+                                            <table class="table table-sm table-borderless">
+                                                <tr><td width="120"><strong>Kode</strong></td><td>: ${p.payroll_code}</td></tr>
+                                                <tr><td><strong>Periode</strong></td><td>: ${formatPeriod(p.period_month)}</td></tr>
+                                                <tr><td><strong>Tanggal Bayar</strong></td><td>: ${formatDate(p.payment_date)}</td></tr>
+                                                <tr><td><strong>Status</strong></td><td>: <span class="badge bg-${p.status === 'draft' ? 'secondary' : p.status === 'sent' ? 'success' : 'primary'}">${p.status === 'draft' ? 'Draft' : p.status === 'sent' ? 'Terkirim' : 'Dibayar'}</span></td></tr>
+                                            </table>
                                         </div>
                                     </div>
 
                                     <hr>
                                     <h6 class="text-success"><i class='bx bx-trending-up'></i> Rincian Pendapatan</h6>
                                     <div class="table-responsive mb-3">
-                                        <table class="table table-sm">
-                                            <tr><td>Gaji Pokok</td><td class="text-end">${formatCurrency(p.basic_salary)}</td></tr>
-                                            <tr><td>Tunjangan Transport</td><td class="text-end">${formatCurrency(p.allowance_transport)}</td></tr>
-                                            <tr><td>Tunjangan Makan</td><td class="text-end">${formatCurrency(p.allowance_meal)}</td></tr>
-                                            <tr><td>Tunjangan Jabatan</td><td class="text-end">${formatCurrency(p.allowance_position)}</td></tr>
-                                            <tr><td>Tunjangan Lainnya</td><td class="text-end">${formatCurrency(p.allowance_others)}</td></tr>
-                                            <tr><td>Uang Lembur</td><td class="text-end">${formatCurrency(p.overtime_pay)}</td></tr>
-                                            <tr><td>Bonus</td><td class="text-end">${formatCurrency(p.bonus)}</td></tr>
-                                            <tr class="table-success"><td><strong>Total Pendapatan</strong></td><td class="text-end"><strong>${formatCurrency(p.total_earnings)}</strong></td></tr>
+                                        <table class="table table-sm table-bordered">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Keterangan</th>
+                                                    <th class="text-end">Jumlah (Rp)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr><td>Gaji Pokok</td><td class="text-end">${formatCurrency(p.basic_salary)}</td></tr>
+                                                <tr><td>Tunjangan Transport</td><td class="text-end">${formatCurrency(p.allowance_transport)}</td></tr>
+                                                <tr><td>Tunjangan Makan</td><td class="text-end">${formatCurrency(p.allowance_meal)}</td></tr>
+                                                <tr><td>Tunjangan Jabatan</td><td class="text-end">${formatCurrency(p.allowance_position)}</td></tr>
+                                                <tr><td>Tunjangan Lainnya</td><td class="text-end">${formatCurrency(p.allowance_others)}</td></tr>
+                                                <tr><td>Uang Lembur</td><td class="text-end">${formatCurrency(p.overtime_pay)}</td></tr>
+                                                <tr><td>Bonus</td><td class="text-end">${formatCurrency(p.bonus)}</td></tr>
+                                            </tbody>
+                                            <tfoot class="table-success">
+                                                <tr><td><strong>Total Pendapatan</strong></td><td class="text-end"><strong>${formatCurrency(p.total_earnings)}</strong></td></tr>
+                                            </tfoot>
                                         </table>
                                     </div>
 
                                     <h6 class="text-danger"><i class='bx bx-trending-down'></i> Rincian Potongan</h6>
                                     <div class="table-responsive mb-3">
-                                        <table class="table table-sm">
-                                            <tr><td>Potongan Terlambat</td><td class="text-end">${formatCurrency(p.deduction_late)}</td></tr>
-                                            <tr><td>Potongan Alpha</td><td class="text-end">${formatCurrency(p.deduction_absent)}</td></tr>
-                                            <tr><td>Potongan Pinjaman</td><td class="text-end">${formatCurrency(p.deduction_loan)}</td></tr>
-                                            <tr><td>Potongan BPJS</td><td class="text-end">${formatCurrency(p.deduction_bpjs)}</td></tr>
-                                            <tr><td>Potongan Pajak</td><td class="text-end">${formatCurrency(p.deduction_tax)}</td></tr>
-                                            <tr><td>Potongan Lainnya</td><td class="text-end">${formatCurrency(p.deduction_others)}</td></tr>
-                                            <tr class="table-danger"><td><strong>Total Potongan</strong></td><td class="text-end"><strong>${formatCurrency(p.total_deductions)}</strong></td></tr>
+                                        <table class="table table-sm table-bordered">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Keterangan</th>
+                                                    <th class="text-end">Jumlah (Rp)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr><td>Potongan Terlambat</td><td class="text-end">${formatCurrency(p.deduction_late)}</td></tr>
+                                                <tr><td>Potongan Alpha</td><td class="text-end">${formatCurrency(p.deduction_absent)}</td></tr>
+                                                <tr><td>Potongan Pinjaman</td><td class="text-end">${formatCurrency(p.deduction_loan)}</td></tr>
+                                                <tr><td>Potongan BPJS</td><td class="text-end">${formatCurrency(p.deduction_bpjs)}</td></tr>
+                                                <tr><td>Potongan Pajak</td><td class="text-end">${formatCurrency(p.deduction_tax)}</td></tr>
+                                                <tr><td>Potongan Lainnya</td><td class="text-end">${formatCurrency(p.deduction_others)}</td></tr>
+                                            </tbody>
+                                            <tfoot class="table-danger">
+                                                <tr><td><strong>Total Potongan</strong></td><td class="text-end"><strong>${formatCurrency(p.total_deductions)}</strong></td></tr>
+                                            </tfoot>
                                         </table>
                                     </div>
 
                                     <div class="alert alert-primary">
-                                        <h5 class="mb-0"><i class='bx bx-money'></i> Gaji Bersih: <strong class="float-end">${formatCurrency(p.net_salary)}</strong></h5>
+                                        <div class="row align-items-center">
+                                            <div class="col-6">
+                                                <h5 class="mb-0"><i class='bx bx-money'></i> Gaji Bersih</h5>
+                                            </div>
+                                            <div class="col-6 text-end">
+                                                <h4 class="mb-0"><strong>${formatCurrency(p.net_salary)}</strong></h4>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     ${p.notes ? `<div class="alert alert-info"><strong>Catatan:</strong> ${p.notes}</div>` : ''}
@@ -389,6 +602,134 @@
                             '<div class="alert alert-danger">Gagal memuat detail payroll</div>');
                         toastr.error('Gagal memuat detail payroll');
                     });
+            }
+
+            function printSlipGaji() {
+                if (!currentPayrollData) {
+                    toastr.error('Data payroll tidak tersedia');
+                    return;
+                }
+
+                let p = currentPayrollData;
+                let printDate = new Date().toLocaleDateString('id-ID', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                });
+
+                let printHtml = `
+                    <div class="print-header">
+                        <h2>SLIP GAJI KARYAWAN</h2>
+                        <p>Periode: ${formatPeriod(p.period_month)}</p>
+                        <p>Kode: ${p.payroll_code}</p>
+                    </div>
+
+                    <div class="print-section">
+                        <h6>DATA KARYAWAN</h6>
+                        <table style="width: 100%; margin-bottom: 20px;">
+                            <tr>
+                                <td width="20%"><strong>Nama</strong></td>
+                                <td width="30%">: ${p.employee.name}</td>
+                                <td width="20%"><strong>NIP</strong></td>
+                                <td width="30%">: ${p.employee.employee_code}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Departemen</strong></td>
+                                <td>: ${p.employee.department?.name || '-'}</td>
+                                <td><strong>Jabatan</strong></td>
+                                <td>: ${p.employee.position?.name || '-'}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tanggal Bayar</strong></td>
+                                <td>: ${formatDate(p.payment_date)}</td>
+                                <td><strong>Status</strong></td>
+                                <td>: ${p.status === 'draft' ? 'Draft' : p.status === 'sent' ? 'Terkirim' : 'Dibayar'}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="print-section">
+                        <h6>RINCIAN PENDAPATAN</h6>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">Keterangan</th>
+                                    <th style="text-align: right;">Jumlah (Rp)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Gaji Pokok</td><td style="text-align: right;">${formatCurrency(p.basic_salary)}</td></tr>
+                                <tr><td>Tunjangan Transport</td><td style="text-align: right;">${formatCurrency(p.allowance_transport)}</td></tr>
+                                <tr><td>Tunjangan Makan</td><td style="text-align: right;">${formatCurrency(p.allowance_meal)}</td></tr>
+                                <tr><td>Tunjangan Jabatan</td><td style="text-align: right;">${formatCurrency(p.allowance_position)}</td></tr>
+                                <tr><td>Tunjangan Lainnya</td><td style="text-align: right;">${formatCurrency(p.allowance_others)}</td></tr>
+                                <tr><td>Uang Lembur</td><td style="text-align: right;">${formatCurrency(p.overtime_pay)}</td></tr>
+                                <tr><td>Bonus</td><td style="text-align: right;">${formatCurrency(p.bonus)}</td></tr>
+                            </tbody>
+                            <tfoot>
+                                <tr><td><strong>Total Pendapatan</strong></td><td style="text-align: right;"><strong>${formatCurrency(p.total_earnings)}</strong></td></tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div class="print-section">
+                        <h6>RINCIAN POTONGAN</h6>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">Keterangan</th>
+                                    <th style="text-align: right;">Jumlah (Rp)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Potongan Terlambat</td><td style="text-align: right;">${formatCurrency(p.deduction_late)}</td></tr>
+                                <tr><td>Potongan Alpha</td><td style="text-align: right;">${formatCurrency(p.deduction_absent)}</td></tr>
+                                <tr><td>Potongan Pinjaman</td><td style="text-align: right;">${formatCurrency(p.deduction_loan)}</td></tr>
+                                <tr><td>Potongan BPJS</td><td style="text-align: right;">${formatCurrency(p.deduction_bpjs)}</td></tr>
+                                <tr><td>Potongan Pajak</td><td style="text-align: right;">${formatCurrency(p.deduction_tax)}</td></tr>
+                                <tr><td>Potongan Lainnya</td><td style="text-align: right;">${formatCurrency(p.deduction_others)}</td></tr>
+                            </tbody>
+                            <tfoot>
+                                <tr><td><strong>Total Potongan</strong></td><td style="text-align: right;"><strong>${formatCurrency(p.total_deductions)}</strong></td></tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div class="print-summary">
+                        <h4>GAJI BERSIH</h4>
+                        <h3><strong>${formatCurrency(p.net_salary)}</strong></h3>
+                    </div>
+
+                    ${p.notes ? `<div style="padding: 10px; border: 1px solid #ddd; margin: 20px 0;"><strong>Catatan:</strong> ${p.notes}</div>` : ''}
+
+                    <div class="signature-area">
+                        <div class="signature-box">
+                            <p><strong>Mengetahui,</strong></p>
+                            <div class="signature-line">
+                                <p>HRD Manager</p>
+                            </div>
+                        </div>
+                        <div class="signature-box">
+                            <p><strong>Penerima,</strong></p>
+                            <div class="signature-line">
+                                <p>${p.employee.name}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="print-footer">
+                        <p>Dokumen ini dicetak pada: ${printDate}</p>
+                        <p>Slip gaji ini sah dan diproses oleh sistem</p>
+                    </div>
+                `;
+
+                // Inject into print container
+                $('#printContainer').html(printHtml);
+
+                // Small delay to ensure content is rendered
+                setTimeout(function() {
+                    window.print();
+                }, 250);
             }
 
             function resetFilters() {

@@ -19,9 +19,13 @@ class LeaveController extends Controller
      */
     public function index()
     {
-        // Security: Ensure only employee can access
-        if (Auth::user()->role === 'admin') {
+        // Security: Ensure user is logged in and is an employee (not admin)
+        if (!Auth::check()) {
             abort(403, 'Unauthorized action.');
+        }
+
+        if (Auth::user()->role === 'admin') {
+            return redirect()->route('admin.leave.index');
         }
 
         $employee = Employee::where('user_id', Auth::id())->firstOrFail();
@@ -56,9 +60,13 @@ class LeaveController extends Controller
      */
     public function store(Request $request)
     {
-        // Security: Ensure only employee can submit leave
-        if (Auth::user()->role === 'admin') {
+        // Security: Ensure user is logged in and is an employee (not admin)
+        if (!Auth::check()) {
             abort(403, 'Unauthorized action.');
+        }
+
+        if (Auth::user()->role === 'admin') {
+            return redirect()->route('admin.leave.index');
         }
 
         $employee = Employee::where('user_id', Auth::id())->firstOrFail();
@@ -107,6 +115,15 @@ class LeaveController extends Controller
             Log::warning('Failed to send WhatsApp leave request notification: ' . $e->getMessage());
         }
 
+        // Return JSON for AJAX requests
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Pengajuan cuti berhasil disubmit dan menunggu persetujuan',
+                'data' => $leave
+            ], 201);
+        }
+
         return redirect()
             ->route('dashboard')
             ->with('success', 'Pengajuan cuti berhasil disubmit dan menunggu persetujuan');
@@ -117,9 +134,13 @@ class LeaveController extends Controller
      */
     public function cancel($id)
     {
-        // Security check
-        if (Auth::user()->role === 'admin') {
+        // Security: Ensure user is logged in and is an employee (not admin)
+        if (!Auth::check()) {
             abort(403, 'Unauthorized action.');
+        }
+
+        if (Auth::user()->role === 'admin') {
+            return redirect()->route('admin.leave.index');
         }
 
         $employee = Employee::where('user_id', Auth::id())->firstOrFail();
@@ -135,6 +156,14 @@ class LeaveController extends Controller
         }
 
         $leave->delete();
+
+        // Return JSON for AJAX requests
+        if (request()->expectsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Pengajuan cuti berhasil dibatalkan'
+            ]);
+        }
 
         return redirect()
             ->route('dashboard')

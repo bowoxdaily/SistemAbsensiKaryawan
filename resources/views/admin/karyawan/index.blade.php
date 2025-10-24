@@ -1460,12 +1460,13 @@
             $('#importProgress').removeClass('d-none');
 
             $.ajax({
-                url: '{{ route('admin.karyawan.import') }}',
+                url: '/api/karyawan/import',
                 method: 'POST',
                 data: formData,
                 processData: false,
                 contentType: false,
                 headers: {
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(response) {

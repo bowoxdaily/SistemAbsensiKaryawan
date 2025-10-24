@@ -46,72 +46,42 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/attendance/export', [AttendanceController::class, 'export'])->name('admin.attendance.export');
         Route::delete('/admin/attendance/{id}', [AttendanceController::class, 'destroy'])->name('admin.attendance.destroy');
 
-        // Office Settings
+        // Office Settings (View only - API handles POST/PUT/DELETE)
         Route::get('/admin/settings/office', [OfficeSettingController::class, 'index'])->name('admin.settings.office');
-        Route::post('/admin/settings/office', [OfficeSettingController::class, 'update'])->name('admin.settings.office.update');
-        Route::get('/admin/settings/office/show', [OfficeSettingController::class, 'show'])->name('admin.settings.office.show');
 
-        // Work Schedule Settings
+        // Work Schedule Settings (View only - API handles POST/PUT/DELETE)
         Route::get('/admin/settings/work-schedule', [WorkScheduleController::class, 'index'])->name('admin.settings.work-schedule');
-        Route::post('/admin/settings/work-schedule', [WorkScheduleController::class, 'store'])->name('admin.settings.work-schedule.store');
-        Route::get('/admin/settings/work-schedule/{id}', [WorkScheduleController::class, 'show'])->name('admin.settings.work-schedule.show');
-        Route::put('/admin/settings/work-schedule/{id}', [WorkScheduleController::class, 'update'])->name('admin.settings.work-schedule.update');
-        Route::delete('/admin/settings/work-schedule/{id}', [WorkScheduleController::class, 'destroy'])->name('admin.settings.work-schedule.destroy');
-        Route::post('/admin/settings/work-schedule/{id}/toggle', [WorkScheduleController::class, 'toggleStatus'])->name('admin.settings.work-schedule.toggle');
 
-        // Cron Job Settings
+        // Cron Job Settings (View only - API handles POST)
         Route::get('/admin/settings/cronjob', [CronJobController::class, 'index'])->name('admin.settings.cronjob');
-        Route::post('/admin/settings/cronjob/test', [CronJobController::class, 'testCommand'])->name('admin.settings.cronjob.test');
-        Route::post('/admin/settings/cronjob/run', [CronJobController::class, 'runScheduler'])->name('admin.settings.cronjob.run');
-        Route::get('/admin/settings/cronjob/list', [CronJobController::class, 'getScheduleList'])->name('admin.settings.cronjob.list');
-        Route::get('/admin/settings/cronjob/status', [CronJobController::class, 'checkStatus'])->name('admin.settings.cronjob.status');
-        Route::get('/admin/settings/cronjob/command', [CronJobController::class, 'getCronCommand'])->name('admin.settings.cronjob.command');
 
-        // WhatsApp Settings
+        // WhatsApp Settings (View only - API handles POST)
         Route::get('/admin/settings/whatsapp', [\App\Http\Controllers\Admin\WhatsAppSettingController::class, 'index'])->name('admin.settings.whatsapp');
-        Route::post('/admin/settings/whatsapp', [\App\Http\Controllers\Admin\WhatsAppSettingController::class, 'update'])->name('admin.settings.whatsapp.update');
-        Route::post('/admin/settings/whatsapp/test-connection', [\App\Http\Controllers\Admin\WhatsAppSettingController::class, 'testConnection'])->name('admin.settings.whatsapp.test-connection');
-        Route::post('/admin/settings/whatsapp/send-test', [\App\Http\Controllers\Admin\WhatsAppSettingController::class, 'sendTest'])->name('admin.settings.whatsapp.send-test');
-        Route::post('/admin/settings/whatsapp/reset-templates', [\App\Http\Controllers\Admin\WhatsAppSettingController::class, 'resetTemplates'])->name('admin.settings.whatsapp.reset-templates');
 
-        // Leave Management
+        // Leave Management (View only - API handles POST/DELETE)
         Route::get('/admin/leave', [\App\Http\Controllers\Admin\LeaveController::class, 'index'])->name('admin.leave.index');
-        Route::get('/admin/leave/{id}', [\App\Http\Controllers\Admin\LeaveController::class, 'show'])->name('admin.leave.show');
-        Route::post('/admin/leave/{id}/approve', [\App\Http\Controllers\Admin\LeaveController::class, 'approve'])->name('admin.leave.approve');
-        Route::post('/admin/leave/{id}/reject', [\App\Http\Controllers\Admin\LeaveController::class, 'reject'])->name('admin.leave.reject');
-        Route::delete('/admin/leave/{id}', [\App\Http\Controllers\Admin\LeaveController::class, 'destroy'])->name('admin.leave.destroy');
 
         // Payroll Management
         Route::get('/admin/payroll', [PayrollController::class, 'index'])->name('admin.payroll.index');
         Route::get('/admin/payroll/export', [PayrollController::class, 'export'])->name('admin.payroll.export');
     });
 
-    // Employee Routes
+    // Employee Routes (View only - API handles POST/PUT/DELETE)
     Route::get('/employee/attendance', [\App\Http\Controllers\Employee\AttendanceController::class, 'index'])->name('employee.attendance.index');
     Route::get('/employee/attendance/history', [\App\Http\Controllers\Employee\AttendanceController::class, 'historyPage'])->name('employee.attendance.history');
 
-    // Employee Leave Routes
+    // Employee Leave (View only - API handles POST/DELETE)
     Route::get('/employee/leave', [\App\Http\Controllers\Employee\LeaveController::class, 'index'])->name('employee.leave.index');
-    Route::post('/employee/leave', [\App\Http\Controllers\Employee\LeaveController::class, 'store'])->name('employee.leave.store');
-    Route::delete('/employee/leave/{id}', [\App\Http\Controllers\Employee\LeaveController::class, 'cancel'])->name('employee.leave.cancel');
 
-    // Employee Payroll Routes
+    // Employee Payroll (View only)
     Route::get('/employee/payroll', [\App\Http\Controllers\Employee\PayrollController::class, 'index'])->name('employee.payroll.index');
 
-    // Employee Profile Routes (with rate limiting)
-    Route::middleware('throttle:60,1')->group(function () {
-        Route::get('/employee/profile', [\App\Http\Controllers\Employee\ProfileController::class, 'index'])->name('employee.profile.index');
-        Route::put('/employee/profile', [\App\Http\Controllers\Employee\ProfileController::class, 'update'])->name('employee.profile.update');
-        Route::put('/employee/profile/photo', [\App\Http\Controllers\Employee\ProfileController::class, 'updatePhoto'])->name('employee.profile.update-photo');
-        Route::put('/employee/profile/password', [\App\Http\Controllers\Employee\ProfileController::class, 'updatePassword'])->name('employee.profile.update-password');
-    });
+    // Employee Profile (View only - API handles PUT)
+    Route::get('/employee/profile', [\App\Http\Controllers\Employee\ProfileController::class, 'index'])->name('employee.profile.index');
 
-    // Admin Profile Routes (with middleware and rate limiting)
-    Route::middleware(['admin', 'throttle:60,1'])->group(function () {
+    // Admin Profile (View only - API handles PUT)
+    Route::middleware(['admin'])->group(function () {
         Route::get('/admin/profile', [\App\Http\Controllers\Admin\AdminProfileController::class, 'index'])->name('admin.profile.index');
-        Route::put('/admin/profile', [\App\Http\Controllers\Admin\AdminProfileController::class, 'update'])->name('admin.profile.update');
-        Route::put('/admin/profile/photo', [\App\Http\Controllers\Admin\AdminProfileController::class, 'updatePhoto'])->name('admin.profile.update-photo');
-        Route::put('/admin/profile/password', [\App\Http\Controllers\Admin\AdminProfileController::class, 'updatePassword'])->name('admin.profile.update-password');
     });
 
 

@@ -169,15 +169,10 @@
                                         <i class='bx bx-show'></i> Detail
                                     </button>
                                     @if ($leave->status == 'pending')
-                                        <form action="{{ route('employee.leave.cancel', $leave->id) }}" method="POST"
-                                            class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                onclick="return confirm('Yakin ingin membatalkan pengajuan ini?')">
-                                                <i class='bx bx-x'></i> Batal
-                                            </button>
-                                        </form>
+                                        <button class="btn btn-sm btn-outline-danger cancel-leave"
+                                            data-id="{{ $leave->id }}">
+                                            <i class='bx bx-x'></i> Batal
+                                        </button>
                                     @endif
                                 </td>
                             </tr>
@@ -304,15 +299,10 @@
                                             <button type="button" class="btn btn-outline-secondary"
                                                 data-bs-dismiss="modal">Tutup</button>
                                             @if ($leave->status == 'pending')
-                                                <form action="{{ route('employee.leave.cancel', $leave->id) }}"
-                                                    method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger"
-                                                        onclick="return confirm('Yakin ingin membatalkan?')">
-                                                        <i class='bx bx-x'></i> Batalkan Pengajuan
-                                                    </button>
-                                                </form>
+                                                <button class="btn btn-danger cancel-leave"
+                                                    data-id="{{ $leave->id }}">
+                                                    <i class='bx bx-x'></i> Batalkan Pengajuan
+                                                </button>
                                             @endif
                                         </div>
                                     </div>
@@ -369,14 +359,9 @@
                                 <i class='bx bx-show'></i> Detail
                             </button>
                             @if ($leave->status == 'pending')
-                                <form action="{{ route('employee.leave.cancel', $leave->id) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger"
-                                        onclick="return confirm('Yakin ingin membatalkan?')">
-                                        <i class='bx bx-x'></i> Batal
-                                    </button>
-                                </form>
+                                <button class="btn btn-sm btn-outline-danger cancel-leave" data-id="{{ $leave->id }}">
+                                    <i class='bx bx-x'></i> Batal
+                                </button>
                             @endif
                         </div>
                     </div>
@@ -406,7 +391,7 @@
                         <h5 class="modal-title">Ajukan Cuti/Izin Baru</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <form action="{{ route('employee.leave.store') }}" method="POST" enctype="multipart/form-data">
+                    <form id="createLeaveForm" enctype="multipart/form-data">
                         @csrf
                         <div class="modal-body">
                             <div class="mb-3">
@@ -485,3 +470,104 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            // Create Leave Form
+            $('#createLeaveForm').on('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                const submitBtn = $(this).find('button[type="submit"]');
+                const originalText = submitBtn.html();
+
+                submitBtn.prop('disabled', true).html('<i class="bx bx-loader bx-spin"></i> Mengirim...');
+
+                $.ajax({
+                    url: '/api/employee/leave',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message ||
+                                'Pengajuan cuti berhasil dikirim');
+                            $('#modalCuti').modal('hide');
+                            $('#createLeaveForm')[0].reset();
+                            setTimeout(() => location.reload(), 1500);
+                        }
+                    },
+                    error: function(xhr) {
+                        submitBtn.prop('disabled', false).html(originalText);
+
+                        if (xhr.status === 422) {
+                            const errors = xhr.responseJSON.errors;
+                            Object.keys(errors).forEach(key => {
+                                toastr.error(errors[key][0]);
+                            });
+                        } else if (xhr.status === 403) {
+                            toastr.error('Anda tidak memiliki akses untuk melakukan aksi ini');
+                        } else {
+                            toastr.error(xhr.responseJSON?.message ||
+                                'Terjadi kesalahan saat mengajukan cuti');
+                        }
+                    }
+                });
+            });
+
+            // Cancel Leave with confirmation
+            $(document).on('click', '.cancel-leave', function() {
+                const leaveId = $(this).data('id');
+                const button = $(this);
+
+                Swal.fire({
+                    title: 'Yakin ingin membatalkan?',
+                    text: "Pengajuan cuti akan dibatalkan",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Batalkan!',
+                    cancelButtonText: 'Tidak'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        button.prop('disabled', true);
+
+                        $.ajax({
+                            url: `/api/employee/leave/${leaveId}`,
+                            type: 'DELETE',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    toastr.success(response.message ||
+                                        'Pengajuan cuti berhasil dibatalkan');
+                                    setTimeout(() => location.reload(), 1500);
+                                }
+                            },
+                            error: function(xhr) {
+                                button.prop('disabled', false);
+                                toastr.error(xhr.responseJSON?.message ||
+                                    'Terjadi kesalahan saat membatalkan cuti');
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Reset form when modal closed
+            $('#modalCuti').on('hidden.bs.modal', function() {
+                $('#createLeaveForm')[0].reset();
+                $('#createLeaveForm').find('.is-invalid').removeClass('is-invalid');
+            });
+        });
+    </script>
+@endpush

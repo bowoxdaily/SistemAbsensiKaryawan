@@ -25,7 +25,7 @@
 
                                 @if ($absensiHariIni)
                                     <div class="alert alert-success p-2 mb-2">
-                                        <small><i class="bx bx-check-circle"></i> Anda sudah absen hari ini</small><br>
+                                        <small><i class="bx bx-check-circle"></i> Anda sudah check-in hari ini</small><br>
                                         <small><strong>Masuk:</strong>
                                             {{ \Carbon\Carbon::parse($absensiHariIni->check_in)->format('H:i') }}</small>
                                         @if ($absensiHariIni->check_out)
@@ -33,12 +33,27 @@
                                                 {{ \Carbon\Carbon::parse($absensiHariIni->check_out)->format('H:i') }}</small>
                                         @endif
                                     </div>
+
+                                    @if (!$absensiHariIni->check_out)
+                                        <div class="alert alert-warning p-2 mb-2">
+                                            <small><i class="bx bx-log-out"></i> Jangan lupa check-out sebelum
+                                                pulang</small>
+                                        </div>
+                                        <a href="{{ route('employee.attendance.index') }}" class="btn btn-sm btn-warning">
+                                            <i class="bx bx-log-out"></i> Check-Out Sekarang
+                                        </a>
+                                    @else
+                                        <a href="{{ route('employee.attendance.index') }}"
+                                            class="btn btn-sm btn-outline-primary">
+                                            <i class="bx bx-history"></i> Lihat Absensi
+                                        </a>
+                                    @endif
                                 @else
                                     <div class="alert alert-warning p-2 mb-2">
-                                        <small><i class="bx bx-time"></i> Anda belum absen hari ini</small>
+                                        <small><i class="bx bx-time"></i> Anda belum check-in hari ini</small>
                                     </div>
                                     <a href="{{ route('employee.attendance.index') }}" class="btn btn-sm btn-primary">
-                                        <i class="bx bx-fingerprint"></i> Absen Sekarang
+                                        <i class="bx bx-fingerprint"></i> Check-In Sekarang
                                     </a>
                                 @endif
                             </div>
@@ -357,15 +372,10 @@
                                     </div>
                                 @elseif($cuti->status == 'pending')
                                     <div class="mt-2">
-                                        <form action="{{ route('employee.leave.cancel', $cuti->id) }}" method="POST"
-                                            class="d-inline"
-                                            onsubmit="return confirm('Yakin ingin membatalkan pengajuan cuti ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                <i class='bx bx-x'></i> Batalkan
-                                            </button>
-                                        </form>
+                                        <button class="btn btn-sm btn-outline-danger cancel-leave"
+                                            data-id="{{ $cuti->id }}">
+                                            <i class='bx bx-x'></i> Batalkan
+                                        </button>
                                     </div>
                                 @elseif($cuti->status == 'rejected' && $cuti->rejection_reason)
                                     <div class="mt-2">
@@ -448,7 +458,7 @@
                         <h5 class="modal-title">Ajukan Cuti/Izin</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <form action="{{ route('employee.leave.store') }}" method="POST" enctype="multipart/form-data">
+                    <form id="dashboardLeaveForm" enctype="multipart/form-data">
                         @csrf
                         <div class="modal-body">
                             <div class="mb-3">
@@ -593,5 +603,99 @@
                 }
             });
         }
+
+        // Dashboard Leave Form
+        $('#dashboardLeaveForm').on('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const submitBtn = $(this).find('button[type="submit"]');
+            const originalText = submitBtn.html();
+
+            submitBtn.prop('disabled', true).html('<i class="bx bx-loader bx-spin"></i> Mengirim...');
+
+            $.ajax({
+                url: '/api/employee/leave',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message || 'Pengajuan cuti berhasil dikirim');
+                        $('#modalCuti').modal('hide');
+                        $('#dashboardLeaveForm')[0].reset();
+                        setTimeout(() => location.reload(), 1500);
+                    }
+                },
+                error: function(xhr) {
+                    submitBtn.prop('disabled', false).html(originalText);
+
+                    if (xhr.status === 422) {
+                        const errors = xhr.responseJSON.errors;
+                        Object.keys(errors).forEach(key => {
+                            toastr.error(errors[key][0]);
+                        });
+                    } else if (xhr.status === 403) {
+                        toastr.error('Anda tidak memiliki akses untuk melakukan aksi ini');
+                    } else {
+                        toastr.error(xhr.responseJSON?.message ||
+                            'Terjadi kesalahan saat mengajukan cuti');
+                    }
+                }
+            });
+        });
+
+        // Cancel Leave from Dashboard
+        $(document).on('click', '.cancel-leave', function() {
+            const leaveId = $(this).data('id');
+            const button = $(this);
+
+            Swal.fire({
+                title: 'Yakin ingin membatalkan?',
+                text: "Pengajuan cuti akan dibatalkan",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Batalkan!',
+                cancelButtonText: 'Tidak'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    button.prop('disabled', true);
+
+                    $.ajax({
+                        url: `/api/employee/leave/${leaveId}`,
+                        type: 'DELETE',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                toastr.success(response.message ||
+                                    'Pengajuan cuti berhasil dibatalkan');
+                                setTimeout(() => location.reload(), 1500);
+                            }
+                        },
+                        error: function(xhr) {
+                            button.prop('disabled', false);
+                            toastr.error(xhr.responseJSON?.message ||
+                                'Terjadi kesalahan saat membatalkan cuti');
+                        }
+                    });
+                }
+            });
+        });
+
+        // Reset form when modal closed
+        $('#modalCuti').on('hidden.bs.modal', function() {
+            $('#dashboardLeaveForm')[0].reset();
+            $('#dashboardLeaveForm').find('.is-invalid').removeClass('is-invalid');
+        });
     </script>
 @endpush

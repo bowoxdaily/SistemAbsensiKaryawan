@@ -33,7 +33,7 @@
                         </span>
                     </div>
                     <div class="card-body">
-                        <form action="{{ route('admin.settings.whatsapp.update') }}" method="POST">
+                        <form id="configForm">
                             @csrf
                             <input type="hidden" name="form_type" value="config">
 
@@ -179,7 +179,7 @@
                         </button>
                     </div>
                     <div class="card-body">
-                        <form action="{{ route('admin.settings.whatsapp.update') }}" method="POST">
+                        <form id="templateForm">
                             @csrf
                             <input type="hidden" name="form_type" value="template">
 
@@ -485,6 +485,88 @@
 
 @push('scripts')
     <script>
+        // Handle config form submission
+        $('#configForm').on('submit', function(e) {
+            e.preventDefault();
+
+            const form = $(this);
+            const submitBtn = form.find('button[type="submit"]');
+            const originalHtml = submitBtn.html();
+
+            submitBtn.prop('disabled', true).html(
+                '<span class="spinner-border spinner-border-sm"></span> Menyimpan...');
+
+            $.ajax({
+                url: '/api/settings/whatsapp',
+                method: 'POST',
+                data: form.serialize(),
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                success: function(response) {
+                    toastr.success(response.message || 'Pengaturan WhatsApp berhasil disimpan');
+                    setTimeout(() => location.reload(), 1500);
+                },
+                error: function(xhr) {
+                    submitBtn.prop('disabled', false).html(originalHtml);
+
+                    if (xhr.status === 422) {
+                        const errors = xhr.responseJSON.errors;
+                        let errorMsg = 'Validasi gagal:\n';
+                        Object.keys(errors).forEach(key => {
+                            errorMsg += errors[key][0] + '\n';
+                            $(`#${key}`).addClass('is-invalid');
+                        });
+                        toastr.error(errorMsg);
+                    } else {
+                        toastr.error(xhr.responseJSON?.message || 'Gagal menyimpan pengaturan');
+                    }
+                }
+            });
+        });
+
+        // Handle template form submission
+        $('#templateForm').on('submit', function(e) {
+            e.preventDefault();
+
+            const form = $(this);
+            const submitBtn = form.find('button[type="submit"]');
+            const originalHtml = submitBtn.html();
+
+            submitBtn.prop('disabled', true).html(
+                '<span class="spinner-border spinner-border-sm"></span> Menyimpan...');
+
+            $.ajax({
+                url: '/api/settings/whatsapp',
+                method: 'POST',
+                data: form.serialize(),
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                success: function(response) {
+                    toastr.success(response.message || 'Template berhasil disimpan');
+                    submitBtn.prop('disabled', false).html(originalHtml);
+                },
+                error: function(xhr) {
+                    submitBtn.prop('disabled', false).html(originalHtml);
+
+                    if (xhr.status === 422) {
+                        const errors = xhr.responseJSON.errors;
+                        let errorMsg = 'Validasi gagal:\n';
+                        Object.keys(errors).forEach(key => {
+                            errorMsg += errors[key][0] + '\n';
+                            $(`#${key}`).addClass('is-invalid');
+                        });
+                        toastr.error(errorMsg);
+                    } else {
+                        toastr.error(xhr.responseJSON?.message || 'Gagal menyimpan template');
+                    }
+                }
+            });
+        });
+
         // Test connection
         function testConnection() {
             const btn = event.target.closest('button');
@@ -492,11 +574,12 @@
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Testing...';
 
-            fetch('{{ route('admin.settings.whatsapp.test-connection') }}', {
+            fetch('/api/settings/whatsapp/test-connection', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
                     }
                 })
                 .then(response => response.json())
@@ -559,11 +642,12 @@
                 }
             });
 
-            fetch('{{ route('admin.settings.whatsapp.send-test') }}', {
+            fetch('/api/settings/whatsapp/send-test', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({
                         phone: phone,
@@ -608,18 +692,40 @@
                 cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = '{{ route('admin.settings.whatsapp.reset-templates') }}';
+                    Swal.fire({
+                        title: 'Mereset template...',
+                        text: 'Mohon tunggu',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
 
-                    const csrfField = document.createElement('input');
-                    csrfField.type = 'hidden';
-                    csrfField.name = '_token';
-                    csrfField.value = '{{ csrf_token() }}';
-                    form.appendChild(csrfField);
-
-                    document.body.appendChild(form);
-                    form.submit();
+                    $.ajax({
+                        url: '/api/settings/whatsapp/reset-templates',
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        success: function(response) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: response.message || 'Template berhasil direset',
+                                timer: 2000
+                            }).then(() => {
+                                location.reload();
+                            });
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: xhr.responseJSON?.message || 'Gagal reset template'
+                            });
+                        }
+                    });
                 }
             });
         }
