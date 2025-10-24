@@ -535,4 +535,135 @@ class WhatsAppService
 
         return $result;
     }
+
+    /**
+     * Send payroll notification to employee
+     */
+    public function sendPayrollNotification($payroll)
+    {
+        if (!$this->setting || !$this->setting->is_enabled) {
+            Log::info('WhatsApp notification is disabled');
+            return false;
+        }
+
+        // Load employee relation if not loaded
+        if (!$payroll->relationLoaded('employee')) {
+            $payroll->load('employee');
+        }
+
+        $employee = $payroll->employee;
+
+        // Check if employee has phone number
+        if (!$employee || !$employee->phone) {
+            Log::warning('Employee phone number not found for payroll notification', [
+                'employee_id' => $payroll->employee_id,
+            ]);
+            return false;
+        }
+
+        // Get template from settings or use default
+        $template = $this->setting->payroll_template ?? $this->getDefaultPayrollTemplate();
+
+        // Format currency
+        $formatCurrency = function ($amount) {
+            return 'Rp ' . number_format($amount, 0, ',', '.');
+        };
+
+        // Calculate total allowances
+        $totalAllowances = $payroll->allowance_transport
+            + $payroll->allowance_meal
+            + $payroll->allowance_position
+            + $payroll->allowance_others;
+
+        // Calculate other deductions
+        $otherDeductions = $payroll->deduction_loan + $payroll->deduction_others;
+
+        // Replace variables
+        $message = str_replace(
+            [
+                '{employee_name}',
+                '{period}',
+                '{formatted_period}',
+                '{basic_salary}',
+                '{total_allowances}',
+                '{overtime}',
+                '{bonus}',
+                '{total_earnings}',
+                '{deduction_late}',
+                '{deduction_absent}',
+                '{deduction_bpjs}',
+                '{deduction_tax}',
+                '{other_deductions}',
+                '{total_deductions}',
+                '{net_salary}',
+                '{payment_date}',
+            ],
+            [
+                $employee->name,
+                $payroll->period_month,
+                $payroll->formatted_period,
+                $formatCurrency($payroll->basic_salary),
+                $formatCurrency($totalAllowances),
+                $formatCurrency($payroll->overtime_pay),
+                $formatCurrency($payroll->bonus),
+                $formatCurrency($payroll->total_earnings),
+                $formatCurrency($payroll->deduction_late),
+                $formatCurrency($payroll->deduction_absent),
+                $formatCurrency($payroll->deduction_bpjs),
+                $formatCurrency($payroll->deduction_tax),
+                $formatCurrency($otherDeductions),
+                $formatCurrency($payroll->total_deductions),
+                $formatCurrency($payroll->net_salary),
+                date('d/m/Y', strtotime($payroll->payment_date)),
+            ],
+            $template
+        );
+
+        // Send notification
+        $result = $this->send($employee->phone, $message);
+
+        if ($result) {
+            Log::info('Payroll notification sent to employee', [
+                'payroll_id' => $payroll->id,
+                'employee_name' => $employee->name,
+                'net_salary' => $payroll->net_salary,
+            ]);
+        } else {
+            Log::warning('Failed to send payroll notification', [
+                'payroll_id' => $payroll->id,
+            ]);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get default payroll template
+     */
+    protected function getDefaultPayrollTemplate()
+    {
+        return "🧾 *SLIP GAJI - {period}*\n\n" .
+            "Kepada Yth.\n" .
+            "*{employee_name}*\n\n" .
+            "Berikut rincian gaji untuk periode *{formatted_period}*:\n\n" .
+            "💰 *PENDAPATAN*\n" .
+            "• Gaji Pokok: {basic_salary}\n" .
+            "• Tunjangan: {total_allowances}\n" .
+            "• Lembur: {overtime}\n" .
+            "• Bonus: {bonus}\n" .
+            "─────────────\n" .
+            "Total: {total_earnings}\n\n" .
+            "➖ *POTONGAN*\n" .
+            "• Keterlambatan: {deduction_late}\n" .
+            "• Ketidakhadiran: {deduction_absent}\n" .
+            "• BPJS: {deduction_bpjs}\n" .
+            "• Pajak: {deduction_tax}\n" .
+            "• Lainnya: {other_deductions}\n" .
+            "─────────────\n" .
+            "Total: {total_deductions}\n\n" .
+            "✅ *GAJI BERSIH*\n" .
+            "*{net_salary}*\n\n" .
+            "📅 Tanggal Pembayaran: {payment_date}\n\n" .
+            "Terima kasih atas dedikasi Anda! 🙏";
+    }
 }

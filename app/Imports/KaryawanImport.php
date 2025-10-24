@@ -4,6 +4,7 @@ namespace App\Imports;
 
 use App\Models\Karyawans;
 use App\Models\Department;
+use App\Models\SubDepartment;
 use App\Models\Position;
 use App\Models\User;
 use App\Models\WorkSchedule;
@@ -23,13 +24,20 @@ class KaryawanImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
     use Importable, SkipsErrors, SkipsFailures;
 
     protected $departmentCache = [];
+    protected $subDepartmentCache = [];
     protected $positionCache = [];
     protected $workScheduleCache = [];
 
     public function __construct()
     {
-        // Cache departments and positions to avoid repeated queries
+        // Cache departments, sub departments, and positions to avoid repeated queries
         $this->departmentCache = Department::pluck('id', 'name')->toArray();
+        $this->subDepartmentCache = SubDepartment::where('is_active', true)
+            ->get()
+            ->mapWithKeys(function ($item) {
+                return ["{$item->department_id}|{$item->name}" => $item->id];
+            })
+            ->toArray();
         $this->positionCache = Position::pluck('id', 'name')->toArray();
         $this->workScheduleCache = WorkSchedule::where('is_active', true)->pluck('id', 'name')->toArray();
     }
@@ -83,6 +91,21 @@ class KaryawanImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
         // Get department ID
         $departmentId = $this->departmentCache[$row['departemen']] ?? null;
 
+        // Get sub department ID (optional, based on department)
+        $subDepartmentId = null;
+        if (!empty($row['sub_departemen']) && $departmentId) {
+            // Check if format is "Departemen - Sub Departemen" (from dropdown template)
+            $subDeptName = $row['sub_departemen'];
+            if (strpos($subDeptName, ' - ') !== false) {
+                // Extract sub department name after " - "
+                $parts = explode(' - ', $subDeptName, 2);
+                $subDeptName = trim($parts[1]);
+            }
+
+            $subDepartmentKey = "{$departmentId}|{$subDeptName}";
+            $subDepartmentId = $this->subDepartmentCache[$subDepartmentKey] ?? null;
+        }
+
         // Get position ID
         $positionId = $this->positionCache[$row['posisi']] ?? null;
 
@@ -113,11 +136,26 @@ class KaryawanImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
                 'birth_place' => $row['tempat_lahir'],
                 'birth_date' => $this->convertDate($row['tanggal_lahir']),
                 'marital_status' => $row['status_perkawinan'],
+                'tanggungan_anak' => $row['tanggungan_anak'] ?? 0,
+                'agama' => $row['agama'] ?? null,
+                'bangsa' => $row['bangsa'] ?? null,
+                'status_kependudukan' => $row['status_kependudukan'] ?? null,
+                'nama_ibu_kandung' => $row['nama_ibu_kandung'] ?? null,
+                'ktp' => $row['nik'] ?? null,
+                'kartu_keluarga' => $row['kartu_keluarga'] ?? null,
                 'department_id' => $departmentId,
+                'sub_department_id' => $subDepartmentId,
                 'position_id' => $positionId,
+                'lulusan_sekolah' => $row['lulusan_sekolah'] ?? null,
                 'join_date' => $this->convertDate($row['tanggal_bergabung']),
                 'employment_status' => $row['status_kerja'],
                 'work_schedule_id' => $workScheduleId,
+                'tanggal_resign' => !empty($row['tanggal_resign']) ? $this->convertDate($row['tanggal_resign']) : null,
+                'bank' => $row['bank'] ?? null,
+                'nomor_rekening' => $row['nomor_rekening'] ?? null,
+                'tax_npwp' => $row['npwp'] ?? null,
+                'bpjs_kesehatan' => $row['bpjs_kesehatan'] ?? null,
+                'bpjs_ketenagakerjaan' => $row['bpjs_ketenagakerjaan'] ?? null,
                 'status' => $status,
                 'address' => $row['alamat'],
                 'city' => $row['kota'],

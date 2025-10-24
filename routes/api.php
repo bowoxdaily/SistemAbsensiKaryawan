@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\SubDepartmentController;
 use App\Http\Controllers\Admin\KaryawanController;
 use App\Http\Controllers\Admin\PositionController;
+use App\Http\Controllers\Admin\PayrollController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -71,4 +72,20 @@ Route::middleware('web')->prefix('employee')->group(function () {
     Route::get('/attendance/history', [\App\Http\Controllers\Employee\AttendanceController::class, 'history']);
     Route::get('/attendance/summary', [\App\Http\Controllers\Employee\AttendanceController::class, 'summary']);
     Route::get('/attendance/{id}/detail', [\App\Http\Controllers\Employee\AttendanceController::class, 'detail']);
+
+    // Employee Payroll API
+    Route::get('/payroll', [\App\Http\Controllers\Employee\PayrollController::class, 'list']);
+    Route::get('/payroll/statistics', [\App\Http\Controllers\Employee\PayrollController::class, 'statistics']);
+    Route::get('/payroll/{id}', [\App\Http\Controllers\Employee\PayrollController::class, 'show']);
+});
+
+// Payroll API Routes
+Route::prefix('payroll')->group(function () {
+    Route::get('/', [PayrollController::class, 'list']);
+    Route::post('/', [PayrollController::class, 'store']);
+    Route::get('/employees', [PayrollController::class, 'getEmployees']);
+    Route::get('/{id}', [PayrollController::class, 'show']);
+    Route::put('/{id}', [PayrollController::class, 'update']);
+    Route::delete('/{id}', [PayrollController::class, 'destroy']);
+    Route::post('/{id}/send', [PayrollController::class, 'sendNotification']);
 });

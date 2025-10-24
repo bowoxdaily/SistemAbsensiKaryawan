@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\PositionController;
 use App\Http\Controllers\Admin\OfficeSettingController;
 use App\Http\Controllers\Admin\WorkScheduleController;
 use App\Http\Controllers\Admin\CronJobController;
+use App\Http\Controllers\Admin\PayrollController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\LoginController;
@@ -79,6 +80,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/admin/leave/{id}/approve', [\App\Http\Controllers\Admin\LeaveController::class, 'approve'])->name('admin.leave.approve');
         Route::post('/admin/leave/{id}/reject', [\App\Http\Controllers\Admin\LeaveController::class, 'reject'])->name('admin.leave.reject');
         Route::delete('/admin/leave/{id}', [\App\Http\Controllers\Admin\LeaveController::class, 'destroy'])->name('admin.leave.destroy');
+
+        // Payroll Management
+        Route::get('/admin/payroll', [PayrollController::class, 'index'])->name('admin.payroll.index');
+        Route::get('/admin/payroll/export', [PayrollController::class, 'export'])->name('admin.payroll.export');
     });
 
     // Employee Routes
@@ -89,6 +94,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/employee/leave', [\App\Http\Controllers\Employee\LeaveController::class, 'index'])->name('employee.leave.index');
     Route::post('/employee/leave', [\App\Http\Controllers\Employee\LeaveController::class, 'store'])->name('employee.leave.store');
     Route::delete('/employee/leave/{id}', [\App\Http\Controllers\Employee\LeaveController::class, 'cancel'])->name('employee.leave.cancel');
+
+    // Employee Payroll Routes
+    Route::get('/employee/payroll', [\App\Http\Controllers\Employee\PayrollController::class, 'index'])->name('employee.payroll.index');
 
     // Employee Profile Routes (with rate limiting)
     Route::middleware('throttle:60,1')->group(function () {

@@ -125,7 +125,7 @@ public function list(Request $request) {
 
 -   Always use Carbon for date operations
 -   Work schedules: Handle both `H:i:s` (time) and `Y-m-d H:i:s` (datetime) formats
--   Example: `Carbon::parse($date)->format('Y-m-d')` for consistency
+-   Example: `Carbon::parse($date)->format('d-m-Y')` for consistency
 
 ### AJAX Response Pattern
 

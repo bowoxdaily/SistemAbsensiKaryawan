@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Department;
+use App\Models\SubDepartment;
 use App\Models\Position;
 use App\Models\WorkSchedule;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -16,14 +17,25 @@ use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 class KaryawanTemplateExport implements WithHeadings, WithStyles, WithColumnWidths, WithEvents
 {
     protected $departments;
+    protected $subDepartments;
     protected $positions;
     protected $workSchedules;
 
     public function __construct()
     {
-        // Get all departments and active positions
+        // Get all departments, sub departments, and active positions
         $this->departments = Department::orderBy('name')
             ->pluck('name')
+            ->toArray();
+
+        // Get sub departments with department name for clarity
+        $this->subDepartments = SubDepartment::where('is_active', true)
+            ->with('department')
+            ->orderBy('name')
+            ->get()
+            ->map(function ($subDept) {
+                return $subDept->department->name . ' - ' . $subDept->name;
+            })
             ->toArray();
 
         $this->positions = Position::where('status', 'active')
@@ -49,11 +61,25 @@ class KaryawanTemplateExport implements WithHeadings, WithStyles, WithColumnWidt
             'Tempat Lahir',
             'Tanggal Lahir',
             'Status Perkawinan',
+            'Tanggungan Anak',
+            'Agama',
+            'Bangsa',
+            'Status Kependudukan',
+            'Nama Ibu Kandung',
+            'Kartu Keluarga',
             'Departemen',
+            'Sub Departemen',
             'Posisi',
+            'Lulusan Sekolah',
             'Tanggal Bergabung',
             'Status Kerja',
             'Jadwal Kerja',
+            'Tanggal Resign',
+            'Bank',
+            'Nomor Rekening',
+            'NPWP',
+            'BPJS Kesehatan',
+            'BPJS Ketenagakerjaan',
             'Status',
             'Alamat',
             'Kota',
@@ -72,27 +98,41 @@ class KaryawanTemplateExport implements WithHeadings, WithStyles, WithColumnWidt
     public function columnWidths(): array
     {
         return [
-            'A' => 15,
-            'B' => 18,
-            'C' => 25,
-            'D' => 15,
-            'E' => 20,
-            'F' => 15,
-            'G' => 18,
-            'H' => 20,
-            'I' => 20,
-            'J' => 18,
-            'K' => 15,
-            'L' => 12,
-            'M' => 12,
-            'N' => 35,
-            'O' => 15,
-            'P' => 15,
-            'Q' => 12,
-            'R' => 15,
-            'S' => 25,
-            'T' => 25,
-            'U' => 15,
+            'A' => 15,  // Kode Karyawan
+            'B' => 18,  // NIK
+            'C' => 25,  // Nama
+            'D' => 15,  // Jenis Kelamin
+            'E' => 20,  // Tempat Lahir
+            'F' => 15,  // Tanggal Lahir
+            'G' => 18,  // Status Perkawinan
+            'H' => 15,  // Tanggungan Anak
+            'I' => 15,  // Agama
+            'J' => 15,  // Bangsa
+            'K' => 20,  // Status Kependudukan
+            'L' => 25,  // Nama Ibu Kandung
+            'M' => 18,  // Kartu Keluarga
+            'N' => 20,  // Departemen
+            'O' => 20,  // Sub Departemen
+            'P' => 20,  // Posisi
+            'Q' => 20,  // Lulusan Sekolah
+            'R' => 18,  // Tanggal Bergabung
+            'S' => 15,  // Status Kerja
+            'T' => 18,  // Jadwal Kerja
+            'U' => 15,  // Tanggal Resign
+            'V' => 20,  // Bank
+            'W' => 20,  // Nomor Rekening
+            'X' => 20,  // NPWP
+            'Y' => 20,  // BPJS Kesehatan
+            'Z' => 20,  // BPJS Ketenagakerjaan
+            'AA' => 12, // Status
+            'AB' => 35, // Alamat
+            'AC' => 15, // Kota
+            'AD' => 15, // Provinsi
+            'AE' => 12, // Kode Pos
+            'AF' => 15, // No HP
+            'AG' => 25, // Email
+            'AH' => 25, // Kontak Darurat Nama
+            'AI' => 15, // Kontak Darurat No
         ];
     }
 
@@ -110,33 +150,52 @@ class KaryawanTemplateExport implements WithHeadings, WithStyles, WithColumnWidt
         $sheet->setCellValue('E2', 'Jakarta');
         $sheet->setCellValue('F2', '1990-01-15');
         $sheet->setCellValue('G2', 'Menikah');
-        $sheet->setCellValue('H2', 'IT');
-        $sheet->setCellValue('I2', 'Staff');
-        $sheet->setCellValue('J2', '2020-01-01');
-        $sheet->setCellValue('K2', 'Tetap');
-        $sheet->setCellValue('L2', 'Shift Pagi');
-        $sheet->setCellValue('M2', 'Aktif');
-        $sheet->setCellValue('N2', 'Jl. Contoh No. 123');
-        $sheet->setCellValue('O2', 'Jakarta Selatan');
-        $sheet->setCellValue('P2', 'DKI Jakarta');
-        $sheet->setCellValue('Q2', '12345');
-        $sheet->setCellValue('R2', '081234567890');
-        $sheet->setCellValue('S2', 'john.doe@example.com');
-        $sheet->setCellValue('T2', 'Jane Doe');
-        $sheet->setCellValue('U2', '081234567891');
+        $sheet->setCellValue('H2', '2');
+        $sheet->setCellValue('I2', 'Islam');
+        $sheet->setCellValue('J2', 'Indonesia');
+        $sheet->setCellValue('K2', 'WNI');
+        $sheet->setCellValue('L2', 'Siti Aminah');
+        $sheet->setCellValue('M2', '1234567890123456');
+        $sheet->setCellValue('N2', 'IT & Development');
+        $sheet->setCellValue('O2', 'IT & Development - Development');
+        $sheet->setCellValue('P2', 'Staff IT');
+        $sheet->setCellValue('Q2', 'S1 Informatika');
+        $sheet->setCellValue('R2', '2020-01-01');
+        $sheet->setCellValue('S2', 'Tetap');
+        $sheet->setCellValue('T2', 'Shift Pagi');
+        $sheet->setCellValue('U2', '');
+        $sheet->setCellValue('V2', 'BCA');
+        $sheet->setCellValue('W2', '1234567890');
+        $sheet->setCellValue('X2', '12.345.678.9-012.000');
+        $sheet->setCellValue('Y2', '0001234567890');
+        $sheet->setCellValue('Z2', '0001234567890');
+        $sheet->setCellValue('AA2', 'Aktif');
+        $sheet->setCellValue('AB2', 'Jl. Contoh No. 123');
+        $sheet->setCellValue('AC2', 'Jakarta Selatan');
+        $sheet->setCellValue('AD2', 'DKI Jakarta');
+        $sheet->setCellValue('AE2', '12345');
+        $sheet->setCellValue('AF2', '081234567890');
+        $sheet->setCellValue('AG2', 'john.doe@example.com');
+        $sheet->setCellValue('AH2', 'Jane Doe');
+        $sheet->setCellValue('AI2', '081234567891');
 
         // Add notes in row 3
         $sheet->setCellValue('A3', 'Contoh: EMP002');
         $sheet->setCellValue('D3', 'Pilih dari dropdown ⬇');
         $sheet->setCellValue('F3', 'Format: YYYY-MM-DD');
         $sheet->setCellValue('G3', 'Pilih dari dropdown ⬇');
-        $sheet->setCellValue('H3', 'Pilih dari dropdown ⬇');
-        $sheet->setCellValue('I3', 'Pilih dari dropdown ⬇');
-        $sheet->setCellValue('J3', 'Format: YYYY-MM-DD');
-        $sheet->setCellValue('K3', 'Pilih dari dropdown ⬇');
-        $sheet->setCellValue('L3', 'Pilih dari dropdown ⬇');
-        $sheet->setCellValue('M3', 'Pilih dari dropdown ⬇');
-        $sheet->setCellValue('S3', 'Harus unique');
+        $sheet->setCellValue('H3', 'Angka, contoh: 0, 1, 2');
+        $sheet->setCellValue('I3', 'Islam/Kristen/Katolik/Hindu/Buddha/Konghucu');
+        $sheet->setCellValue('K3', 'WNI/WNA');
+        $sheet->setCellValue('N3', 'Pilih dari dropdown ⬇');
+        $sheet->setCellValue('O3', 'Pilih dari dropdown ⬇ (opsional)');
+        $sheet->setCellValue('P3', 'Pilih dari dropdown ⬇');
+        $sheet->setCellValue('R3', 'Format: YYYY-MM-DD');
+        $sheet->setCellValue('S3', 'Pilih dari dropdown ⬇');
+        $sheet->setCellValue('T3', 'Pilih dari dropdown ⬇');
+        $sheet->setCellValue('U3', 'Kosongkan jika belum resign');
+        $sheet->setCellValue('AA3', 'Pilih dari dropdown ⬇');
+        $sheet->setCellValue('AG3', 'Harus unique');
 
         return [
             // Style header row
@@ -215,10 +274,10 @@ class KaryawanTemplateExport implements WithHeadings, WithStyles, WithColumnWidt
                     $sheet->getCell('G' . $i)->setDataValidation(clone $maritalValidation);
                 }
 
-                // Set dropdown untuk Departemen (Column H) - dari database
+                // Set dropdown untuk Departemen (Column N) - dari database
                 if (count($this->departments) > 0) {
                     $departmentList = '"' . implode(',', $this->departments) . '"';
-                    $deptValidation = $sheet->getCell('H2')->getDataValidation();
+                    $deptValidation = $sheet->getCell('N2')->getDataValidation();
                     $deptValidation->setType(DataValidation::TYPE_LIST);
                     $deptValidation->setErrorStyle(DataValidation::STYLE_INFORMATION);
                     $deptValidation->setAllowBlank(false);
@@ -232,14 +291,35 @@ class KaryawanTemplateExport implements WithHeadings, WithStyles, WithColumnWidt
                     $deptValidation->setFormula1($departmentList);
 
                     for ($i = 2; $i <= 1000; $i++) {
-                        $sheet->getCell('H' . $i)->setDataValidation(clone $deptValidation);
+                        $sheet->getCell('N' . $i)->setDataValidation(clone $deptValidation);
                     }
                 }
 
-                // Set dropdown untuk Posisi/Jabatan (Column I) - dari database
+                // Set dropdown untuk Sub Departemen (Column O) - dari database (optional)
+                if (count($this->subDepartments) > 0) {
+                    $subDeptList = '"' . implode(',', $this->subDepartments) . '"';
+                    $subDeptValidation = $sheet->getCell('O2')->getDataValidation();
+                    $subDeptValidation->setType(DataValidation::TYPE_LIST);
+                    $subDeptValidation->setErrorStyle(DataValidation::STYLE_INFORMATION);
+                    $subDeptValidation->setAllowBlank(true); // Allow blank karena optional
+                    $subDeptValidation->setShowInputMessage(true);
+                    $subDeptValidation->setShowErrorMessage(true);
+                    $subDeptValidation->setShowDropDown(true);
+                    $subDeptValidation->setErrorTitle('Input error');
+                    $subDeptValidation->setError('Pilih sub departemen yang valid dari dropdown');
+                    $subDeptValidation->setPromptTitle('Sub Departemen');
+                    $subDeptValidation->setPrompt('Pilih sub departemen (format: Departemen - Sub Departemen). Kosongkan jika tidak ada.');
+                    $subDeptValidation->setFormula1($subDeptList);
+
+                    for ($i = 2; $i <= 1000; $i++) {
+                        $sheet->getCell('O' . $i)->setDataValidation(clone $subDeptValidation);
+                    }
+                }
+
+                // Set dropdown untuk Posisi/Jabatan (Column P) - dari database
                 if (count($this->positions) > 0) {
                     $positionList = '"' . implode(',', $this->positions) . '"';
-                    $posValidation = $sheet->getCell('I2')->getDataValidation();
+                    $posValidation = $sheet->getCell('P2')->getDataValidation();
                     $posValidation->setType(DataValidation::TYPE_LIST);
                     $posValidation->setErrorStyle(DataValidation::STYLE_INFORMATION);
                     $posValidation->setAllowBlank(false);
@@ -253,12 +333,12 @@ class KaryawanTemplateExport implements WithHeadings, WithStyles, WithColumnWidt
                     $posValidation->setFormula1($positionList);
 
                     for ($i = 2; $i <= 1000; $i++) {
-                        $sheet->getCell('I' . $i)->setDataValidation(clone $posValidation);
+                        $sheet->getCell('P' . $i)->setDataValidation(clone $posValidation);
                     }
                 }
 
-                // Set dropdown untuk Status Kerja (Column K)
-                $empStatusValidation = $sheet->getCell('K2')->getDataValidation();
+                // Set dropdown untuk Status Kerja (Column S)
+                $empStatusValidation = $sheet->getCell('S2')->getDataValidation();
                 $empStatusValidation->setType(DataValidation::TYPE_LIST);
                 $empStatusValidation->setErrorStyle(DataValidation::STYLE_INFORMATION);
                 $empStatusValidation->setAllowBlank(false);
@@ -272,12 +352,12 @@ class KaryawanTemplateExport implements WithHeadings, WithStyles, WithColumnWidt
                 $empStatusValidation->setFormula1('"Tetap,Kontrak,Magang,Outsource"');
 
                 for ($i = 2; $i <= 1000; $i++) {
-                    $sheet->getCell('K' . $i)->setDataValidation(clone $empStatusValidation);
+                    $sheet->getCell('S' . $i)->setDataValidation(clone $empStatusValidation);
                 }
 
-                // Set dropdown untuk Jadwal Kerja (Column L) - dari database
+                // Set dropdown untuk Jadwal Kerja (Column T) - dari database
                 if (!empty($this->workSchedules)) {
-                    $scheduleValidation = $sheet->getCell('L2')->getDataValidation();
+                    $scheduleValidation = $sheet->getCell('T2')->getDataValidation();
                     $scheduleValidation->setType(DataValidation::TYPE_LIST);
                     $scheduleValidation->setErrorStyle(DataValidation::STYLE_INFORMATION);
                     $scheduleValidation->setAllowBlank(false);
@@ -291,12 +371,12 @@ class KaryawanTemplateExport implements WithHeadings, WithStyles, WithColumnWidt
                     $scheduleValidation->setFormula1('"' . implode(',', $this->workSchedules) . '"');
 
                     for ($i = 2; $i <= 1000; $i++) {
-                        $sheet->getCell('L' . $i)->setDataValidation(clone $scheduleValidation);
+                        $sheet->getCell('T' . $i)->setDataValidation(clone $scheduleValidation);
                     }
                 }
 
-                // Set dropdown untuk Status Karyawan (Column M)
-                $statusValidation = $sheet->getCell('M2')->getDataValidation();
+                // Set dropdown untuk Status Karyawan (Column AA)
+                $statusValidation = $sheet->getCell('AA2')->getDataValidation();
                 $statusValidation->setType(DataValidation::TYPE_LIST);
                 $statusValidation->setErrorStyle(DataValidation::STYLE_INFORMATION);
                 $statusValidation->setAllowBlank(false);
@@ -310,7 +390,7 @@ class KaryawanTemplateExport implements WithHeadings, WithStyles, WithColumnWidt
                 $statusValidation->setFormula1('"Aktif,Tidak Aktif,Resign"');
 
                 for ($i = 2; $i <= 1000; $i++) {
-                    $sheet->getCell('M' . $i)->setDataValidation(clone $statusValidation);
+                    $sheet->getCell('AA' . $i)->setDataValidation(clone $statusValidation);
                 }
             },
         ];

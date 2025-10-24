@@ -110,29 +110,42 @@
                 <span class="menu-header-text">Absensi</span>
             </li>
 
-            <!-- Daftar Absensi -->
-            <li class="menu-item {{ request()->routeIs('admin.attendance.index') ? 'active' : '' }}">
-                <a href="{{ route('admin.attendance.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-list-ul"></i>
-                    <div data-i18n="Absensi">Daftar Absensi</div>
+            <!-- Absensi (Dropdown) -->
+            <li
+                class="menu-item {{ request()->routeIs('admin.attendance.*') || request()->routeIs('admin.leave.*') ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-calendar-check"></i>
+                    <div data-i18n="Absensi">Absensi & Cuti</div>
                 </a>
+                <ul class="menu-sub">
+                    <li class="menu-item {{ request()->routeIs('admin.attendance.index') ? 'active' : '' }}">
+                        <a href="{{ route('admin.attendance.index') }}" class="menu-link">
+                            <div data-i18n="Daftar Absensi">Daftar Absensi</div>
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->routeIs('admin.attendance.report') ? 'active' : '' }}">
+                        <a href="{{ route('admin.attendance.report') }}" class="menu-link">
+                            <div data-i18n="Rekap">Rekap & Laporan</div>
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->routeIs('admin.leave.*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.leave.index') }}" class="menu-link">
+                            <div data-i18n="Leave">Cuti & Izin</div>
+                        </a>
+                    </li>
+                </ul>
             </li>
 
-
-
-            <!-- Rekap Absensi -->
-            <li class="menu-item {{ request()->routeIs('admin.attendance.report') ? 'active' : '' }}">
-                <a href="{{ route('admin.attendance.report') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-bar-chart-alt-2"></i>
-                    <div data-i18n="Rekap">Rekap & Laporan</div>
-                </a>
+            <!-- Menu Header - Keuangan -->
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">Keuangan</span>
             </li>
 
-            <!-- Cuti & Izin -->
-            <li class="menu-item {{ request()->routeIs('admin.leave.*') ? 'active' : '' }}">
-                <a href="{{ route('admin.leave.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-calendar-event"></i>
-                    <div data-i18n="Leave">Cuti & Izin</div>
+            <!-- Payroll -->
+            <li class="menu-item {{ request()->routeIs('admin.payroll.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.payroll.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-money"></i>
+                    <div data-i18n="Payroll">Payroll Karyawan</div>
                 </a>
             </li>
 
@@ -141,36 +154,34 @@
                 <span class="menu-header-text">Pengaturan</span>
             </li>
 
-            <!-- Lokasi Kantor -->
-            <li class="menu-item {{ request()->routeIs('admin.settings.office*') ? 'active' : '' }}">
-                <a href="{{ route('admin.settings.office') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-map"></i>
-                    <div data-i18n="Lokasi Kantor">Lokasi Kantor</div>
+            <!-- Pengaturan Sistem (Dropdown) -->
+            <li class="menu-item {{ request()->routeIs('admin.settings.*') ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-cog"></i>
+                    <div data-i18n="Pengaturan">Pengaturan Sistem</div>
                 </a>
-            </li>
-
-            <!-- Jadwal Kerja -->
-            <li class="menu-item {{ request()->routeIs('admin.settings.work-schedule*') ? 'active' : '' }}">
-                <a href="{{ route('admin.settings.work-schedule') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-time-five"></i>
-                    <div data-i18n="Jadwal Kerja">Jadwal Kerja</div>
-                </a>
-            </li>
-
-            <!-- Cron Job -->
-            <li class="menu-item {{ request()->routeIs('admin.settings.cronjob*') ? 'active' : '' }}">
-                <a href="{{ route('admin.settings.cronjob') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-calendar-check"></i>
-                    <div data-i18n="Cron Job">Cron Job</div>
-                </a>
-            </li>
-
-            <!-- WhatsApp -->
-            <li class="menu-item {{ request()->routeIs('admin.settings.whatsapp*') ? 'active' : '' }}">
-                <a href="{{ route('admin.settings.whatsapp') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bxl-whatsapp"></i>
-                    <div data-i18n="WhatsApp">WhatsApp</div>
-                </a>
+                <ul class="menu-sub">
+                    <li class="menu-item {{ request()->routeIs('admin.settings.office*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.settings.office') }}" class="menu-link">
+                            <div data-i18n="Lokasi Kantor">Lokasi Kantor</div>
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->routeIs('admin.settings.work-schedule*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.settings.work-schedule') }}" class="menu-link">
+                            <div data-i18n="Jadwal Kerja">Jadwal Kerja</div>
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->routeIs('admin.settings.cronjob*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.settings.cronjob') }}" class="menu-link">
+                            <div data-i18n="Cron Job">Cron Job</div>
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->routeIs('admin.settings.whatsapp*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.settings.whatsapp') }}" class="menu-link">
+                            <div data-i18n="WhatsApp">WhatsApp</div>
+                        </a>
+                    </li>
+                </ul>
             </li>
 
             <!-- Menu Header - Akun Admin -->
@@ -272,6 +283,14 @@
                 <a href="{{ route('employee.leave.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-calendar-event"></i>
                     <div data-i18n="Leave">Cuti & Izin</div>
+                </a>
+            </li>
+
+            <!-- Riwayat Payroll -->
+            <li class="menu-item {{ request()->routeIs('employee.payroll.*') ? 'active' : '' }}">
+                <a href="{{ route('employee.payroll.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-money"></i>
+                    <div data-i18n="Payroll">Riwayat Payroll</div>
                 </a>
             </li>
 

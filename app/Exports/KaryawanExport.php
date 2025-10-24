@@ -24,7 +24,7 @@ class KaryawanExport implements FromCollection, WithHeadings, WithMapping, WithS
      */
     public function collection()
     {
-        return Karyawans::with(['department', 'position', 'workSchedule'])
+        return Karyawans::with(['department', 'subDepartment', 'position', 'workSchedule'])
             ->when(!empty($this->filters['department_id']), function ($query) {
                 return $query->where('department_id', $this->filters['department_id']);
             })
@@ -51,11 +51,25 @@ class KaryawanExport implements FromCollection, WithHeadings, WithMapping, WithS
             'Tempat Lahir',
             'Tanggal Lahir',
             'Status Perkawinan',
+            'Tanggungan Anak',
+            'Agama',
+            'Bangsa',
+            'Status Kependudukan',
+            'Nama Ibu Kandung',
+            'Kartu Keluarga',
             'Departemen',
+            'Sub Departemen',
             'Posisi',
+            'Lulusan Sekolah',
             'Tanggal Bergabung',
             'Status Kerja',
             'Jadwal Kerja',
+            'Tanggal Resign',
+            'Bank',
+            'Nomor Rekening',
+            'NPWP',
+            'BPJS Kesehatan',
+            'BPJS Ketenagakerjaan',
             'Status',
             'Alamat',
             'Kota',
@@ -80,13 +94,27 @@ class KaryawanExport implements FromCollection, WithHeadings, WithMapping, WithS
             $karyawan->name,
             $karyawan->gender === 'L' ? 'Laki-laki' : 'Perempuan',
             $karyawan->birth_place,
-            $karyawan->birth_date,
+            $karyawan->birth_date ? $karyawan->birth_date->format('Y-m-d') : '-',
             $karyawan->marital_status,
+            $karyawan->tanggungan_anak ?? 0,
+            $karyawan->agama ?? '-',
+            $karyawan->bangsa ?? '-',
+            $karyawan->status_kependudukan ?? '-',
+            $karyawan->nama_ibu_kandung ?? '-',
+            $karyawan->kartu_keluarga ?? '-',
             $karyawan->department ? $karyawan->department->name : '-',
+            $karyawan->subDepartment ? $karyawan->subDepartment->name : '-',
             $karyawan->position ? $karyawan->position->name : '-',
-            $karyawan->join_date,
+            $karyawan->lulusan_sekolah ?? '-',
+            $karyawan->join_date ? $karyawan->join_date->format('Y-m-d') : '-',
             $karyawan->employment_status,
             $karyawan->workSchedule ? $karyawan->workSchedule->name : '-',
+            $karyawan->tanggal_resign ? $karyawan->tanggal_resign->format('Y-m-d') : '-',
+            $karyawan->bank ?? '-',
+            $karyawan->nomor_rekening ?? '-',
+            $karyawan->tax_npwp ?? '-',
+            $karyawan->bpjs_kesehatan ?? '-',
+            $karyawan->bpjs_ketenagakerjaan ?? '-',
             $this->getStatusLabel($karyawan->status),
             $karyawan->address,
             $karyawan->city,
@@ -105,27 +133,41 @@ class KaryawanExport implements FromCollection, WithHeadings, WithMapping, WithS
     public function columnWidths(): array
     {
         return [
-            'A' => 15,  // Kode
+            'A' => 15,  // Kode Karyawan
             'B' => 18,  // NIK
             'C' => 25,  // Nama
             'D' => 15,  // Jenis Kelamin
             'E' => 20,  // Tempat Lahir
             'F' => 15,  // Tanggal Lahir
             'G' => 18,  // Status Perkawinan
-            'H' => 20,  // Departemen
-            'I' => 20,  // Posisi
-            'J' => 18,  // Tanggal Bergabung
-            'K' => 15,  // Status Kerja
-            'L' => 12,  // Jenis Shift
-            'M' => 12,  // Status
-            'N' => 35,  // Alamat
-            'O' => 15,  // Kota
-            'P' => 15,  // Provinsi
-            'Q' => 12,  // Kode Pos
-            'R' => 15,  // No HP
-            'S' => 25,  // Email
-            'T' => 25,  // Kontak Darurat Nama
-            'U' => 15,  // Kontak Darurat No
+            'H' => 15,  // Tanggungan Anak
+            'I' => 15,  // Agama
+            'J' => 15,  // Bangsa
+            'K' => 20,  // Status Kependudukan
+            'L' => 25,  // Nama Ibu Kandung
+            'M' => 18,  // Kartu Keluarga
+            'N' => 20,  // Departemen
+            'O' => 20,  // Sub Departemen
+            'P' => 20,  // Posisi
+            'Q' => 20,  // Lulusan Sekolah
+            'R' => 18,  // Tanggal Bergabung
+            'S' => 15,  // Status Kerja
+            'T' => 18,  // Jadwal Kerja
+            'U' => 15,  // Tanggal Resign
+            'V' => 20,  // Bank
+            'W' => 20,  // Nomor Rekening
+            'X' => 20,  // NPWP
+            'Y' => 20,  // BPJS Kesehatan
+            'Z' => 20,  // BPJS Ketenagakerjaan
+            'AA' => 12, // Status
+            'AB' => 35, // Alamat
+            'AC' => 15, // Kota
+            'AD' => 15, // Provinsi
+            'AE' => 12, // Kode Pos
+            'AF' => 15, // No HP
+            'AG' => 25, // Email
+            'AH' => 25, // Kontak Darurat Nama
+            'AI' => 15, // Kontak Darurat No
         ];
     }
 
