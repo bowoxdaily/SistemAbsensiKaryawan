@@ -75,8 +75,9 @@
                                 </button>
                             </div>
                             <small class="text-muted">
-                                <i class='bx bx-info-circle'></i> 
-                                Gunakan <code>/usr/local/bin/php</code> atau jalankan <code>which php</code> via SSH untuk cek path PHP yang benar
+                                <i class='bx bx-info-circle'></i>
+                                Gunakan <code>/usr/local/bin/php</code> atau jalankan <code>which php</code> via SSH untuk
+                                cek path PHP yang benar
                             </small>
                         </div>
 
@@ -91,7 +92,8 @@
                                     <i class='bx bx-copy'></i> Copy
                                 </button>
                             </div>
-                            <small class="text-muted">Untuk VPS Linux dengan full akses (gunakan <code>php</code> langsung jika sudah di PATH)</small>
+                            <small class="text-muted">Untuk VPS Linux dengan full akses (gunakan <code>php</code> langsung
+                                jika sudah di PATH)</small>
                         </div>
 
                         <div class="mb-3">
@@ -199,14 +201,15 @@
                             <!-- cPanel -->
                             <div class="tab-pane fade show active" id="cpanel" role="tabpanel">
                                 <h6 class="mb-3">Setup di cPanel</h6>
-                                
+
                                 <div class="alert alert-primary shadow-none border mb-3">
                                     <strong>🔍 Langkah 1: Cek Path PHP yang Benar</strong><br>
                                     <ol class="mb-0 mt-2">
                                         <li>Login ke cPanel → <strong>Terminal</strong> (jika tersedia)</li>
                                         <li>Atau login via SSH ke server</li>
                                         <li>Jalankan command: <code class="text-dark">which php</code></li>
-                                        <li>Akan muncul path seperti: <code class="text-dark">/usr/local/bin/php</code> atau <code class="text-dark">/usr/bin/php</code></li>
+                                        <li>Akan muncul path seperti: <code class="text-dark">/usr/local/bin/php</code>
+                                            atau <code class="text-dark">/usr/bin/php</code></li>
                                         <li>Gunakan path tersebut untuk command cron</li>
                                     </ol>
                                 </div>
@@ -217,14 +220,16 @@
                                     <li>Cari menu <strong>"Cron Jobs"</strong> di bagian Advanced</li>
                                     <li>Pilih interval <strong>"Common Settings: Once Per Minute (* * * * *)"</strong></li>
                                     <li>Di field "Command", masukkan:<br>
-                                        <code class="d-block my-2 p-2 bg-light rounded">/usr/local/bin/php {{ base_path() }}/artisan schedule:run >> /dev/null 2>&1</code>
-                                        <small class="text-muted">⚠️ Ganti <code>/usr/local/bin/php</code> dengan hasil dari <code>which php</code></small>
+                                        <code class="d-block my-2 p-2 bg-light rounded">/usr/local/bin/php
+                                            {{ base_path() }}/artisan schedule:run >> /dev/null 2>&1</code>
+                                        <small class="text-muted">⚠️ Ganti <code>/usr/local/bin/php</code> dengan hasil
+                                            dari <code>which php</code></small>
                                     </li>
                                     <li>Klik <strong>"Add New Cron Job"</strong></li>
                                     <li>Cron Job akan otomatis berjalan setiap menit</li>
                                     <li>Kembali ke halaman ini dan klik "Check Status" untuk verifikasi</li>
                                 </ol>
-                                
+
                                 <div class="alert alert-warning shadow-none border mt-3">
                                     <strong>⚠️ Catatan Penting:</strong><br>
                                     • Jangan gunakan <code>php-fpm</code>, harus <code>php</code> biasa<br>
