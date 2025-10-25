@@ -35,21 +35,42 @@ class AdminProfileController extends Controller
     {
         // Security: Ensure only admin can access
         if (!Auth::check() || Auth::user()->role !== 'admin') {
-            abort(403, 'Unauthorized action.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.'
+            ], 403);
         }
 
         $user = Auth::user();
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            ]);
 
-        $user->update($validated);
+            $user->update($validated);
 
-        return redirect()
-            ->route('admin.profile.index')
-            ->with('success', 'Profil berhasil diperbarui');
+            return response()->json([
+                'success' => true,
+                'message' => 'Profil berhasil diperbarui',
+                'data' => [
+                    'name' => $user->name,
+                    'email' => $user->email
+                ]
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -59,44 +80,64 @@ class AdminProfileController extends Controller
     {
         // Security: Ensure only admin can access
         if (!Auth::check() || Auth::user()->role !== 'admin') {
-            abort(403, 'Unauthorized action.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.'
+            ], 403);
         }
 
         $user = Auth::user();
 
-        $request->validate([
-            'profile_photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:10240', // Max 10MB
-        ]);
+        try {
+            $request->validate([
+                'profile_photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:10240', // Max 10MB
+            ]);
 
-        // Delete old photo if exists
-        if ($user->profile_photo && Storage::disk('public')->exists($user->profile_photo)) {
-            Storage::disk('public')->delete($user->profile_photo);
+            // Delete old photo if exists
+            if ($user->profile_photo && Storage::disk('public')->exists($user->profile_photo)) {
+                Storage::disk('public')->delete($user->profile_photo);
+            }
+
+            // Process and store new photo
+            $file = $request->file('profile_photo');
+            $filename = 'admin_profile_' . $user->id . '_' . time() . '.webp';
+
+            // Create image manager instance
+            $manager = new ImageManager(new Driver());
+
+            // Read and process image
+            $image = $manager->read($file);
+
+            // Resize to max 500x500 (maintain aspect ratio)
+            $image->scale(width: 500, height: 500);
+
+            // Convert to WebP with 85% quality and save
+            $path = 'profile_photos/' . $filename;
+            $webpImage = $image->toWebp(quality: 85);
+
+            Storage::disk('public')->put($path, (string) $webpImage);
+
+            $user->update(['profile_photo' => $path]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Foto profil berhasil diperbarui',
+                'data' => [
+                    'profile_photo' => asset('storage/' . $path)
+                ]
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
         }
-
-        // Process and store new photo
-        $file = $request->file('profile_photo');
-        $filename = 'admin_profile_' . $user->id . '_' . time() . '.webp';
-
-        // Create image manager instance
-        $manager = new ImageManager(new Driver());
-
-        // Read and process image
-        $image = $manager->read($file);
-
-        // Resize to max 500x500 (maintain aspect ratio)
-        $image->scale(width: 500, height: 500);
-
-        // Convert to WebP with 85% quality and save
-        $path = 'profile_photos/' . $filename;
-        $webpImage = $image->toWebp(quality: 85);
-
-        Storage::disk('public')->put($path, (string) $webpImage);
-
-        $user->update(['profile_photo' => $path]);
-
-        return redirect()
-            ->route('admin.profile.index')
-            ->with('success', 'Foto profil berhasil diperbarui');
     }
 
     /**
@@ -106,30 +147,51 @@ class AdminProfileController extends Controller
     {
         // Security: Ensure only admin can access
         if (!Auth::check() || Auth::user()->role !== 'admin') {
-            abort(403, 'Unauthorized action.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.'
+            ], 403);
         }
 
         $user = Auth::user();
 
-        $request->validate([
-            'current_password' => 'required',
-            'password' => ['required', 'confirmed', Password::min(8)],
-        ]);
+        try {
+            $request->validate([
+                'current_password' => 'required',
+                'password' => ['required', 'confirmed', Password::min(8)],
+            ]);
 
-        // Check current password
-        if (!Hash::check($request->current_password, $user->password)) {
-            return back()
-                ->withErrors(['current_password' => 'Password lama tidak sesuai'])
-                ->with('error', 'Password lama tidak sesuai');
+            // Check current password
+            if (!Hash::check($request->current_password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Password lama tidak sesuai',
+                    'errors' => [
+                        'current_password' => ['Password lama tidak sesuai']
+                    ]
+                ], 422);
+            }
+
+            // Update password
+            $user->update([
+                'password' => Hash::make($request->password)
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Password berhasil diubah!'
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
         }
-
-        // Update password
-        $user->update([
-            'password' => Hash::make($request->password)
-        ]);
-
-        return redirect()
-            ->route('admin.profile.index')
-            ->with('success', 'Password berhasil diubah! Silakan login kembali dengan password baru.');
     }
 }

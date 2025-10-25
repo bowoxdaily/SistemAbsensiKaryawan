@@ -112,11 +112,28 @@ class CronJobController extends Controller
     public function checkStatus()
     {
         try {
+            // Use both cache and file-based tracking for better reliability
             $lastRun = Cache::get('cron_last_run');
+
+            // Also check sentinel file (created by scheduler)
+            $sentinelFile = storage_path('framework/schedule-sentinel');
+            $fileLastRun = null;
+
+            if (file_exists($sentinelFile)) {
+                $fileLastRun = Carbon::createFromTimestamp(filemtime($sentinelFile));
+
+                // Use the most recent time between cache and file
+                if (!$lastRun || ($fileLastRun && $fileLastRun->gt(Carbon::parse($lastRun)))) {
+                    $lastRun = $fileLastRun->toDateTimeString();
+                    // Update cache with file time
+                    Cache::put('cron_last_run', $lastRun, now()->addDays(7));
+                }
+            }
 
             // Check if cron is running (last run within 2 minutes)
             $isRunning = false;
             $message = 'Cron belum pernah dijalankan atau tidak aktif';
+            $diffInMinutes = null;
 
             if ($lastRun) {
                 $lastRunTime = Carbon::parse($lastRun);
@@ -125,8 +142,12 @@ class CronJobController extends Controller
                 if ($diffInMinutes <= 2) {
                     $isRunning = true;
                     $message = 'Cron sedang aktif dan berjalan normal';
+                } else if ($diffInMinutes <= 5) {
+                    $isRunning = false;
+                    $message = 'Cron mungkin bermasalah. Last run: ' . $lastRunTime->diffForHumans(null, true) . ' ago';
                 } else {
-                    $message = 'Cron tidak aktif. Last run: ' . $lastRunTime->diffForHumans();
+                    $isRunning = false;
+                    $message = 'Cron tidak aktif. Last run: ' . $lastRunTime->diffForHumans(null, true) . ' ago';
                 }
             }
 
@@ -140,9 +161,12 @@ class CronJobController extends Controller
                 'success' => true,
                 'is_running' => $isRunning,
                 'last_run' => $lastRun ? Carbon::parse($lastRun)->format('Y-m-d H:i:s') : null,
-                'last_run_human' => $lastRun ? Carbon::parse($lastRun)->diffForHumans() : null,
+                'last_run_human' => $lastRun ? Carbon::parse($lastRun)->diffForHumans(null, true) . ' ago' : null,
                 'next_run' => $nextRun,
-                'message' => $message
+                'minutes_ago' => $diffInMinutes,
+                'message' => $message,
+                'sentinel_exists' => file_exists($sentinelFile),
+                'cache_exists' => Cache::has('cron_last_run')
             ]);
         } catch (\Exception $e) {
             return response()->json([

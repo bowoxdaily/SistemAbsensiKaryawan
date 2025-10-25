@@ -64,17 +64,34 @@
 
                         <!-- Cron Command -->
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Command untuk Server (Linux/Unix)</label>
+                            <label class="form-label fw-bold">Command untuk cPanel/Shared Hosting</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control font-monospace" id="cronCommandCPanel"
+                                    value="* * * * * /usr/local/bin/php {{ base_path() }}/artisan schedule:run >> /dev/null 2>&1"
+                                    readonly>
+                                <button class="btn btn-outline-primary" type="button"
+                                    onclick="copyToClipboard('cronCommandCPanel')">
+                                    <i class='bx bx-copy'></i> Copy
+                                </button>
+                            </div>
+                            <small class="text-muted">
+                                <i class='bx bx-info-circle'></i> 
+                                Gunakan <code>/usr/local/bin/php</code> atau jalankan <code>which php</code> via SSH untuk cek path PHP yang benar
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Command untuk VPS/Dedicated Server</label>
                             <div class="input-group">
                                 <input type="text" class="form-control font-monospace" id="cronCommandLinux"
-                                    value="* * * * * cd {{ base_path() }} && {{ PHP_BINARY }} artisan schedule:run >> /dev/null 2>&1"
+                                    value="* * * * * cd {{ base_path() }} && php artisan schedule:run >> /dev/null 2>&1"
                                     readonly>
                                 <button class="btn btn-outline-primary" type="button"
                                     onclick="copyToClipboard('cronCommandLinux')">
                                     <i class='bx bx-copy'></i> Copy
                                 </button>
                             </div>
-                            <small class="text-muted">Untuk server Linux/Unix (cPanel, Plesk, VPS Linux)</small>
+                            <small class="text-muted">Untuk VPS Linux dengan full akses (gunakan <code>php</code> langsung jika sudah di PATH)</small>
                         </div>
 
                         <div class="mb-3">
@@ -182,17 +199,45 @@
                             <!-- cPanel -->
                             <div class="tab-pane fade show active" id="cpanel" role="tabpanel">
                                 <h6 class="mb-3">Setup di cPanel</h6>
-                                <ol>
+                                
+                                <div class="alert alert-primary shadow-none border mb-3">
+                                    <strong>🔍 Langkah 1: Cek Path PHP yang Benar</strong><br>
+                                    <ol class="mb-0 mt-2">
+                                        <li>Login ke cPanel → <strong>Terminal</strong> (jika tersedia)</li>
+                                        <li>Atau login via SSH ke server</li>
+                                        <li>Jalankan command: <code class="text-dark">which php</code></li>
+                                        <li>Akan muncul path seperti: <code class="text-dark">/usr/local/bin/php</code> atau <code class="text-dark">/usr/bin/php</code></li>
+                                        <li>Gunakan path tersebut untuk command cron</li>
+                                    </ol>
+                                </div>
+
+                                <strong>📝 Langkah 2: Setup Cron Job</strong>
+                                <ol class="mt-2">
                                     <li>Login ke cPanel hosting Anda</li>
                                     <li>Cari menu <strong>"Cron Jobs"</strong> di bagian Advanced</li>
-                                    <li>Pilih interval <strong>"Common Settings: Once Per Minute (****)"</strong></li>
-                                    <li>Copy paste command Linux di atas ke field "Command"</li>
+                                    <li>Pilih interval <strong>"Common Settings: Once Per Minute (* * * * *)"</strong></li>
+                                    <li>Di field "Command", masukkan:<br>
+                                        <code class="d-block my-2 p-2 bg-light rounded">/usr/local/bin/php {{ base_path() }}/artisan schedule:run >> /dev/null 2>&1</code>
+                                        <small class="text-muted">⚠️ Ganti <code>/usr/local/bin/php</code> dengan hasil dari <code>which php</code></small>
+                                    </li>
                                     <li>Klik <strong>"Add New Cron Job"</strong></li>
                                     <li>Cron Job akan otomatis berjalan setiap menit</li>
+                                    <li>Kembali ke halaman ini dan klik "Check Status" untuk verifikasi</li>
                                 </ol>
-                                <div class="alert alert-warning shadow-none border">
-                                    <strong>Catatan:</strong> Pastikan path PHP sudah benar. Jika error, hubungi hosting
-                                    provider untuk path PHP yang tepat.
+                                
+                                <div class="alert alert-warning shadow-none border mt-3">
+                                    <strong>⚠️ Catatan Penting:</strong><br>
+                                    • Jangan gunakan <code>php-fpm</code>, harus <code>php</code> biasa<br>
+                                    • Path PHP berbeda-beda tergantung hosting provider<br>
+                                    • Jika error, tanyakan path PHP yang benar ke support hosting<br>
+                                    • Status akan update otomatis dalam 1-2 menit setelah setup
+                                </div>
+                                <div class="alert alert-info shadow-none border">
+                                    <strong>💡 Tips cPanel:</strong><br>
+                                    • Cek email untuk notifikasi error dari cron<br>
+                                    • Tambahkan <code>>/dev/null 2>&1</code> di akhir command untuk disable email<br>
+                                    • Gunakan <code>> /home/username/cron.log 2>&1</code> untuk save log<br>
+                                    • Contoh provider: cPanel biasa pakai <code>/usr/local/bin/php</code>
                                 </div>
                             </div>
 
@@ -244,9 +289,24 @@
                                     <li>Finish & Test</li>
                                 </ol>
                                 <div class="alert alert-warning shadow-none border">
-                                    <strong>Alternatif untuk Development:</strong><br>
-                                    Jalankan command: <code>php artisan schedule:work</code> di terminal (untuk testing
-                                    saja)
+                                    <strong>Alternatif untuk Development (Lebih Mudah):</strong><br>
+                                    <ol class="mb-0 mt-2">
+                                        <li>Buka PowerShell atau CMD</li>
+                                        <li>Masuk ke folder project: <code>cd {{ base_path() }}</code></li>
+                                        <li>Jalankan: <code class="text-primary">php artisan schedule:work</code></li>
+                                        <li>Biarkan terminal tetap terbuka (Tekan Ctrl+C untuk stop)</li>
+                                    </ol>
+                                </div>
+                                <div class="alert alert-info shadow-none border mb-0">
+                                    <strong><i class='bx bx-info-circle'></i> Info Penting:</strong><br>
+                                    • Command <code>schedule:work</code> akan otomatis menjalankan scheduler setiap
+                                    menit<br>
+                                    • Cocok untuk development/testing lokal<br>
+                                    • Untuk production, gunakan Task Scheduler Windows<br>
+                                    • Command <code>attendance:generate-absent</code> hanya jalan:<br>
+                                    &nbsp;&nbsp;- Senin-Jumat (weekdays)<br>
+                                    &nbsp;&nbsp;- Jam 08:00 - 23:59 WIB<br>
+                                    &nbsp;&nbsp;- Setiap jam (hourly)
                                 </div>
                             </div>
                         </div>
@@ -284,6 +344,12 @@
                                 <span class="badge bg-label-warning">Belum Diketahui</span>
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class='bx bx-info-circle'></i> Status:
+                                <span id="trackingInfo">Checking...</span>
+                            </small>
+                        </div>
                         <button class="btn btn-primary w-100" onclick="checkCronStatus()">
                             <i class='bx bx-refresh me-1'></i>Check Status
                         </button>
@@ -302,9 +368,18 @@
                         <button class="btn btn-outline-success w-100 mb-2" onclick="runScheduler()">
                             <i class='bx bx-play-circle me-1'></i>Run Scheduler Now
                         </button>
-                        <button class="btn btn-outline-info w-100" onclick="viewScheduleList()">
+                        <button class="btn btn-outline-info w-100 mb-2" onclick="viewScheduleList()">
                             <i class='bx bx-list-ul me-1'></i>View Schedule List
                         </button>
+                        <button class="btn btn-outline-warning w-100" onclick="runAbsentCommand()">
+                            <i class='bx bx-user-x me-1'></i>Generate Absent Now
+                        </button>
+                        <hr>
+                        <div class="alert alert-primary shadow-none border p-2 mb-0 small">
+                            <strong>Development Mode:</strong><br>
+                            Gunakan terminal command:<br>
+                            <code class="d-block my-1 text-dark">php artisan schedule:work</code>
+                        </div>
                     </div>
                 </div>
 
@@ -468,6 +543,64 @@
                 });
             }
 
+            function runAbsentCommand() {
+                Swal.fire({
+                    title: 'Generate Absent Attendance',
+                    text: 'Menjalankan command generate absent untuk hari ini?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Jalankan',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#696cff',
+                    cancelButtonColor: '#8592a3'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Menjalankan command...',
+                            html: 'Mengecek karyawan yang belum absen...<br><small class="text-muted">Mohon tunggu</small>',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        $.ajax({
+                            url: '/api/settings/cronjob/test',
+                            method: 'POST',
+                            data: {
+                                _token: '{{ csrf_token() }}',
+                                command: 'attendance:generate-absent'
+                            },
+                            headers: {
+                                'Accept': 'application/json'
+                            },
+                            success: function(response) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    html: '<div class="text-start">' +
+                                        '<p class="mb-2">' + response.message + '</p>' +
+                                        '<hr>' +
+                                        '<small><strong>Output:</strong></small>' +
+                                        '<pre class="text-start small bg-light p-2 rounded" style="max-height: 300px; overflow-y: auto;">' +
+                                        response.output + '</pre>' +
+                                        '</div>',
+                                    width: 600
+                                });
+                                checkCronStatus();
+                            },
+                            error: function(xhr) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: xhr.responseJSON?.message || 'Gagal menjalankan command'
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
             function viewScheduleList() {
                 $.ajax({
                     url: '/api/settings/cronjob/list',
@@ -493,21 +626,44 @@
                         'Accept': 'application/json'
                     },
                     success: function(response) {
+                        console.log('Cron Status:', response);
+
                         $('#lastRun').text(response.last_run_human || 'Belum pernah');
                         $('#nextRun').text(response.next_run || '-');
 
+                        // Show tracking info
+                        let trackingInfo = [];
+                        if (response.sentinel_exists) {
+                            trackingInfo.push('File tracking: ✓');
+                        }
+                        if (response.cache_exists) {
+                            trackingInfo.push('Cache tracking: ✓');
+                        }
+                        $('#trackingInfo').text(trackingInfo.join(' | ') || 'No tracking data');
+
                         let statusBadge = '';
                         if (response.is_running) {
-                            statusBadge = '<span class="badge bg-success">Active</span>';
-                            toastr.success(response.message, 'Cron Active');
+                            statusBadge =
+                                '<span class="badge bg-success"><i class="bx bx-check-circle"></i> Active</span>';
+                            toastr.success(response.message, 'Cron Active', {
+                                timeOut: 2000
+                            });
                         } else {
-                            statusBadge = '<span class="badge bg-danger">Inactive</span>';
-                            toastr.warning(response.message, 'Cron Inactive');
+                            if (response.minutes_ago && response.minutes_ago <= 5) {
+                                statusBadge =
+                                    '<span class="badge bg-warning"><i class="bx bx-error"></i> Warning</span>';
+                                toastr.warning(response.message, 'Cron Warning');
+                            } else {
+                                statusBadge =
+                                    '<span class="badge bg-danger"><i class="bx bx-x-circle"></i> Inactive</span>';
+                                toastr.error(response.message, 'Cron Inactive');
+                            }
                         }
                         $('#cronStatus').html(statusBadge);
                     },
                     error: function(xhr) {
                         $('#cronStatus').html('<span class="badge bg-secondary">Unknown</span>');
+                        $('#trackingInfo').text('Error checking status');
                         toastr.error('Gagal mengecek status cron', 'Error!');
                     }
                 });
@@ -516,6 +672,9 @@
             // Auto check status on load
             $(document).ready(function() {
                 checkCronStatus();
+
+                // Auto refresh every 30 seconds
+                setInterval(checkCronStatus, 30000);
             });
         </script>
     @endpush

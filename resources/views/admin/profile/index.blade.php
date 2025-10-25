@@ -248,7 +248,7 @@
                 submitBtn.prop('disabled', true).html('<i class="bx bx-loader bx-spin"></i> Menyimpan...');
 
                 $.ajax({
-                    url: '/api/admin/profile',
+                    url: '/api/admin/profile/',
                     type: 'PUT',
                     data: $(this).serialize(),
                     headers: {
@@ -256,9 +256,14 @@
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(response) {
+                        console.log('Update profile response:', response);
+                        submitBtn.prop('disabled', false).html(originalText);
+
                         if (response.success) {
                             toastr.success(response.message || 'Profil berhasil diperbarui');
                             setTimeout(() => location.reload(), 1500);
+                        } else {
+                            toastr.error(response.message || 'Terjadi kesalahan');
                         }
                     },
                     error: function(xhr) {
@@ -294,10 +299,19 @@
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(response) {
+                        console.log('Update password response:', response);
+                        submitBtn.prop('disabled', false).html(originalText);
+
                         if (response.success) {
-                            toastr.success(response.message || 'Password berhasil diubah');
+                            toastr.success(response.message || 'Password berhasil diubah', 'Berhasil!', {
+                                timeOut: 3000,
+                                closeButton: true,
+                                progressBar: true
+                            });
                             $('#formUpdatePassword')[0].reset();
-                            setTimeout(() => location.reload(), 1500);
+                            setTimeout(() => location.reload(), 2000);
+                        } else {
+                            toastr.error(response.message || 'Terjadi kesalahan');
                         }
                     },
                     error: function(xhr) {
@@ -336,11 +350,22 @@
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(response) {
+                        console.log('Update photo response:', response);
+                        submitBtn.prop('disabled', false).html(originalText);
+
                         if (response.success) {
-                            toastr.success(response.message || 'Foto profil berhasil diperbarui');
-                            $('#modalUploadPhoto').modal('hide');
+                            toastr.success(response.message || 'Foto profil berhasil diperbarui',
+                                'Berhasil!', {
+                                    timeOut: 3000,
+                                    closeButton: true,
+                                    progressBar: true
+                                });
+                            $('#uploadPhotoModal').modal('hide');
                             $('#formUpdatePhoto')[0].reset();
-                            setTimeout(() => location.reload(), 1500);
+                            $('#preview').hide();
+                            setTimeout(() => location.reload(), 2000);
+                        } else {
+                            toastr.error(response.message || 'Terjadi kesalahan');
                         }
                     },
                     error: function(xhr) {
