@@ -63,12 +63,25 @@ class LeaveController extends Controller
     {
         // Security check
         if (!Auth::check() || Auth::user()->role !== 'admin') {
-            abort(403, 'Unauthorized action.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.'
+            ], 403);
         }
 
-        $leave = Leave::with(['employee.department', 'employee.position'])->findOrFail($id);
+        try {
+            $leave = Leave::with(['employee.department', 'employee.position'])->findOrFail($id);
 
-        return view('admin.leave.show', compact('leave'));
+            return response()->json([
+                'success' => true,
+                'data' => $leave
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data cuti tidak ditemukan'
+            ], 404);
+        }
     }
 
     /**
@@ -78,35 +91,50 @@ class LeaveController extends Controller
     {
         // Security check
         if (!Auth::check() || Auth::user()->role !== 'admin') {
-            abort(403, 'Unauthorized action.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.'
+            ], 403);
         }
 
-        $leave = Leave::findOrFail($id);
-
-        if ($leave->status !== 'pending') {
-            return back()->with('error', 'Hanya pengajuan dengan status pending yang dapat disetujui');
-        }
-
-        $leave->update([
-            'status' => 'approved',
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
-        ]);
-
-        // Load relations for WhatsApp notification
-        $leave->load(['employee', 'approver']);
-
-        // Send WhatsApp notification to employee
         try {
-            $whatsappService = new WhatsAppService();
-            $whatsappService->sendLeaveApprovedNotification($leave);
-        } catch (\Exception $e) {
-            Log::warning('Failed to send WhatsApp leave approved notification: ' . $e->getMessage());
-        }
+            $leave = Leave::findOrFail($id);
 
-        return redirect()
-            ->route('admin.leave.index')
-            ->with('success', 'Pengajuan cuti berhasil disetujui');
+            if ($leave->status !== 'pending') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Hanya pengajuan dengan status pending yang dapat disetujui'
+                ], 422);
+            }
+
+            $leave->update([
+                'status' => 'approved',
+                'approved_by' => Auth::id(),
+                'approved_at' => now(),
+            ]);
+
+            // Load relations for WhatsApp notification
+            $leave->load(['employee', 'approver']);
+
+            // Send WhatsApp notification to employee
+            try {
+                $whatsappService = new WhatsAppService();
+                $whatsappService->sendLeaveApprovedNotification($leave);
+            } catch (\Exception $e) {
+                Log::warning('Failed to send WhatsApp leave approved notification: ' . $e->getMessage());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pengajuan cuti berhasil disetujui'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error approving leave: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menyetujui cuti'
+            ], 500);
+        }
     }
 
     /**
@@ -116,40 +144,61 @@ class LeaveController extends Controller
     {
         // Security check
         if (!Auth::check() || Auth::user()->role !== 'admin') {
-            abort(403, 'Unauthorized action.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.'
+            ], 403);
         }
 
-        $validated = $request->validate([
-            'rejection_reason' => 'required|string|max:500',
-        ]);
-
-        $leave = Leave::findOrFail($id);
-
-        if ($leave->status !== 'pending') {
-            return back()->with('error', 'Hanya pengajuan dengan status pending yang dapat ditolak');
-        }
-
-        $leave->update([
-            'status' => 'rejected',
-            'approved_by' => Auth::id(),
-            'approved_at' => now(),
-            'rejection_reason' => $validated['rejection_reason'],
-        ]);
-
-        // Load relations for WhatsApp notification
-        $leave->load(['employee', 'approver']);
-
-        // Send WhatsApp notification to employee
         try {
-            $whatsappService = new WhatsAppService();
-            $whatsappService->sendLeaveRejectedNotification($leave);
-        } catch (\Exception $e) {
-            Log::warning('Failed to send WhatsApp leave rejected notification: ' . $e->getMessage());
-        }
+            $validated = $request->validate([
+                'rejection_reason' => 'required|string|max:500',
+            ]);
 
-        return redirect()
-            ->route('admin.leave.index')
-            ->with('success', 'Pengajuan cuti berhasil ditolak');
+            $leave = Leave::findOrFail($id);
+
+            if ($leave->status !== 'pending') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Hanya pengajuan dengan status pending yang dapat ditolak'
+                ], 422);
+            }
+
+            $leave->update([
+                'status' => 'rejected',
+                'approved_by' => Auth::id(),
+                'approved_at' => now(),
+                'rejection_reason' => $validated['rejection_reason'],
+            ]);
+
+            // Load relations for WhatsApp notification
+            $leave->load(['employee', 'approver']);
+
+            // Send WhatsApp notification to employee
+            try {
+                $whatsappService = new WhatsAppService();
+                $whatsappService->sendLeaveRejectedNotification($leave);
+            } catch (\Exception $e) {
+                Log::warning('Failed to send WhatsApp leave rejected notification: ' . $e->getMessage());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pengajuan cuti berhasil ditolak'
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Error rejecting leave: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menolak cuti'
+            ], 500);
+        }
     }
 
     /**
@@ -159,20 +208,32 @@ class LeaveController extends Controller
     {
         // Security check
         if (!Auth::check() || Auth::user()->role !== 'admin') {
-            abort(403, 'Unauthorized action.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.'
+            ], 403);
         }
 
-        $leave = Leave::findOrFail($id);
+        try {
+            $leave = Leave::findOrFail($id);
 
-        // Delete attachment if exists
-        if ($leave->attachment && Storage::disk('public')->exists($leave->attachment)) {
-            Storage::disk('public')->delete($leave->attachment);
+            // Delete attachment if exists
+            if ($leave->attachment && Storage::disk('public')->exists($leave->attachment)) {
+                Storage::disk('public')->delete($leave->attachment);
+            }
+
+            $leave->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data cuti berhasil dihapus'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error deleting leave: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menghapus cuti'
+            ], 500);
         }
-
-        $leave->delete();
-
-        return redirect()
-            ->route('admin.leave.index')
-            ->with('success', 'Data cuti berhasil dihapus');
     }
 }

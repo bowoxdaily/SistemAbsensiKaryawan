@@ -214,9 +214,9 @@
                                             <i class="bx bx-dots-vertical-rounded"></i>
                                         </button>
                                         <div class="dropdown-menu">
-                                            <a class="dropdown-item" href="{{ route('admin.leave.show', $leave->id) }}">
+                                            <button class="dropdown-item view-leave" data-id="{{ $leave->id }}">
                                                 <i class="bx bx-show me-1"></i> Lihat Detail
-                                            </a>
+                                            </button>
                                             @if ($leave->status == 'pending')
                                                 <button class="dropdown-item approve-leave"
                                                     data-id="{{ $leave->id }}">
@@ -294,9 +294,9 @@
                         </small>
 
                         <div class="d-flex gap-2">
-                            <a href="{{ route('admin.leave.show', $leave->id) }}" class="btn btn-sm btn-outline-primary">
+                            <button class="btn btn-sm btn-outline-primary view-leave" data-id="{{ $leave->id }}">
                                 <i class='bx bx-show'></i> Detail
-                            </a>
+                            </button>
                             @if ($leave->status == 'pending')
                                 <button class="btn btn-sm btn-success approve-leave" data-id="{{ $leave->id }}">
                                     <i class='bx bx-check'></i> Setujui
@@ -328,11 +328,337 @@
             @endif
         </div>
     </div>
+
+    <!-- Modal Detail Leave -->
+    <div class="modal fade" id="detailLeaveModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detail Pengajuan Cuti</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="detailLeaveContent">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" id="detailLeaveFooter">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
     <script>
         $(document).ready(function() {
+            // View Leave Detail
+            $(document).on('click', '.view-leave', function() {
+                const leaveId = $(this).data('id');
+                const modal = new bootstrap.Modal(document.getElementById('detailLeaveModal'));
+
+                modal.show();
+
+                // Reset content
+                $('#detailLeaveContent').html(`
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+
+                $.ajax({
+                    url: `/api/leave/${leaveId}`,
+                    type: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            const leave = response.data;
+                            const statusBadge = leave.status === 'pending' ?
+                                '<span class="badge bg-label-warning"><i class="bx bx-time-five"></i> Pending</span>' :
+                                leave.status === 'approved' ?
+                                '<span class="badge bg-label-success"><i class="bx bx-check-circle"></i> Disetujui</span>' :
+                                '<span class="badge bg-label-danger"><i class="bx bx-x-circle"></i> Ditolak</span>';
+
+                            const typeBadge = leave.leave_type === 'cuti' ?
+                                '<span class="badge bg-label-primary"><i class="bx bx-calendar"></i> Cuti</span>' :
+                                leave.leave_type === 'izin' ?
+                                '<span class="badge bg-label-info"><i class="bx bx-time-five"></i> Izin</span>' :
+                                '<span class="badge bg-label-warning"><i class="bx bx-first-aid"></i> Sakit</span>';
+
+                            let content = `
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <h6 class="mb-2">Informasi Karyawan</h6>
+                                        <table class="table table-sm table-borderless">
+                                            <tr>
+                                                <td width="120"><strong>Nama</strong></td>
+                                                <td>: ${leave.employee.name}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>NIP</strong></td>
+                                                <td>: ${leave.employee.nip || '-'}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Departemen</strong></td>
+                                                <td>: ${leave.employee.department?.name || '-'}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Posisi</strong></td>
+                                                <td>: ${leave.employee.position?.name || '-'}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="mb-2">Informasi Cuti</h6>
+                                        <table class="table table-sm table-borderless">
+                                            <tr>
+                                                <td width="120"><strong>Jenis</strong></td>
+                                                <td>: ${typeBadge}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Status</strong></td>
+                                                <td>: ${statusBadge}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Tanggal Mulai</strong></td>
+                                                <td>: ${new Date(leave.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Tanggal Selesai</strong></td>
+                                                <td>: ${new Date(leave.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Durasi</strong></td>
+                                                <td>: <strong>${leave.total_days} hari</strong></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="mb-3">
+                                    <h6 class="mb-2">Alasan</h6>
+                                    <p class="text-muted">${leave.reason || '-'}</p>
+                                </div>
+                            `;
+
+                            if (leave.status === 'rejected' && leave.rejection_reason) {
+                                content += `
+                                    <hr>
+                                    <div class="alert alert-danger">
+                                        <h6 class="alert-heading mb-2">Alasan Penolakan</h6>
+                                        <p class="mb-0">${leave.rejection_reason}</p>
+                                    </div>
+                                `;
+                            }
+
+                            if (leave.attachment) {
+                                content += `
+                                    <hr>
+                                    <div class="mb-3">
+                                        <h6 class="mb-2">Lampiran</h6>
+                                        <a href="/storage/${leave.attachment}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="bx bx-file"></i> Lihat Lampiran
+                                        </a>
+                                    </div>
+                                `;
+                            }
+
+                            content += `
+                                <hr>
+                                <small class="text-muted">
+                                    <i class="bx bx-calendar"></i> Diajukan pada: ${new Date(leave.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                </small>
+                            `;
+
+                            $('#detailLeaveContent').html(content);
+
+                            // Update footer buttons based on status
+                            let footerButtons =
+                                '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>';
+
+                            if (leave.status === 'pending') {
+                                footerButtons = `
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                                    <button type="button" class="btn btn-danger reject-leave-modal"
+                                        data-id="${leave.id}"
+                                        data-employee="${leave.employee.name}"
+                                        data-type="${leave.leave_type.charAt(0).toUpperCase() + leave.leave_type.slice(1)}"
+                                        data-dates="${new Date(leave.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} - ${new Date(leave.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}">
+                                        <i class="bx bx-x"></i> Tolak
+                                    </button>
+                                    <button type="button" class="btn btn-success approve-leave-modal" data-id="${leave.id}">
+                                        <i class="bx bx-check"></i> Setujui
+                                    </button>
+                                `;
+                            }
+
+                            $('#detailLeaveFooter').html(footerButtons);
+                        }
+                    },
+                    error: function(xhr) {
+                        $('#detailLeaveContent').html(`
+                            <div class="alert alert-danger">
+                                <i class="bx bx-error-circle"></i>
+                                ${xhr.responseJSON?.message || 'Gagal memuat detail cuti'}
+                            </div>
+                        `);
+                    }
+                });
+            });
+
+            // Approve Leave from Modal
+            $(document).on('click', '.approve-leave-modal', function() {
+                const leaveId = $(this).data('id');
+                const button = $(this);
+
+                Swal.fire({
+                    title: 'Setujui Pengajuan Cuti?',
+                    text: "Cuti akan disetujui dan karyawan akan menerima notifikasi",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Setujui',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        button.prop('disabled', true);
+
+                        $.ajax({
+                            url: `/api/leave/${leaveId}/approve`,
+                            type: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    $('#detailLeaveModal').modal('hide');
+
+                                    // Close SweetAlert first, then show toastr
+                                    Swal.close();
+
+                                    setTimeout(() => {
+                                        toastr.success(response.message ||
+                                            'Pengajuan cuti berhasil disetujui'
+                                            );
+                                    }, 100);
+
+                                    setTimeout(() => location.reload(), 1500);
+                                }
+                            },
+                            error: function(xhr) {
+                                button.prop('disabled', false);
+                                Swal.close();
+
+                                setTimeout(() => {
+                                    toastr.error(xhr.responseJSON?.message ||
+                                        'Terjadi kesalahan saat menyetujui cuti'
+                                        );
+                                }, 100);
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Reject Leave from Modal
+            $(document).on('click', '.reject-leave-modal', function() {
+                const leaveId = $(this).data('id');
+                const employee = $(this).data('employee');
+                const type = $(this).data('type');
+                const dates = $(this).data('dates');
+                const button = $(this);
+
+                Swal.fire({
+                    title: 'Tolak Pengajuan Cuti?',
+                    html: `
+                        <div style="text-align: left;">
+                            <p><strong>Karyawan:</strong> ${employee}</p>
+                            <p><strong>Jenis:</strong> ${type}</p>
+                            <p><strong>Tanggal:</strong> ${dates}</p>
+                        </div>
+                    `,
+                    input: 'textarea',
+                    inputLabel: 'Alasan Penolakan',
+                    inputPlaceholder: 'Jelaskan alasan penolakan...',
+                    inputAttributes: {
+                        'aria-label': 'Alasan penolakan',
+                        'rows': 3
+                    },
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Tolak',
+                    cancelButtonText: 'Batal',
+                    preConfirm: (reason) => {
+                        if (!reason) {
+                            Swal.showValidationMessage('Alasan penolakan harus diisi');
+                        }
+                        return reason;
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        button.prop('disabled', true);
+
+                        $.ajax({
+                            url: `/api/leave/${leaveId}/reject`,
+                            type: 'POST',
+                            data: {
+                                rejection_reason: result.value
+                            },
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    $('#detailLeaveModal').modal('hide');
+
+                                    // Close SweetAlert first, then show toastr
+                                    Swal.close();
+
+                                    setTimeout(() => {
+                                        toastr.success(response.message ||
+                                            'Pengajuan cuti berhasil ditolak'
+                                            );
+                                    }, 100);
+
+                                    setTimeout(() => location.reload(), 1500);
+                                }
+                            },
+                            error: function(xhr) {
+                                button.prop('disabled', false);
+                                Swal.close();
+
+                                setTimeout(() => {
+                                    if (xhr.status === 422) {
+                                        const errors = xhr.responseJSON.errors;
+                                        Object.keys(errors).forEach(key => {
+                                            toastr.error(errors[key][
+                                            0]);
+                                        });
+                                    } else {
+                                        toastr.error(xhr.responseJSON
+                                            ?.message ||
+                                            'Terjadi kesalahan saat menolak cuti'
+                                            );
+                                    }
+                                }, 100);
+                            }
+                        });
+                    }
+                });
+            });
+
             // Approve Leave
             $(document).on('click', '.approve-leave', function() {
                 const leaveId = $(this).data('id');
@@ -360,15 +686,27 @@
                             },
                             success: function(response) {
                                 if (response.success) {
-                                    toastr.success(response.message ||
-                                        'Pengajuan cuti berhasil disetujui');
+                                    // Close SweetAlert first, then show toastr
+                                    Swal.close();
+
+                                    setTimeout(() => {
+                                        toastr.success(response.message ||
+                                            'Pengajuan cuti berhasil disetujui'
+                                            );
+                                    }, 100);
+
                                     setTimeout(() => location.reload(), 1500);
                                 }
                             },
                             error: function(xhr) {
                                 button.prop('disabled', false);
-                                toastr.error(xhr.responseJSON?.message ||
-                                    'Terjadi kesalahan saat menyetujui cuti');
+                                Swal.close();
+
+                                setTimeout(() => {
+                                    toastr.error(xhr.responseJSON?.message ||
+                                        'Terjadi kesalahan saat menyetujui cuti'
+                                        );
+                                }, 100);
                             }
                         });
                     }
@@ -427,22 +765,36 @@
                             },
                             success: function(response) {
                                 if (response.success) {
-                                    toastr.success(response.message ||
-                                        'Pengajuan cuti berhasil ditolak');
+                                    // Close SweetAlert first, then show toastr
+                                    Swal.close();
+
+                                    setTimeout(() => {
+                                        toastr.success(response.message ||
+                                            'Pengajuan cuti berhasil ditolak'
+                                            );
+                                    }, 100);
+
                                     setTimeout(() => location.reload(), 1500);
                                 }
                             },
                             error: function(xhr) {
                                 button.prop('disabled', false);
-                                if (xhr.status === 422) {
-                                    const errors = xhr.responseJSON.errors;
-                                    Object.keys(errors).forEach(key => {
-                                        toastr.error(errors[key][0]);
-                                    });
-                                } else {
-                                    toastr.error(xhr.responseJSON?.message ||
-                                        'Terjadi kesalahan saat menolak cuti');
-                                }
+                                Swal.close();
+
+                                setTimeout(() => {
+                                    if (xhr.status === 422) {
+                                        const errors = xhr.responseJSON.errors;
+                                        Object.keys(errors).forEach(key => {
+                                            toastr.error(errors[key][
+                                            0]);
+                                        });
+                                    } else {
+                                        toastr.error(xhr.responseJSON
+                                            ?.message ||
+                                            'Terjadi kesalahan saat menolak cuti'
+                                            );
+                                    }
+                                }, 100);
                             }
                         });
                     }
@@ -476,15 +828,27 @@
                             },
                             success: function(response) {
                                 if (response.success) {
-                                    toastr.success(response.message ||
-                                        'Pengajuan cuti berhasil dihapus');
+                                    // Close SweetAlert first, then show toastr
+                                    Swal.close();
+
+                                    setTimeout(() => {
+                                        toastr.success(response.message ||
+                                            'Pengajuan cuti berhasil dihapus'
+                                            );
+                                    }, 100);
+
                                     setTimeout(() => location.reload(), 1500);
                                 }
                             },
                             error: function(xhr) {
                                 button.prop('disabled', false);
-                                toastr.error(xhr.responseJSON?.message ||
-                                    'Terjadi kesalahan saat menghapus cuti');
+                                Swal.close();
+
+                                setTimeout(() => {
+                                    toastr.error(xhr.responseJSON?.message ||
+                                        'Terjadi kesalahan saat menghapus cuti'
+                                        );
+                                }, 100);
                             }
                         });
                     }

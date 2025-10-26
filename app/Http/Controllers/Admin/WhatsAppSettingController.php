@@ -61,9 +61,11 @@ class WhatsAppSettingController extends Controller
 
         if ($validator->fails()) {
             Log::warning('WhatsApp Settings Validation Failed', $validator->errors()->toArray());
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
         try {
@@ -147,33 +149,21 @@ class WhatsAppSettingController extends Controller
                 'api_key' => $setting->api_key ? '***' . substr($setting->api_key, -4) : 'NULL'
             ]);
 
-            // Return JSON for AJAX requests
-            if ($request->expectsJson() || $request->ajax()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Pengaturan WhatsApp berhasil disimpan',
-                    'data' => $setting
-                ]);
-            }
-
-            return redirect()->back()->with('success', 'Pengaturan WhatsApp berhasil disimpan');
+            return response()->json([
+                'success' => true,
+                'message' => 'Pengaturan WhatsApp berhasil disimpan',
+                'data' => $setting
+            ]);
         } catch (\Exception $e) {
             Log::error('WhatsApp Settings Update Failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 
-            // Return JSON for AJAX requests
-            if (request()->expectsJson() || request()->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Gagal menyimpan pengaturan: ' . $e->getMessage()
-                ], 500);
-            }
-
-            return redirect()->back()
-                ->with('error', 'Gagal menyimpan pengaturan: ' . $e->getMessage())
-                ->withInput();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan pengaturan: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -268,26 +258,16 @@ class WhatsAppSettingController extends Controller
                 ]);
             }
 
-            // Return JSON for AJAX requests
-            if (request()->expectsJson() || request()->ajax()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Template berhasil direset ke default',
-                    'data' => $setting
-                ]);
-            }
-
-            return redirect()->back()->with('success', 'Template berhasil direset ke default');
+            return response()->json([
+                'success' => true,
+                'message' => 'Template berhasil direset ke default',
+                'data' => $setting
+            ]);
         } catch (\Exception $e) {
-            // Return JSON for AJAX requests
-            if (request()->expectsJson() || request()->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Gagal reset template: ' . $e->getMessage()
-                ], 500);
-            }
-
-            return redirect()->back()->with('error', 'Gagal reset template: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal reset template: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

@@ -4,6 +4,40 @@
 
 @section('title', 'Daftar Karyawan')
 
+@section('styles')
+    <style>
+        /* Modal Scroll Optimization */
+        #karyawanModal .modal-body {
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+
+        /* Mobile Modal Adjustments */
+        @media (max-width: 767px) {
+            #karyawanModal .modal-dialog {
+                margin: 0.5rem;
+                max-width: calc(100% - 1rem);
+            }
+
+            #karyawanModal .modal-body {
+                max-height: 65vh !important;
+                padding: 1rem 0.75rem;
+            }
+
+            #karyawanModal .tab-content {
+                margin-top: 0.75rem !important;
+            }
+        }
+
+        /* Desktop Modal */
+        @media (min-width: 768px) {
+            #karyawanModal .modal-body {
+                max-height: 75vh !important;
+            }
+        }
+    </style>
+@endsection
+
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
         <!-- Header -->
@@ -159,40 +193,44 @@
 
     <!-- Modal Form (simplified) -->
     <div class="modal fade" id="karyawanModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <form id="karyawanForm">
                     <div class="modal-header">
                         <h5 class="modal-title" id="modalTitle">Tambah Karyawan</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
                         <input type="hidden" id="karyawanId">
 
-                        <!-- Tab Navigation -->
-                        <ul class="nav nav-tabs" role="tablist">
+                        <!-- Tab Navigation - Mobile Optimized -->
+                        <ul class="nav nav-tabs nav-fill flex-wrap" role="tablist">
                             <li class="nav-item">
                                 <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab"
                                     data-bs-target="#tabPersonal">
-                                    <i class='bx bx-user'></i> Pribadi
+                                    <i class='bx bx-user d-md-inline'></i> <span
+                                        class="d-none d-sm-inline">Pribadi</span><span class="d-sm-none">1</span>
                                 </button>
                             </li>
                             <li class="nav-item">
                                 <button type="button" class="nav-link" role="tab" data-bs-toggle="tab"
                                     data-bs-target="#tabPekerjaan">
-                                    <i class='bx bx-briefcase'></i> Pekerjaan
+                                    <i class='bx bx-briefcase d-md-inline'></i> <span
+                                        class="d-none d-sm-inline">Pekerjaan</span><span class="d-sm-none">2</span>
                                 </button>
                             </li>
                             <li class="nav-item">
                                 <button type="button" class="nav-link" role="tab" data-bs-toggle="tab"
                                     data-bs-target="#tabKontak">
-                                    <i class='bx bx-phone'></i> Kontak
+                                    <i class='bx bx-phone d-md-inline'></i> <span
+                                        class="d-none d-sm-inline">Kontak</span><span class="d-sm-none">3</span>
                                 </button>
                             </li>
                             <li class="nav-item">
                                 <button type="button" class="nav-link" role="tab" data-bs-toggle="tab"
                                     data-bs-target="#tabAdministrasi">
-                                    <i class='bx bx-file'></i> Administrasi
+                                    <i class='bx bx-file d-md-inline'></i> <span
+                                        class="d-none d-sm-inline">Administrasi</span><span class="d-sm-none">4</span>
                                 </button>
                             </li>
                         </ul>
@@ -200,59 +238,63 @@
                         <div class="tab-content mt-3">
                             <!-- Tab Personal -->
                             <div class="tab-pane fade show active" id="tabPersonal" role="tabpanel">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="employee_code" class="form-label">Kode Karyawan <span
+                                <div class="row g-2 g-md-3">
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="employee_code" class="form-label small">Kode Karyawan <span
                                                 class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="employee_code"
+                                        <input type="text" class="form-control form-control-sm" id="employee_code"
                                             name="employee_code">
                                         <div class="invalid-feedback" id="employee_codeError"></div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="nik" class="form-label">NIK / KTP</label>
-                                        <input type="text" class="form-control" id="nik" name="nik"
-                                            maxlength="20">
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="nik" class="form-label small">NIK / KTP</label>
+                                        <input type="text" class="form-control form-control-sm" id="nik"
+                                            name="nik" maxlength="20">
                                         <div class="invalid-feedback" id="nikError"></div>
                                     </div>
                                 </div>
 
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">Nama Lengkap <span
+                                <div class="mb-2">
+                                    <label for="name" class="form-label small">Nama Lengkap <span
                                             class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="name" name="name">
+                                    <input type="text" class="form-control form-control-sm" id="name"
+                                        name="name">
                                     <div class="invalid-feedback" id="nameError"></div>
                                 </div>
 
-                                <div class="row">
-                                    <div class="col-md-4 mb-3">
-                                        <label for="gender" class="form-label">Jenis Kelamin <span
+                                <div class="row g-2 g-md-3">
+                                    <div class="col-sm-4 mb-2">
+                                        <label for="gender" class="form-label small">Jenis Kelamin <span
                                                 class="text-danger">*</span></label>
-                                        <select class="form-select" id="gender" name="gender">
+                                        <select class="form-select form-select-sm" id="gender" name="gender">
                                             <option value="">Pilih...</option>
                                             <option value="L">Laki-laki</option>
                                             <option value="P">Perempuan</option>
                                         </select>
                                         <div class="invalid-feedback" id="genderError"></div>
                                     </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="birth_place" class="form-label">Tempat Lahir <span
+                                    <div class="col-sm-4 mb-2">
+                                        <label for="birth_place" class="form-label small">Tempat Lahir <span
                                                 class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="birth_place" name="birth_place">
+                                        <input type="text" class="form-control form-control-sm" id="birth_place"
+                                            name="birth_place">
                                         <div class="invalid-feedback" id="birth_placeError"></div>
                                     </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="birth_date" class="form-label">Tanggal Lahir <span
+                                    <div class="col-sm-4 mb-2">
+                                        <label for="birth_date" class="form-label small">Tanggal Lahir <span
                                                 class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" id="birth_date" name="birth_date">
+                                        <input type="date" class="form-control form-control-sm" id="birth_date"
+                                            name="birth_date">
                                         <div class="invalid-feedback" id="birth_dateError"></div>
                                     </div>
                                 </div>
 
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="marital_status" class="form-label">Status Perkawinan <span
+                                <div class="row g-2 g-md-3">
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="marital_status" class="form-label small">Status Perkawinan <span
                                                 class="text-danger">*</span></label>
-                                        <select class="form-select" id="marital_status" name="marital_status">
+                                        <select class="form-select form-select-sm" id="marital_status"
+                                            name="marital_status">
                                             <option value="">Pilih...</option>
                                             <option value="Belum Menikah">Belum Menikah</option>
                                             <option value="Menikah">Menikah</option>
@@ -261,18 +303,18 @@
                                         </select>
                                         <div class="invalid-feedback" id="marital_statusError"></div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="tanggungan_anak" class="form-label">Tanggungan Anak</label>
-                                        <input type="number" class="form-control" id="tanggungan_anak"
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="tanggungan_anak" class="form-label small">Tanggungan Anak</label>
+                                        <input type="number" class="form-control form-control-sm" id="tanggungan_anak"
                                             name="tanggungan_anak" min="0" value="0">
                                         <div class="invalid-feedback" id="tanggungan_anakError"></div>
                                     </div>
                                 </div>
 
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="agama" class="form-label">Agama</label>
-                                        <select class="form-select" id="agama" name="agama">
+                                <div class="row g-2 g-md-3">
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="agama" class="form-label small">Agama</label>
+                                        <select class="form-select form-select-sm" id="agama" name="agama">
                                             <option value="">Pilih...</option>
                                             <option value="Islam">Islam</option>
                                             <option value="Kristen">Kristen</option>
@@ -283,88 +325,95 @@
                                         </select>
                                         <div class="invalid-feedback" id="agamaError"></div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="bangsa" class="form-label">Kebangsaan</label>
-                                        <input type="text" class="form-control" id="bangsa" name="bangsa"
-                                            placeholder="Contoh: Indonesia">
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="bangsa" class="form-label small">Kebangsaan</label>
+                                        <input type="text" class="form-control form-control-sm" id="bangsa"
+                                            name="bangsa" placeholder="Contoh: Indonesia">
                                         <div class="invalid-feedback" id="bangsaError"></div>
                                     </div>
                                 </div>
 
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="status_kependudukan" class="form-label">Status Kependudukan</label>
-                                        <select class="form-select" id="status_kependudukan" name="status_kependudukan">
+                                <div class="row g-2 g-md-3">
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="status_kependudukan" class="form-label small">Status
+                                            Kependudukan</label>
+                                        <select class="form-select form-select-sm" id="status_kependudukan"
+                                            name="status_kependudukan">
                                             <option value="">Pilih...</option>
                                             <option value="WNI">WNI</option>
                                             <option value="WNA">WNA</option>
                                         </select>
                                         <div class="invalid-feedback" id="status_kependudukanError"></div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="nama_ibu_kandung" class="form-label">Nama Ibu Kandung</label>
-                                        <input type="text" class="form-control" id="nama_ibu_kandung"
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="nama_ibu_kandung" class="form-label small">Nama Ibu Kandung</label>
+                                        <input type="text" class="form-control form-control-sm" id="nama_ibu_kandung"
                                             name="nama_ibu_kandung">
                                         <div class="invalid-feedback" id="nama_ibu_kandungError"></div>
                                     </div>
                                 </div>
 
-                                <div class="mb-3">
-                                    <label for="kartu_keluarga" class="form-label">Nomor Kartu Keluarga</label>
-                                    <input type="text" class="form-control" id="kartu_keluarga" name="kartu_keluarga"
-                                        maxlength="20">
+                                <div class="mb-2">
+                                    <label for="kartu_keluarga" class="form-label small">Nomor Kartu Keluarga</label>
+                                    <input type="text" class="form-control form-control-sm" id="kartu_keluarga"
+                                        name="kartu_keluarga" maxlength="20">
                                     <div class="invalid-feedback" id="kartu_keluargaError"></div>
                                 </div>
                             </div>
 
                             <!-- Tab Pekerjaan -->
                             <div class="tab-pane fade" id="tabPekerjaan" role="tabpanel">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="department_id" class="form-label">Departemen <span
+                                <div class="row g-2 g-md-3">
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="department_id" class="form-label small">Departemen <span
                                                 class="text-danger">*</span></label>
-                                        <select class="form-select" id="department_id" name="department_id">
+                                        <select class="form-select form-select-sm" id="department_id"
+                                            name="department_id">
                                             <option value="">Pilih Departemen...</option>
                                         </select>
                                         <div class="invalid-feedback" id="department_idError"></div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="sub_department_id" class="form-label">Sub Departemen / Bagian</label>
-                                        <select class="form-select" id="sub_department_id" name="sub_department_id">
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="sub_department_id" class="form-label small">Sub Departemen /
+                                            Bagian</label>
+                                        <select class="form-select form-select-sm" id="sub_department_id"
+                                            name="sub_department_id">
                                             <option value="">Pilih Sub Departemen...</option>
                                         </select>
                                         <div class="invalid-feedback" id="sub_department_idError"></div>
                                     </div>
                                 </div>
 
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="position_id" class="form-label">Posisi <span
+                                <div class="row g-2 g-md-3">
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="position_id" class="form-label small">Posisi <span
                                                 class="text-danger">*</span></label>
-                                        <select class="form-select" id="position_id" name="position_id">
+                                        <select class="form-select form-select-sm" id="position_id" name="position_id">
                                             <option value="">Pilih Posisi...</option>
                                         </select>
                                         <div class="invalid-feedback" id="position_idError"></div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="lulusan_sekolah" class="form-label">Pendidikan Terakhir</label>
-                                        <input type="text" class="form-control" id="lulusan_sekolah"
-                                            name="lulusan_sekolah" placeholder="Contoh: S1 Teknik Informatika">
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="lulusan_sekolah" class="form-label small">Pendidikan Terakhir</label>
+                                        <input type="text" class="form-control form-control-sm" id="lulusan_sekolah"
+                                            name="lulusan_sekolah" placeholder="S1 Teknik Informatika">
                                         <div class="invalid-feedback" id="lulusan_sekolahError"></div>
                                     </div>
                                 </div>
 
-                                <div class="row">
-                                    <div class="col-md-4 mb-3">
-                                        <label for="join_date" class="form-label">Tanggal Bergabung <span
+                                <div class="row g-2 g-md-3">
+                                    <div class="col-sm-4 mb-2">
+                                        <label for="join_date" class="form-label small">Tanggal Bergabung <span
                                                 class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" id="join_date" name="join_date">
+                                        <input type="date" class="form-control form-control-sm" id="join_date"
+                                            name="join_date">
                                         <div class="invalid-feedback" id="join_dateError"></div>
                                     </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="employment_status" class="form-label">Status Kerja <span
+                                    <div class="col-sm-4 mb-2">
+                                        <label for="employment_status" class="form-label small">Status Kerja <span
                                                 class="text-danger">*</span></label>
-                                        <select class="form-select" id="employment_status" name="employment_status">
+                                        <select class="form-select form-select-sm" id="employment_status"
+                                            name="employment_status">
                                             <option value="">Pilih...</option>
                                             <option value="Tetap">Tetap</option>
                                             <option value="Kontrak">Kontrak</option>
@@ -373,21 +422,22 @@
                                         </select>
                                         <div class="invalid-feedback" id="employment_statusError"></div>
                                     </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="work_schedule_id" class="form-label">Jadwal Kerja <span
+                                    <div class="col-sm-4 mb-2">
+                                        <label for="work_schedule_id" class="form-label small">Jadwal Kerja <span
                                                 class="text-danger">*</span></label>
-                                        <select class="form-select" id="work_schedule_id" name="work_schedule_id">
+                                        <select class="form-select form-select-sm" id="work_schedule_id"
+                                            name="work_schedule_id">
                                             <option value="">Pilih Jadwal...</option>
                                         </select>
                                         <div class="invalid-feedback" id="work_schedule_idError"></div>
                                     </div>
                                 </div>
 
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="status" class="form-label">Status Karyawan <span
+                                <div class="row g-2 g-md-3">
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="status" class="form-label small">Status Karyawan <span
                                                 class="text-danger">*</span></label>
-                                        <select class="form-select" id="status" name="status"
+                                        <select class="form-select form-select-sm" id="status" name="status"
                                             onchange="toggleResignDate()">
                                             <option value="">Pilih...</option>
                                             <option value="active">Aktif</option>
@@ -396,9 +446,9 @@
                                         </select>
                                         <div class="invalid-feedback" id="statusError"></div>
                                     </div>
-                                    <div class="col-md-6 mb-3" id="resignDateContainer" style="display: none;">
-                                        <label for="tanggal_resign" class="form-label">Tanggal Resign</label>
-                                        <input type="date" class="form-control" id="tanggal_resign"
+                                    <div class="col-sm-6 mb-2" id="resignDateContainer" style="display: none;">
+                                        <label for="tanggal_resign" class="form-label small">Tanggal Resign</label>
+                                        <input type="date" class="form-control form-control-sm" id="tanggal_resign"
                                             name="tanggal_resign">
                                         <div class="invalid-feedback" id="tanggal_resignError"></div>
                                     </div>
@@ -407,64 +457,69 @@
 
                             <!-- Tab Kontak -->
                             <div class="tab-pane fade" id="tabKontak" role="tabpanel">
-                                <div class="mb-3">
-                                    <label for="address" class="form-label">Alamat Lengkap <span
+                                <div class="mb-2">
+                                    <label for="address" class="form-label small">Alamat Lengkap <span
                                             class="text-danger">*</span></label>
-                                    <textarea class="form-control" id="address" name="address" rows="2"></textarea>
+                                    <textarea class="form-control form-control-sm" id="address" name="address" rows="2"></textarea>
                                     <div class="invalid-feedback" id="addressError"></div>
                                 </div>
 
-                                <div class="row">
-                                    <div class="col-md-4 mb-3">
-                                        <label for="city" class="form-label">Kota <span
+                                <div class="row g-2 g-md-3">
+                                    <div class="col-sm-4 mb-2">
+                                        <label for="city" class="form-label small">Kota <span
                                                 class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="city" name="city">
+                                        <input type="text" class="form-control form-control-sm" id="city"
+                                            name="city">
                                         <div class="invalid-feedback" id="cityError"></div>
                                     </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="province" class="form-label">Provinsi <span
+                                    <div class="col-sm-4 mb-2">
+                                        <label for="province" class="form-label small">Provinsi <span
                                                 class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="province" name="province">
+                                        <input type="text" class="form-control form-control-sm" id="province"
+                                            name="province">
                                         <div class="invalid-feedback" id="provinceError"></div>
                                     </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="postal_code" class="form-label">Kode Pos <span
+                                    <div class="col-sm-4 mb-2">
+                                        <label for="postal_code" class="form-label small">Kode Pos <span
                                                 class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="postal_code" name="postal_code">
+                                        <input type="text" class="form-control form-control-sm" id="postal_code"
+                                            name="postal_code">
                                         <div class="invalid-feedback" id="postal_codeError"></div>
                                     </div>
                                 </div>
 
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="phone" class="form-label">Nomor HP <span
+                                <div class="row g-2 g-md-3">
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="phone" class="form-label small">Nomor HP <span
                                                 class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="phone" name="phone">
+                                        <input type="text" class="form-control form-control-sm" id="phone"
+                                            name="phone">
                                         <div class="invalid-feedback" id="phoneError"></div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="email" class="form-label">Email <span
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="email" class="form-label small">Email <span
                                                 class="text-danger">*</span></label>
-                                        <input type="email" class="form-control" id="email" name="email">
+                                        <input type="email" class="form-control form-control-sm" id="email"
+                                            name="email">
                                         <div class="invalid-feedback" id="emailError"></div>
                                     </div>
                                 </div>
 
-                                <hr>
-                                <h6 class="mb-3">Kontak Darurat</h6>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="emergency_contact_name" class="form-label">Nama <span
+                                <hr class="my-2">
+                                <h6 class="mb-2 small fw-bold">Kontak Darurat</h6>
+                                <div class="row g-2 g-md-3">
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="emergency_contact_name" class="form-label small">Nama <span
                                                 class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="emergency_contact_name"
-                                            name="emergency_contact_name">
+                                        <input type="text" class="form-control form-control-sm"
+                                            id="emergency_contact_name" name="emergency_contact_name">
                                         <div class="invalid-feedback" id="emergency_contact_nameError"></div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="emergency_contact_phone" class="form-label">Nomor <span
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="emergency_contact_phone" class="form-label small">Nomor <span
                                                 class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="emergency_contact_phone"
-                                            name="emergency_contact_phone">
+                                        <input type="text" class="form-control form-control-sm"
+                                            id="emergency_contact_phone" name="emergency_contact_phone">
                                         <div class="invalid-feedback" id="emergency_contact_phoneError"></div>
                                     </div>
                                 </div>
@@ -472,50 +527,49 @@
 
                             <!-- Tab Administrasi -->
                             <div class="tab-pane fade" id="tabAdministrasi" role="tabpanel">
-                                <h6 class="text-primary mb-3">Data Keuangan</h6>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="bank" class="form-label">Nama Bank</label>
-                                        <input type="text" class="form-control" id="bank" name="bank"
-                                            placeholder="Contoh: BCA">
+                                <h6 class="text-primary mb-2 small fw-bold">Data Keuangan</h6>
+                                <div class="row g-2 g-md-3">
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="bank" class="form-label small">Nama Bank</label>
+                                        <input type="text" class="form-control form-control-sm" id="bank"
+                                            name="bank" placeholder="BCA">
                                         <div class="invalid-feedback" id="bankError"></div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="nomor_rekening" class="form-label">Nomor Rekening</label>
-                                        <input type="text" class="form-control" id="nomor_rekening"
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="nomor_rekening" class="form-label small">Nomor Rekening</label>
+                                        <input type="text" class="form-control form-control-sm" id="nomor_rekening"
                                             name="nomor_rekening">
                                         <div class="invalid-feedback" id="nomor_rekeningError"></div>
                                     </div>
                                 </div>
 
-                                <hr class="my-4">
-                                <h6 class="text-primary mb-3">Data Administrasi & Pajak</h6>
-                                <div class="mb-3">
-                                    <label for="tax_npwp" class="form-label">Nomor NPWP</label>
-                                    <input type="text" class="form-control" id="tax_npwp" name="tax_npwp"
-                                        placeholder="Contoh: 12.345.678.9-012.345">
+                                <hr class="my-2">
+                                <h6 class="text-primary mb-2 small fw-bold">Data Administrasi & Pajak</h6>
+                                <div class="mb-2">
+                                    <label for="tax_npwp" class="form-label small">Nomor NPWP</label>
+                                    <input type="text" class="form-control form-control-sm" id="tax_npwp"
+                                        name="tax_npwp" placeholder="12.345.678.9-012.345">
                                     <div class="invalid-feedback" id="tax_npwpError"></div>
                                 </div>
 
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="bpjs_kesehatan" class="form-label">Nomor BPJS Kesehatan</label>
-                                        <input type="text" class="form-control" id="bpjs_kesehatan"
+                                <div class="row g-2 g-md-3">
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="bpjs_kesehatan" class="form-label small">No. BPJS Kesehatan</label>
+                                        <input type="text" class="form-control form-control-sm" id="bpjs_kesehatan"
                                             name="bpjs_kesehatan">
                                         <div class="invalid-feedback" id="bpjs_kesehatanError"></div>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="bpjs_ketenagakerjaan" class="form-label">Nomor BPJS
+                                    <div class="col-sm-6 mb-2">
+                                        <label for="bpjs_ketenagakerjaan" class="form-label small">No. BPJS
                                             Ketenagakerjaan</label>
-                                        <input type="text" class="form-control" id="bpjs_ketenagakerjaan"
-                                            name="bpjs_ketenagakerjaan">
+                                        <input type="text" class="form-control form-control-sm"
+                                            id="bpjs_ketenagakerjaan" name="bpjs_ketenagakerjaan">
                                         <div class="invalid-feedback" id="bpjs_ketenagakerjaanError"></div>
                                     </div>
                                 </div>
 
-                                <div class="alert alert-info mt-3">
-                                    <i class='bx bx-info-circle me-2'></i>
-                                    <small>Data ini bersifat opsional dan digunakan untuk keperluan administrasi
+                                <div class="alert alert-info p-2 mt-2">
+                                    <small><i class='bx bx-info-circle'></i> Data ini opsional untuk administrasi
                                         perusahaan.</small>
                                 </div>
                             </div>
@@ -793,6 +847,14 @@
             importModal = new bootstrap.Modal(document.getElementById('importModal'));
             loadMasterData();
             loadKaryawans();
+
+            // Auto-scroll to top when switching tabs (mobile friendly)
+            $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function(e) {
+                const modalBody = $('#karyawanModal .modal-body');
+                modalBody.animate({
+                    scrollTop: 0
+                }, 300);
+            });
 
             // Search input with debounce
             $('#searchInput').on('input', function() {
