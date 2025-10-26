@@ -58,6 +58,9 @@ Route::middleware(['auth'])->group(function () {
         // WhatsApp Settings (View only - API handles POST)
         Route::get('/admin/settings/whatsapp', [\App\Http\Controllers\Admin\WhatsAppSettingController::class, 'index'])->name('admin.settings.whatsapp');
 
+        // Backup Management (View only - API handles POST/DELETE)
+        Route::get('/admin/backup', [\App\Http\Controllers\Admin\BackupController::class, 'index'])->name('admin.backup.index');
+
         // Leave Management (View only - API handles POST/DELETE)
         Route::get('/admin/leave', [\App\Http\Controllers\Admin\LeaveController::class, 'index'])->name('admin.leave.index');
 

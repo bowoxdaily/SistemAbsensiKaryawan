@@ -159,6 +159,19 @@ Route::middleware(['web', 'auth', 'admin'])->prefix('settings/cronjob')->group(f
     Route::post('/run', [\App\Http\Controllers\Admin\CronJobController::class, 'runScheduler']);
 });
 
+// Backup Management API - using web middleware for session-based auth
+Route::middleware(['web', 'auth', 'admin'])->prefix('backup')->group(function () {
+    Route::get('/list', [\App\Http\Controllers\Admin\BackupController::class, 'list']);
+    Route::post('/create', [\App\Http\Controllers\Admin\BackupController::class, 'create']);
+    Route::get('/download/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'download']);
+    Route::delete('/delete/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'delete']);
+    Route::post('/restore/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'restore']);
+    Route::post('/upload', [\App\Http\Controllers\Admin\BackupController::class, 'upload']);
+    Route::get('/email-settings', [\App\Http\Controllers\Admin\BackupController::class, 'getEmailSettings']);
+    Route::post('/email-settings', [\App\Http\Controllers\Admin\BackupController::class, 'updateEmailSettings']);
+    Route::post('/send-test-email', [\App\Http\Controllers\Admin\BackupController::class, 'sendTestEmail']);
+});
+
 // Import/Export API
 Route::prefix('karyawan')->group(function () {
     Route::post('/import', [\App\Http\Controllers\Admin\KaryawanController::class, 'import']);

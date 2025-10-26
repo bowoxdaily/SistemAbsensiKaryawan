@@ -13,6 +13,8 @@ class OfficeSetting extends Model
         'radius_meters',
         'enforce_location',
         'address',
+        'backup_email',
+        'backup_email_enabled',
     ];
 
     protected $casts = [
@@ -20,6 +22,7 @@ class OfficeSetting extends Model
         'longitude' => 'float',
         'radius_meters' => 'integer',
         'enforce_location' => 'boolean',
+        'backup_email_enabled' => 'boolean',
     ];
 
     /**

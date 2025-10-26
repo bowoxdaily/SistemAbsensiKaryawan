@@ -181,6 +181,11 @@
                             <div data-i18n="WhatsApp">WhatsApp</div>
                         </a>
                     </li>
+                    <li class="menu-item {{ request()->routeIs('admin.backup*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.backup.index') }}" class="menu-link">
+                            <div data-i18n="Backup Database">Backup Database</div>
+                        </a>
+                    </li>
                 </ul>
             </li>
 

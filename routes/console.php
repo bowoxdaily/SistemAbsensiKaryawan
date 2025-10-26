@@ -4,6 +4,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use App\Console\ScheduleRunMiddleware;
 
 Artisan::command('inspire', function () {
@@ -36,4 +37,45 @@ Schedule::command('attendance:generate-absent')
 
         $sentinelFile = storage_path('framework/schedule-sentinel');
         touch($sentinelFile);
+    });
+
+// Schedule: Automatic database backup every day at 2 AM
+Schedule::command('db:backup')
+    ->daily()
+    ->at('02:00')
+    ->name('auto-backup-daily')
+    ->onSuccess(function () {
+        // Clean old backups - keep only last 7 days
+        $backupPath = storage_path('app/backups');
+        if (is_dir($backupPath)) {
+            $files = glob($backupPath . '/backup_*.sql');
+
+            // Sort files by modification time (oldest first)
+            usort($files, function ($a, $b) {
+                return filemtime($a) - filemtime($b);
+            });
+
+            // Keep only last 7 files
+            $filesToDelete = array_slice($files, 0, max(0, count($files) - 7));
+            foreach ($filesToDelete as $file) {
+                @unlink($file);
+            }
+        }
+    })
+    ->onFailure(function () {
+        // Log backup failure
+        Log::error('Automatic database backup failed at ' . now());
+    });
+
+// Schedule: Weekly backup via email every Sunday at 3 AM
+Schedule::command('db:backup-email')
+    ->weekly()
+    ->sundays()
+    ->at('03:00')
+    ->name('auto-backup-weekly-email')
+    ->onSuccess(function () {
+        Log::info('Weekly backup email sent successfully at ' . now());
+    })
+    ->onFailure(function () {
+        Log::error('Weekly backup email failed at ' . now());
     });
