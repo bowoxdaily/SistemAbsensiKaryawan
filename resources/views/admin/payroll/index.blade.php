@@ -126,6 +126,8 @@
                                     Potongan</a></li>
                             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#summaryTab">📊
                                     Ringkasan</a></li>
+                            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#proofTab">📄
+                                    Bukti Transfer</a></li>
                         </ul>
 
                         <div class="tab-content mt-3">
@@ -234,6 +236,31 @@
                                         placeholder="Tambahkan catatan jika diperlukan..."></textarea>
                                 </div>
                             </div>
+
+                            <!-- Proof Tab -->
+                            <div class="tab-pane fade" id="proofTab">
+                                <div class="alert alert-info">
+                                    <i class='bx bx-info-circle'></i> Upload bukti transfer untuk melengkapi pembayaran
+                                    gaji (opsional)
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">File Bukti Transfer</label>
+                                    <input type="file" class="form-control" id="payment_proof_file"
+                                        name="payment_proof_file" accept="image/*,application/pdf">
+                                    <div class="form-text">Format: JPG, PNG, atau PDF (Maksimal 5MB)</div>
+                                    <div class="invalid-feedback" id="payment_proof_fileError"></div>
+                                </div>
+                                <div id="proofPreviewInForm" class="mt-3" style="display:none;">
+                                    <label class="form-label">Preview:</label>
+                                    <div class="border rounded p-3 text-center bg-light">
+                                        <img id="proofPreviewImageInForm" src="" alt="Preview"
+                                            class="img-fluid rounded" style="max-height: 300px;">
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-danger mt-2" id="btnRemoveProof">
+                                        <i class='bx bx-trash'></i> Hapus File
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -243,6 +270,61 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Proof Modal -->
+    <div class="modal fade" id="uploadProofModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload Bukti Transfer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="uploadProofForm" enctype="multipart/form-data">
+                    @csrf
+                    <input type="hidden" id="upload_payroll_id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">File Bukti Transfer <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" id="payment_proof" name="payment_proof"
+                                accept="image/*,application/pdf" required>
+                            <div class="form-text">Format: JPG, PNG, atau PDF (Maks. 5MB)</div>
+                            <div class="invalid-feedback" id="payment_proofError"></div>
+                        </div>
+                        <div id="proofPreview" class="mt-3" style="display:none;">
+                            <label class="form-label">Preview:</label>
+                            <img id="proofPreviewImage" src="" alt="Preview" class="img-fluid rounded"
+                                style="max-height: 300px;">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class='bx bx-upload me-1'></i> Upload
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Proof Modal -->
+    <div class="modal fade" id="viewProofModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Bukti Transfer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div id="proofViewContent"></div>
+                    <div id="paidAtInfo" class="mt-3 text-muted"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
             </div>
         </div>
     </div>
@@ -394,6 +476,21 @@
                 console.log('🔘 Delete Payroll clicked for ID:', id);
                 deletePayroll(id);
             });
+            $(document).on('click', '.btn-upload-proof', function() {
+                let id = $(this).data('id');
+                console.log('🔘 Upload Proof clicked for ID:', id);
+                openUploadProofModal(id);
+            });
+            $(document).on('click', '.btn-view-proof', function() {
+                let id = $(this).data('id');
+                console.log('🔘 View Proof clicked for ID:', id);
+                viewProof(id);
+            });
+            $(document).on('click', '.btn-delete-proof', function() {
+                let id = $(this).data('id');
+                console.log('🔘 Delete Proof clicked for ID:', id);
+                deleteProof(id);
+            });
             $(document).on('click', '.pagination-link', function(e) {
                 e.preventDefault();
                 let page = $(this).data('page');
@@ -429,6 +526,43 @@
                     calculateTotals();
                     console.log('✅ Basic salary auto-filled:', salary);
                 }
+            });
+
+            // File input preview in form
+            $('#payment_proof_file').on('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Check file size (5MB max)
+                    if (file.size > 5 * 1024 * 1024) {
+                        toastr.error('Ukuran file maksimal 5MB');
+                        $(this).val('');
+                        $('#proofPreviewInForm').hide();
+                        return;
+                    }
+
+                    const fileType = file.type;
+                    if (fileType.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            $('#proofPreviewImageInForm').attr('src', e.target.result);
+                            $('#proofPreviewInForm').show();
+                        };
+                        reader.readAsDataURL(file);
+                    } else if (fileType === 'application/pdf') {
+                        $('#proofPreviewImageInForm').attr('src', '').hide();
+                        $('#proofPreviewInForm').show();
+                        $('#proofPreviewInForm .border').html(
+                            '<i class="bx bx-file-blank bx-lg text-danger"></i><p class="mb-0 mt-2">PDF: ' +
+                            file.name + '</p>');
+                    }
+                }
+            });
+
+            // Remove proof file
+            $('#btnRemoveProof').on('click', function() {
+                $('#payment_proof_file').val('');
+                $('#proofPreviewInForm').hide();
+                toastr.info('File dihapus');
             });
 
             // Form Submit
@@ -555,9 +689,14 @@
                             ` <button class="btn btn-sm btn-success btn-send-notification" data-id="${p.id}" title="Kirim WA"><i class='bx bxl-whatsapp'></i></button>`;
                         actions +=
                             ` <button class="btn btn-sm btn-danger btn-delete-payroll" data-id="${p.id}" title="Hapus"><i class='bx bx-trash'></i></button>`;
-                    } else {
+                    } else if (p.status === 'sent') {
                         actions +=
-                            ` <span class="badge bg-success"><i class='bx bx-check'></i> Sudah Dikirim</span>`;
+                            ` <button class="btn btn-sm btn-primary btn-upload-proof" data-id="${p.id}" title="Upload Bukti"><i class='bx bx-upload'></i> Upload</button>`;
+                    } else if (p.status === 'paid') {
+                        actions +=
+                            ` <button class="btn btn-sm btn-success btn-view-proof" data-id="${p.id}" title="Lihat Bukti"><i class='bx bx-image'></i></button>`;
+                        actions +=
+                            ` <button class="btn btn-sm btn-danger btn-delete-proof" data-id="${p.id}" title="Hapus Bukti"><i class='bx bx-trash'></i></button>`;
                     }
 
                     html += `<tr>
@@ -606,15 +745,29 @@
                                 </button>
                             </div>
                         `;
-                    } else {
+                    } else if (p.status === 'sent') {
                         actions = `
                             <div class="d-flex gap-2">
                                 <button class="btn btn-sm btn-info btn-view-detail flex-fill" data-id="${p.id}">
                                     <i class='bx bx-show'></i> Lihat Detail
                                 </button>
-                                <span class="badge bg-success d-flex align-items-center">
-                                    <i class='bx bx-check me-1'></i> Terkirim
-                                </span>
+                                <button class="btn btn-sm btn-primary btn-upload-proof flex-fill" data-id="${p.id}">
+                                    <i class='bx bx-upload'></i> Upload Bukti
+                                </button>
+                            </div>
+                        `;
+                    } else if (p.status === 'paid') {
+                        actions = `
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-info btn-view-detail flex-fill" data-id="${p.id}">
+                                    <i class='bx bx-show'></i> Lihat Detail
+                                </button>
+                                <button class="btn btn-sm btn-success btn-view-proof flex-fill" data-id="${p.id}">
+                                    <i class='bx bx-image'></i> Lihat Bukti
+                                </button>
+                                <button class="btn btn-sm btn-danger btn-delete-proof" data-id="${p.id}" title="Hapus Bukti">
+                                    <i class='bx bx-trash'></i>
+                                </button>
                             </div>
                         `;
                     }
@@ -727,6 +880,8 @@
                 $('#period_month').prop('disabled', false);
                 $('.is-invalid').removeClass('is-invalid');
                 $('.invalid-feedback').text('');
+                $('#proofPreviewInForm').hide();
+                $('#payment_proof_file').val('');
                 calculateTotals();
                 $('#payrollModal').modal('show');
                 console.log('✅ Modal opened');
@@ -792,14 +947,17 @@
                 let id = $('#payrollId').val();
                 let url = id ? `/api/payroll/${id}` : '/api/payroll';
                 let method = id ? 'PUT' : 'POST';
-                let formData = $('#payrollForm').serialize();
 
-                console.log('Form data:', {
-                    id: id,
-                    url: url,
-                    method: method,
-                    data: formData
-                });
+                // Prepare FormData to handle file upload
+                let formData = new FormData($('#payrollForm')[0]);
+
+                // Add file if exists
+                const fileInput = document.getElementById('payment_proof_file');
+                if (fileInput.files.length > 0) {
+                    formData.append('payment_proof_file', fileInput.files[0]);
+                }
+
+                console.log('Form data prepared with file:', fileInput.files.length > 0 ? 'Yes' : 'No');
 
                 // Reset error states
                 $('.is-invalid').removeClass('is-invalid');
@@ -809,6 +967,8 @@
                     url: url,
                     method: method,
                     data: formData,
+                    processData: false,
+                    contentType: false,
                     success: function(res) {
                         console.log('✅ Payroll saved:', res);
                         $('#payrollModal').modal('hide');
@@ -1037,6 +1197,144 @@
                             error: function(xhr) {
                                 toastr.error(xhr.responseJSON?.message ||
                                     'Gagal menghapus payroll');
+                            }
+                        });
+                    }
+                });
+            }
+
+            function openUploadProofModal(id) {
+                console.log('📤 Opening upload proof modal for ID:', id);
+                $('#upload_payroll_id').val(id);
+                $('#uploadProofForm')[0].reset();
+                $('#payment_proof').removeClass('is-invalid');
+                $('#payment_proofError').text('');
+                $('#proofPreview').hide();
+                new bootstrap.Modal(document.getElementById('uploadProofModal')).show();
+            }
+
+            // File input preview
+            $('#payment_proof').on('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const fileType = file.type;
+                    if (fileType.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            $('#proofPreviewImage').attr('src', e.target.result);
+                            $('#proofPreview').show();
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        $('#proofPreview').hide();
+                    }
+                }
+            });
+
+            // Upload proof form submission
+            $('#uploadProofForm').on('submit', function(e) {
+                e.preventDefault();
+                const id = $('#upload_payroll_id').val();
+                const formData = new FormData(this);
+
+                console.log('📤 Uploading proof for payroll ID:', id);
+
+                $.ajax({
+                    url: `/api/payroll/${id}/upload-proof`,
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        console.log('✅ Proof uploaded:', res);
+                        Swal.close();
+                        setTimeout(function() {
+                            toastr.success(res.message);
+                        }, 100);
+                        bootstrap.Modal.getInstance(document.getElementById('uploadProofModal'))
+                            .hide();
+                        loadPayrolls(currentPage);
+                    },
+                    error: function(xhr) {
+                        console.error('❌ Upload failed:', xhr);
+                        if (xhr.status === 422) {
+                            const errors = xhr.responseJSON.errors;
+                            for (let field in errors) {
+                                $(`#${field}`).addClass('is-invalid');
+                                $(`#${field}Error`).text(errors[field][0]);
+                            }
+                        } else {
+                            toastr.error(xhr.responseJSON?.message ||
+                                'Gagal mengupload bukti transfer');
+                        }
+                    }
+                });
+            });
+
+            function viewProof(id) {
+                console.log('👁️ Viewing proof for ID:', id);
+                $.get(`/api/payroll/${id}`)
+                    .done(function(res) {
+                        if (res.success && res.data.payment_proof) {
+                            const proofPath = res.data.payment_proof;
+                            const proofUrl = `/storage/${proofPath}`;
+                            const fileExt = proofPath.split('.').pop().toLowerCase();
+
+                            let content = '';
+                            if (fileExt === 'pdf') {
+                                content =
+                                    `<embed src="${proofUrl}" type="application/pdf" width="100%" height="600px" />`;
+                            } else {
+                                content = `<img src="${proofUrl}" class="img-fluid" alt="Bukti Transfer">`;
+                            }
+
+                            $('#proofViewContent').html(content);
+
+                            if (res.data.paid_at) {
+                                const paidDate = formatDate(res.data.paid_at);
+                                $('#paidAtInfo').html(
+                                    `<small><i class='bx bx-time-five'></i> Dibayar pada: ${paidDate}</small>`
+                                );
+                            }
+
+                            new bootstrap.Modal(document.getElementById('viewProofModal')).show();
+                        } else {
+                            toastr.error('Bukti transfer tidak ditemukan');
+                        }
+                    })
+                    .fail(function(xhr) {
+                        console.error('❌ Error loading proof:', xhr);
+                        toastr.error('Gagal memuat bukti transfer');
+                    });
+            }
+
+            function deleteProof(id) {
+                Swal.fire({
+                    title: 'Hapus Bukti Transfer?',
+                    text: 'Bukti transfer akan dihapus dan status akan kembali ke Terkirim',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Hapus',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#d33'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `/api/payroll/${id}/delete-proof`,
+                            method: 'DELETE',
+                            data: {
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function(res) {
+                                Swal.close();
+                                setTimeout(function() {
+                                    toastr.success(res.message);
+                                }, 100);
+                                loadPayrolls(currentPage);
+                            },
+                            error: function(xhr) {
+                                toastr.error(xhr.responseJSON?.message ||
+                                    'Gagal menghapus bukti transfer');
                             }
                         });
                     }

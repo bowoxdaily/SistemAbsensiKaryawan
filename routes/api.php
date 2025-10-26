@@ -89,6 +89,8 @@ Route::prefix('payroll')->group(function () {
     Route::put('/{id}', [PayrollController::class, 'update']);
     Route::delete('/{id}', [PayrollController::class, 'destroy']);
     Route::post('/{id}/send', [PayrollController::class, 'sendNotification']);
+    Route::post('/{id}/upload-proof', [PayrollController::class, 'uploadProof']);
+    Route::delete('/{id}/delete-proof', [PayrollController::class, 'deleteProof']);
 });
 
 // Office Settings API

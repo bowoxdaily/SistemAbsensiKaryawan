@@ -151,6 +151,25 @@
         </div>
     </div>
 
+    <!-- View Proof Modal -->
+    <div class="modal fade" id="viewProofModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Bukti Transfer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div id="proofViewContent"></div>
+                    <div id="paidAtInfo" class="mt-3 text-muted"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Print Container (Hidden) -->
     <div id="printContainer" class="d-none"></div>
 @endsection
@@ -591,6 +610,16 @@
                                         </div>
                                     </div>
 
+                                    ${p.payment_proof ? `
+                                            <div class="alert alert-success">
+                                                <h6 class="mb-2"><i class='bx bx-check-circle'></i> Bukti Transfer</h6>
+                                                <p class="mb-2"><small><i class='bx bx-time-five'></i> Dibayar pada: ${formatDate(p.paid_at)}</small></p>
+                                                <button class="btn btn-sm btn-primary" onclick="viewProof(${id})">
+                                                    <i class='bx bx-image'></i> Lihat Bukti Transfer
+                                                </button>
+                                            </div>
+                                        ` : ''}
+
                                     ${p.notes ? `<div class="alert alert-info"><strong>Catatan:</strong> ${p.notes}</div>` : ''}
                                 </div>
                             `;
@@ -767,6 +796,41 @@
                     clearTimeout(timeout);
                     timeout = setTimeout(() => func(...args), wait);
                 };
+            }
+
+            function viewProof(id) {
+                $.get(`/api/employee/payroll/${id}`)
+                    .done(function(res) {
+                        if (res.success && res.data.payment_proof) {
+                            const proofPath = res.data.payment_proof;
+                            const proofUrl = `/storage/${proofPath}`;
+                            const fileExt = proofPath.split('.').pop().toLowerCase();
+
+                            let content = '';
+                            if (fileExt === 'pdf') {
+                                content =
+                                    `<embed src="${proofUrl}" type="application/pdf" width="100%" height="600px" />`;
+                            } else {
+                                content = `<img src="${proofUrl}" class="img-fluid" alt="Bukti Transfer">`;
+                            }
+
+                            $('#proofViewContent').html(content);
+
+                            if (res.data.paid_at) {
+                                const paidDate = formatDate(res.data.paid_at);
+                                $('#paidAtInfo').html(
+                                    `<small><i class='bx bx-time-five'></i> Dibayar pada: ${paidDate}</small>`
+                                    );
+                            }
+
+                            new bootstrap.Modal(document.getElementById('viewProofModal')).show();
+                        } else {
+                            toastr.error('Bukti transfer tidak ditemukan');
+                        }
+                    })
+                    .fail(function() {
+                        toastr.error('Gagal memuat bukti transfer');
+                    });
             }
         });
     </script>

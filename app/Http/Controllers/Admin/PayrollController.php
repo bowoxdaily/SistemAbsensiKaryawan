@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class PayrollController extends Controller
@@ -88,11 +89,14 @@ class PayrollController extends Controller
             'deduction_tax' => 'nullable|numeric|min:0',
             'deduction_others' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
+            'payment_proof_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ], [
             'employee_id.required' => 'Karyawan wajib dipilih',
             'period_month.required' => 'Periode gaji wajib diisi',
             'payment_date.required' => 'Tanggal pembayaran wajib diisi',
             'basic_salary.required' => 'Gaji pokok wajib diisi',
+            'payment_proof_file.mimes' => 'Format file harus jpg, jpeg, png, atau pdf',
+            'payment_proof_file.max' => 'Ukuran file maksimal 5MB',
         ]);
 
         if ($validator->fails()) {
@@ -141,6 +145,19 @@ class PayrollController extends Controller
             // Get attendance summary for the period
             $attendanceSummary = $this->getAttendanceSummary($request->employee_id, $request->period_month);
 
+            // Handle file upload if provided
+            $paymentProofPath = null;
+            $paidAt = null;
+            $status = 'draft';
+
+            if ($request->hasFile('payment_proof_file')) {
+                $file = $request->file('payment_proof_file');
+                $filename = 'payment_proof_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $paymentProofPath = $file->storeAs('payment_proofs', $filename, 'public');
+                $paidAt = now();
+                $status = 'paid'; // Automatically set to paid if proof is uploaded
+            }
+
             $payroll = Payroll::create([
                 'employee_id' => $request->employee_id,
                 'payroll_code' => $payrollCode,
@@ -166,7 +183,9 @@ class PayrollController extends Controller
                 'total_days_late' => $attendanceSummary['late'],
                 'total_days_absent' => $attendanceSummary['absent'],
                 'total_days_leave' => $attendanceSummary['leave'],
-                'status' => 'draft',
+                'status' => $status,
+                'payment_proof' => $paymentProofPath,
+                'paid_at' => $paidAt,
                 'notes' => $request->notes,
                 'created_by' => Auth::id(),
             ]);
@@ -428,5 +447,129 @@ class PayrollController extends Controller
     {
         $filename = 'Payroll_' . date('Y-m-d_His') . '.xlsx';
         return Excel::download(new PayrollExport($request), $filename);
+    }
+
+    /**
+     * Upload payment proof
+     */
+    public function uploadProof(Request $request, $id)
+    {
+        $payroll = Payroll::find($id);
+
+        if (!$payroll) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Slip gaji tidak ditemukan'
+            ], 404);
+        }
+
+        // Only allow upload for sent payrolls
+        if ($payroll->status !== 'sent') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bukti transfer hanya dapat diunggah untuk slip gaji yang sudah dikirim'
+            ], 422);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'payment_proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120', // 5MB max
+        ], [
+            'payment_proof.required' => 'File bukti transfer wajib diunggah',
+            'payment_proof.file' => 'File tidak valid',
+            'payment_proof.mimes' => 'Format file harus jpg, jpeg, png, atau pdf',
+            'payment_proof.max' => 'Ukuran file maksimal 5MB',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Delete old payment proof if exists
+            if ($payroll->payment_proof && Storage::disk('public')->exists($payroll->payment_proof)) {
+                Storage::disk('public')->delete($payroll->payment_proof);
+            }
+
+            // Store new file
+            $file = $request->file('payment_proof');
+            $filename = 'payment_proof_' . $payroll->payroll_code . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('payment_proofs', $filename, 'public');
+
+            // Update payroll
+            $payroll->update([
+                'payment_proof' => $path,
+                'paid_at' => now(),
+                'status' => 'paid'
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Bukti transfer berhasil diunggah',
+                'data' => $payroll->fresh()
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete payment proof
+     */
+    public function deleteProof($id)
+    {
+        $payroll = Payroll::find($id);
+
+        if (!$payroll) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Slip gaji tidak ditemukan'
+            ], 404);
+        }
+
+        if (!$payroll->payment_proof) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada bukti transfer untuk dihapus'
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Delete file
+            if (Storage::disk('public')->exists($payroll->payment_proof)) {
+                Storage::disk('public')->delete($payroll->payment_proof);
+            }
+
+            // Update payroll
+            $payroll->update([
+                'payment_proof' => null,
+                'paid_at' => null,
+                'status' => 'sent'
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Bukti transfer berhasil dihapus'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

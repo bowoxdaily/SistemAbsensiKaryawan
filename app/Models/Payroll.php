@@ -35,6 +35,8 @@ class Payroll extends Model
         'status',
         'notes',
         'sent_at',
+        'payment_proof',
+        'paid_at',
         'created_by',
     ];
 
@@ -57,6 +59,7 @@ class Payroll extends Model
         'total_deductions' => 'decimal:2',
         'net_salary' => 'decimal:2',
         'sent_at' => 'datetime',
+        'paid_at' => 'datetime',
     ];
 
     /**
