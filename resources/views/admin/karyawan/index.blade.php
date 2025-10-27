@@ -395,8 +395,17 @@
                                     </div>
                                     <div class="col-sm-6 mb-2">
                                         <label for="lulusan_sekolah" class="form-label small">Pendidikan Terakhir</label>
-                                        <input type="text" class="form-control form-control-sm" id="lulusan_sekolah"
-                                            name="lulusan_sekolah" placeholder="S1 Teknik Informatika">
+                                        <select class="form-select form-select-sm" id="lulusan_sekolah"
+                                            name="lulusan_sekolah">
+                                            <option value="">Pilih Pendidikan...</option>
+                                            <option value="SD">SD</option>
+                                            <option value="SMP">SMP</option>
+                                            <option value="SMA">SMA</option>
+                                            <option value="D1">D1</option>
+                                            <option value="D3">D3</option>
+                                            <option value="D4/S1">D4/S1</option>
+                                            <option value="S2">S2</option>
+                                        </select>
                                         <div class="invalid-feedback" id="lulusan_sekolahError"></div>
                                     </div>
                                 </div>
@@ -417,8 +426,7 @@
                                             <option value="">Pilih...</option>
                                             <option value="Tetap">Tetap</option>
                                             <option value="Kontrak">Kontrak</option>
-                                            <option value="Magang">Magang</option>
-                                            <option value="Outsource">Outsource</option>
+                                            <option value="Probation">Probation</option>
                                         </select>
                                         <div class="invalid-feedback" id="employment_statusError"></div>
                                     </div>
@@ -1301,6 +1309,7 @@
                     }
 
                     $('#position_id').val(k.position_id);
+                    // Set dropdown value for Pendidikan Terakhir
                     $('#lulusan_sekolah').val(k.lulusan_sekolah);
 
                     // Format tanggal bergabung
@@ -1368,7 +1377,7 @@
                 department_id: $('#department_id').val(),
                 sub_department_id: $('#sub_department_id').val(),
                 position_id: $('#position_id').val(),
-                lulusan_sekolah: $('#lulusan_sekolah').val(),
+                lulusan_sekolah: $('#lulusan_sekolah').val(), // Pendidikan Terakhir dari dropdown
                 join_date: $('#join_date').val(),
                 employment_status: $('#employment_status').val(),
                 work_schedule_id: $('#work_schedule_id').val(),

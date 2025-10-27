@@ -349,7 +349,7 @@ class KaryawanTemplateExport implements WithHeadings, WithStyles, WithColumnWidt
                 $empStatusValidation->setError('Pilih dari dropdown');
                 $empStatusValidation->setPromptTitle('Status Kerja');
                 $empStatusValidation->setPrompt('Pilih status kerja karyawan');
-                $empStatusValidation->setFormula1('"Tetap,Kontrak,Magang,Outsource"');
+                $empStatusValidation->setFormula1('"Tetap,Kontrak,Probation"');
 
                 for ($i = 2; $i <= 1000; $i++) {
                     $sheet->getCell('S' . $i)->setDataValidation(clone $empStatusValidation);
