@@ -124,9 +124,9 @@ class AttendanceController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'employee_id' => 'required|exists:employees,id',
-            'photo' => 'required|string', // Base64 image
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
+            'photo' => 'nullable|string', // Base64 image
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
 
         if ($validator->fails()) {
@@ -154,7 +154,7 @@ class AttendanceController extends Controller
             $employee = Karyawans::findOrFail($request->employee_id);
 
             // Save photo
-            $photoPath = $this->saveBase64Image($request->photo, 'attendance/check-in');
+            $photoPath = $request->photo ? $this->saveBase64Image($request->photo, 'attendance/check-in') : null;
 
             // Get work schedule to check if late
             $checkInTime = now();
@@ -180,7 +180,7 @@ class AttendanceController extends Controller
                 [
                     'check_in' => $checkInTime->format('H:i:s'),
                     'photo_in' => $photoPath,
-                    'location_in' => $request->latitude . ',' . $request->longitude,
+                    'location_in' => $request->latitude && $request->longitude ? $request->latitude . ',' . $request->longitude : null,
                     'status' => $status,
                     'late_minutes' => $lateMinutes,
                 ]
@@ -210,9 +210,9 @@ class AttendanceController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'employee_id' => 'required|exists:employees,id',
-            'photo' => 'required|string', // Base64 image
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
+            'photo' => 'nullable|string', // Base64 image
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
 
         if ($validator->fails()) {
@@ -244,13 +244,13 @@ class AttendanceController extends Controller
             }
 
             // Save photo
-            $photoPath = $this->saveBase64Image($request->photo, 'attendance/check-out');
+            $photoPath = $request->photo ? $this->saveBase64Image($request->photo, 'attendance/check-out') : null;
 
             // Update attendance
             $attendance->update([
                 'check_out' => now()->format('H:i:s'),
                 'photo_out' => $photoPath,
-                'location_out' => $request->latitude . ',' . $request->longitude,
+                'location_out' => $request->latitude && $request->longitude ? $request->latitude . ',' . $request->longitude : null,
             ]);
 
             return response()->json([

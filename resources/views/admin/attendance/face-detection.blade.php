@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Face Detection Absensi')
+@section('title', 'Absensi Manual')
 
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
         <!-- Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="fw-bold mb-0">
-                <span class="text-muted fw-light">Absensi /</span> Face Detection
+                <span class="text-muted fw-light">Absensi /</span> Manual
             </h4>
         </div>
 
@@ -16,7 +16,7 @@
             <div class="col-xl-8 col-lg-7 mx-auto">
                 <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Absensi dengan Face Detection</h5>
+                        <h5 class="mb-0">Absensi Manual Karyawan</h5>
                         <span class="badge bg-primary" id="currentTime"></span>
                     </div>
                     <div class="card-body">
@@ -37,58 +37,69 @@
                         <!-- Scan Section -->
                         <div class="text-center mb-4" id="scanSection">
                             <div class="mb-3">
-                                <label class="form-label">Pilih Karyawan</label>
-                                <select class="form-select" id="employeeSelect">
+                                <label class="form-label">Cari atau Pilih Karyawan</label>
+                                <select class="form-select searchable-select" id="employeeSelect">
                                     <option value="">-- Pilih Karyawan --</option>
                                 </select>
                             </div>
 
-                            <div id="cameraSection" style="display: none;">
-                                <!-- Camera Preview -->
-                                <div class="position-relative mb-3">
-                                    <video id="videoElement" width="100%" height="400" autoplay playsinline
-                                        class="rounded border"></video>
-                                    <canvas id="canvasElement" style="display: none;"></canvas>
-
-                                    <!-- Face Detection Overlay -->
-                                    <div id="faceDetectionOverlay" class="position-absolute top-0 start-0 w-100 h-100"
-                                        style="pointer-events: none;">
-                                        <!-- Face box will be drawn here -->
+                            <div id="attendanceForm" style="display: none;">
+                                <!-- Check In Form -->
+                                <div id="checkInForm" class="mb-3" style="display: none;">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Jam Check In</label>
+                                            <input type="time" class="form-control" id="checkInTimeInput" />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">&nbsp;</label>
+                                            <button type="button" class="btn btn-sm btn-info w-100"
+                                                id="setCurrentCheckInTime">
+                                                <i class='bx bx-time me-1'></i>
+                                                Jam Sekarang
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-
-                                <!-- Capture Button -->
-                                <div class="d-grid gap-2 mb-3">
-                                    <button type="button" class="btn btn-lg btn-primary" id="captureBtn">
-                                        <i class='bx bx-camera me-2'></i>
-                                        Ambil Foto
-                                    </button>
-                                </div>
-
-                                <!-- Preview Captured Image -->
-                                <div id="capturedPreview" style="display: none;" class="mb-3">
-                                    <img id="capturedImage" class="img-fluid rounded border" alt="Captured">
-                                    <div class="d-grid gap-2 mt-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Catatan Check In</label>
+                                        <textarea class="form-control" id="checkInNotes" rows="2" placeholder="Masukkan catatan (opsional)"></textarea>
+                                    </div>
+                                    <div class="d-grid gap-2 mb-3">
                                         <button type="button" class="btn btn-success btn-lg" id="checkInBtn">
                                             <i class='bx bx-log-in me-2'></i>
                                             Check In
                                         </button>
+                                    </div>
+                                </div>
+
+                                <!-- Check Out Form -->
+                                <div id="checkOutForm" class="mb-3" style="display: none;">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Jam Check Out</label>
+                                            <input type="time" class="form-control" id="checkOutTimeInput" />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">&nbsp;</label>
+                                            <button type="button" class="btn btn-sm btn-info w-100"
+                                                id="setCurrentCheckOutTime">
+                                                <i class='bx bx-time me-1'></i>
+                                                Jam Sekarang
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Catatan Check Out</label>
+                                        <textarea class="form-control" id="checkOutNotes" rows="2" placeholder="Masukkan catatan (opsional)"></textarea>
+                                    </div>
+                                    <div class="d-grid gap-2 mb-3">
                                         <button type="button" class="btn btn-warning btn-lg" id="checkOutBtn">
                                             <i class='bx bx-log-out me-2'></i>
                                             Check Out
                                         </button>
-                                        <button type="button" class="btn btn-secondary" id="retakeBtn">
-                                            <i class='bx bx-refresh me-2'></i>
-                                            Ambil Ulang
-                                        </button>
                                     </div>
                                 </div>
                             </div>
-
-                            <button type="button" class="btn btn-primary" id="startCameraBtn">
-                                <i class='bx bx-camera me-2'></i>
-                                Mulai Kamera
-                            </button>
                         </div>
 
                         <!-- Status Today -->
@@ -130,17 +141,15 @@
                         <h6 class="card-title">Petunjuk Penggunaan</h6>
                         <ol class="mb-0">
                             <li>Pilih nama karyawan dari dropdown</li>
-                            <li>Klik tombol "Mulai Kamera"</li>
-                            <li>Posisikan wajah Anda di tengah kamera</li>
-                            <li>Pastikan wajah terdeteksi dengan jelas</li>
-                            <li>Klik "Ambil Foto" untuk capture</li>
-                            <li>Pilih "Check In" atau "Check Out"</li>
-                            <li>Sistem akan memverifikasi wajah Anda</li>
+                            <li>Data karyawan akan ditampilkan secara otomatis</li>
+                            <li>Klik tombol "Check In" untuk masuk</li>
+                            <li>Klik tombol "Check Out" untuk pulang</li>
+                            <li>Tambahkan catatan jika diperlukan (opsional)</li>
+                            <li>Sistem akan mencatat waktu otomatis</li>
                         </ol>
                         <div class="alert alert-warning mt-3 mb-0">
                             <i class='bx bx-info-circle me-2'></i>
-                            <strong>Catatan:</strong> Pastikan pencahayaan cukup dan wajah terlihat jelas untuk hasil
-                            terbaik.
+                            <strong>Catatan:</strong> Pastikan karyawan yang dipilih sudah benar sebelum melakukan absensi.
                         </div>
                     </div>
                 </div>
@@ -149,17 +158,9 @@
     </div>
 
     @push('scripts')
-        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script>
-
         <script>
-            let video = document.getElementById('videoElement');
-            let canvas = document.getElementById('canvasElement');
-            let capturedImage = document.getElementById('capturedImage');
-            let stream = null;
-            let model = null;
             let selectedEmployeeId = null;
-            let capturedPhoto = null;
+            let allEmployees = [];
 
             // Update current time
             function updateTime() {
@@ -172,54 +173,78 @@
             // Load employees
             async function loadEmployees() {
                 try {
-                    const response = await fetch('/api/karyawan/master-data');
+                    const response = await fetch('/api/karyawan');
                     const result = await response.json();
 
                     const select = document.getElementById('employeeSelect');
                     select.innerHTML = '<option value="">-- Pilih Karyawan --</option>';
 
-                    const employees = await fetch('/api/karyawan').then(r => r.json());
-                    employees.data.data.forEach(emp => {
-                        const option = document.createElement('option');
-                        option.value = emp.id;
-                        option.textContent = `${emp.employee_code} - ${emp.name}`;
-                        select.appendChild(option);
-                    });
+                    if (result.data && result.data.data) {
+                        allEmployees = result.data.data;
+                        result.data.data.forEach(emp => {
+                            const option = document.createElement('option');
+                            option.value = emp.id;
+                            option.textContent = `${emp.employee_code} - ${emp.name}`;
+                            option.setAttribute('data-name', emp.name);
+                            option.setAttribute('data-code', emp.employee_code);
+                            select.appendChild(option);
+                        });
+
+                        // Initialize Select2
+                        $('#employeeSelect').select2({
+                            placeholder: '-- Cari dan Pilih Karyawan --',
+                            allowClear: true,
+                            language: {
+                                noResults: function() {
+                                    return "Tidak ada karyawan yang ditemukan";
+                                },
+                                searching: function() {
+                                    return "Mencari...";
+                                }
+                            }
+                        });
+
+                        // Handle Select2 change event
+                        $('#employeeSelect').on('change', async function() {
+                            selectedEmployeeId = this.value;
+
+                            if (selectedEmployeeId) {
+                                try {
+                                    const response = await fetch(`/api/karyawan/${selectedEmployeeId}`);
+                                    const result = await response.json();
+                                    const emp = result.data;
+
+                                    document.getElementById('empName').textContent = emp.name;
+                                    document.getElementById('empDetails').textContent =
+                                        `${emp.employee_code} - ${emp.department.name} - ${emp.position.name}`;
+                                    document.getElementById('employeeInfo').style.display = 'block';
+
+                                    // Check today's attendance
+                                    checkTodayAttendance();
+                                } catch (error) {
+                                    console.error('Error loading employee:', error);
+                                    Swal.fire('Error', 'Gagal memuat data karyawan', 'error');
+                                }
+                            } else {
+                                document.getElementById('employeeInfo').style.display = 'none';
+                                document.getElementById('attendanceForm').style.display = 'none';
+                                document.getElementById('statusToday').style.display = 'none';
+                            }
+                        });
+                    }
                 } catch (error) {
                     console.error('Error loading employees:', error);
+                    Swal.fire('Error', 'Gagal memuat data karyawan', 'error');
                 }
             }
-
-            // Employee selection
-            document.getElementById('employeeSelect').addEventListener('change', async function() {
-                selectedEmployeeId = this.value;
-
-                if (selectedEmployeeId) {
-                    try {
-                        const response = await fetch(`/api/karyawan/${selectedEmployeeId}`);
-                        const result = await response.json();
-                        const emp = result.data;
-
-                        document.getElementById('empName').textContent = emp.name;
-                        document.getElementById('empDetails').textContent =
-                            `${emp.employee_code} - ${emp.department.name} - ${emp.position.name}`;
-                        document.getElementById('employeeInfo').style.display = 'block';
-
-                        // Check today's attendance
-                        checkTodayAttendance();
-                    } catch (error) {
-                        console.error('Error loading employee:', error);
-                    }
-                } else {
-                    document.getElementById('employeeInfo').style.display = 'none';
-                }
-            });
 
             // Check today's attendance
             async function checkTodayAttendance() {
                 try {
                     const response = await fetch(`/api/attendance/today/${selectedEmployeeId}`);
                     const result = await response.json();
+
+                    document.getElementById('attendanceForm').style.display = 'block';
 
                     if (result.data) {
                         const att = result.data;
@@ -232,120 +257,55 @@
                             document.getElementById('lateBadge').textContent =
                                 `Terlambat ${att.late_minutes} menit`;
                             document.getElementById('lateBadge').style.display = 'inline-block';
+                        } else {
+                            document.getElementById('lateBadge').style.display = 'none';
                         }
 
-                        // Hide check-in button if already checked in
-                        if (att.check_in) {
-                            document.getElementById('checkInBtn').style.display = 'none';
-                        }
-
-                        // Hide check-out button if already checked out
-                        if (att.check_out) {
-                            document.getElementById('checkOutBtn').style.display = 'none';
+                        // Show/hide check-in and check-out forms
+                        if (att.check_in && att.check_out) {
+                            // Sudah check-in dan check-out
+                            document.getElementById('checkInForm').style.display = 'none';
+                            document.getElementById('checkOutForm').style.display = 'none';
+                        } else if (att.check_in) {
+                            // Sudah check-in, tampilkan form check-out
+                            document.getElementById('checkInForm').style.display = 'none';
+                            document.getElementById('checkOutForm').style.display = 'block';
+                        } else {
+                            // Belum check-in, tampilkan form check-in
+                            document.getElementById('checkInForm').style.display = 'block';
+                            document.getElementById('checkOutForm').style.display = 'none';
                         }
                     } else {
+                        // Tidak ada data attendance hari ini
                         document.getElementById('statusToday').style.display = 'none';
+                        document.getElementById('checkInForm').style.display = 'block';
+                        document.getElementById('checkOutForm').style.display = 'none';
                     }
                 } catch (error) {
                     console.error('Error checking attendance:', error);
+                    // Jika error, tampilkan form check-in
+                    document.getElementById('attendanceForm').style.display = 'block';
+                    document.getElementById('checkInForm').style.display = 'block';
+                    document.getElementById('checkOutForm').style.display = 'none';
+                    document.getElementById('statusToday').style.display = 'none';
                 }
             }
 
-            // Start camera
-            document.getElementById('startCameraBtn').addEventListener('click', async function() {
+            // Check In
+            document.getElementById('checkInBtn').addEventListener('click', async function() {
                 if (!selectedEmployeeId) {
                     Swal.fire('Error', 'Pilih karyawan terlebih dahulu', 'error');
                     return;
                 }
 
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        video: {
-                            width: 640,
-                            height: 480,
-                            facingMode: 'user'
-                        }
-                    });
-                    video.srcObject = stream;
-
-                    document.getElementById('cameraSection').style.display = 'block';
-                    this.style.display = 'none';
-
-                    // Load face detection model
-                    if (!model) {
-                        model = await blazeface.load();
-                        console.log('Face detection model loaded');
-                        detectFaces();
-                    }
-                } catch (error) {
-                    console.error('Error accessing camera:', error);
-                    Swal.fire('Error', 'Gagal mengakses kamera. Pastikan izin kamera diberikan.', 'error');
-                }
-            });
-
-            // Face detection loop
-            async function detectFaces() {
-                if (!video.srcObject) return;
-
-                const predictions = await model.estimateFaces(video, false);
-
-                // Draw face box (optional visual feedback)
-                if (predictions.length > 0) {
-                    // Face detected - you can add visual feedback here
-                }
-
-                requestAnimationFrame(detectFaces);
-            }
-
-            // Capture photo
-            document.getElementById('captureBtn').addEventListener('click', function() {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(video, 0, 0);
-
-                capturedPhoto = canvas.toDataURL('image/png');
-                capturedImage.src = capturedPhoto;
-
-                document.getElementById('capturedPreview').style.display = 'block';
-                video.style.display = 'none';
-                document.getElementById('captureBtn').style.display = 'none';
-            });
-
-            // Retake photo
-            document.getElementById('retakeBtn').addEventListener('click', function() {
-                document.getElementById('capturedPreview').style.display = 'none';
-                video.style.display = 'block';
-                document.getElementById('captureBtn').style.display = 'block';
-                capturedPhoto = null;
-            });
-
-            // Get current location
-            function getCurrentLocation() {
-                return new Promise((resolve, reject) => {
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(
-                            position => resolve({
-                                latitude: position.coords.latitude,
-                                longitude: position.coords.longitude
-                            }),
-                            error => reject(error)
-                        );
-                    } else {
-                        reject(new Error('Geolocation not supported'));
-                    }
-                });
-            }
-
-            // Check In
-            document.getElementById('checkInBtn').addEventListener('click', async function() {
-                if (!capturedPhoto) {
-                    Swal.fire('Error', 'Ambil foto terlebih dahulu', 'error');
+                const checkInTime = document.getElementById('checkInTimeInput').value;
+                if (!checkInTime) {
+                    Swal.fire('Error', 'Masukkan jam check in terlebih dahulu', 'error');
                     return;
                 }
 
                 try {
-                    const location = await getCurrentLocation();
+                    const notes = document.getElementById('checkInNotes').value;
 
                     const response = await fetch('/api/attendance/check-in', {
                         method: 'POST',
@@ -355,20 +315,20 @@
                         },
                         body: JSON.stringify({
                             employee_id: selectedEmployeeId,
-                            photo: capturedPhoto,
-                            latitude: location.latitude,
-                            longitude: location.longitude
+                            check_in_time: checkInTime,
+                            notes: notes
                         })
                     });
 
                     const result = await response.json();
 
                     if (result.success) {
-                        Swal.fire('Berhasil', result.message, 'success');
+                        toastr.success(result.message || 'Check in berhasil dicatat');
+                        document.getElementById('checkInNotes').value = '';
+                        document.getElementById('checkInTimeInput').value = '';
                         checkTodayAttendance();
-                        resetCamera();
                     } else {
-                        Swal.fire('Error', result.message, 'error');
+                        Swal.fire('Error', result.message || 'Gagal melakukan check-in', 'error');
                     }
                 } catch (error) {
                     console.error('Check-in error:', error);
@@ -378,13 +338,19 @@
 
             // Check Out
             document.getElementById('checkOutBtn').addEventListener('click', async function() {
-                if (!capturedPhoto) {
-                    Swal.fire('Error', 'Ambil foto terlebih dahulu', 'error');
+                if (!selectedEmployeeId) {
+                    Swal.fire('Error', 'Pilih karyawan terlebih dahulu', 'error');
+                    return;
+                }
+
+                const checkOutTime = document.getElementById('checkOutTimeInput').value;
+                if (!checkOutTime) {
+                    Swal.fire('Error', 'Masukkan jam check out terlebih dahulu', 'error');
                     return;
                 }
 
                 try {
-                    const location = await getCurrentLocation();
+                    const notes = document.getElementById('checkOutNotes').value;
 
                     const response = await fetch('/api/attendance/check-out', {
                         method: 'POST',
@@ -394,20 +360,20 @@
                         },
                         body: JSON.stringify({
                             employee_id: selectedEmployeeId,
-                            photo: capturedPhoto,
-                            latitude: location.latitude,
-                            longitude: location.longitude
+                            check_out_time: checkOutTime,
+                            notes: notes
                         })
                     });
 
                     const result = await response.json();
 
                     if (result.success) {
-                        Swal.fire('Berhasil', result.message, 'success');
+                        toastr.success(result.message || 'Check out berhasil dicatat');
+                        document.getElementById('checkOutNotes').value = '';
+                        document.getElementById('checkOutTimeInput').value = '';
                         checkTodayAttendance();
-                        resetCamera();
                     } else {
-                        Swal.fire('Error', result.message, 'error');
+                        Swal.fire('Error', result.message || 'Gagal melakukan check-out', 'error');
                     }
                 } catch (error) {
                     console.error('Check-out error:', error);
@@ -415,20 +381,21 @@
                 }
             });
 
-            // Reset camera
-            function resetCamera() {
-                if (stream) {
-                    stream.getTracks().forEach(track => track.stop());
-                    stream = null;
-                }
-                video.srcObject = null;
-                document.getElementById('cameraSection').style.display = 'none';
-                document.getElementById('capturedPreview').style.display = 'none';
-                document.getElementById('startCameraBtn').style.display = 'block';
-                video.style.display = 'block';
-                document.getElementById('captureBtn').style.display = 'block';
-                capturedPhoto = null;
-            }
+            // Set current time for check in
+            document.getElementById('setCurrentCheckInTime').addEventListener('click', function() {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                document.getElementById('checkInTimeInput').value = `${hours}:${minutes}`;
+            });
+
+            // Set current time for check out
+            document.getElementById('setCurrentCheckOutTime').addEventListener('click', function() {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                document.getElementById('checkOutTimeInput').value = `${hours}:${minutes}`;
+            });
 
             // Initialize
             loadEmployees();

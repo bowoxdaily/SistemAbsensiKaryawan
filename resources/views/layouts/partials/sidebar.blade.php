@@ -123,6 +123,11 @@
                             <div data-i18n="Daftar Absensi">Daftar Absensi</div>
                         </a>
                     </li>
+                    <li class="menu-item {{ request()->routeIs('admin.attendance.manual') ? 'active' : '' }}">
+                        <a href="{{ route('admin.attendance.manual') }}" class="menu-link">
+                            <div data-i18n="Absensi Manual">Absensi Manual</div>
+                        </a>
+                    </li>
                     <li class="menu-item {{ request()->routeIs('admin.attendance.report') ? 'active' : '' }}">
                         <a href="{{ route('admin.attendance.report') }}" class="menu-link">
                             <div data-i18n="Rekap">Rekap & Laporan</div>
