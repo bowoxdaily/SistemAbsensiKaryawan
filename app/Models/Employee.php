@@ -152,10 +152,34 @@ class Employee extends Model
     }
 
     /**
+     * Accessor untuk birth_date - pastikan selalu dalam format Y-m-d
+     */
+    public function getBirthDateAttribute($value)
+    {
+        return $value ? $this->asDate($value)->format('Y-m-d') : null;
+    }
+
+    /**
+     * Accessor untuk join_date - pastikan selalu dalam format Y-m-d
+     */
+    public function getJoinDateAttribute($value)
+    {
+        return $value ? $this->asDate($value)->format('Y-m-d') : null;
+    }
+
+    /**
+     * Accessor untuk tanggal_resign - pastikan selalu dalam format Y-m-d
+     */
+    public function getTanggalResignAttribute($value)
+    {
+        return $value ? $this->asDate($value)->format('Y-m-d') : null;
+    }
+
+    /**
      * Accessor untuk umur
      */
-    public function getAgeAttribute(): int
+    public function getAgeAttribute(): ?int
     {
-        return $this->birth_date->age;
+        return $this->birth_date ? \Carbon\Carbon::parse($this->birth_date)->age : null;
     }
 }

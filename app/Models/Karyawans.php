@@ -90,4 +90,28 @@ class Karyawans extends Model
     {
         return $this->belongsTo(WorkSchedule::class, 'work_schedule_id');
     }
+
+    /**
+     * Accessor untuk birth_date - pastikan selalu dalam format Y-m-d
+     */
+    public function getBirthDateAttribute($value)
+    {
+        return $value ? $this->asDate($value)->format('Y-m-d') : null;
+    }
+
+    /**
+     * Accessor untuk join_date - pastikan selalu dalam format Y-m-d
+     */
+    public function getJoinDateAttribute($value)
+    {
+        return $value ? $this->asDate($value)->format('Y-m-d') : null;
+    }
+
+    /**
+     * Accessor untuk tanggal_resign - pastikan selalu dalam format Y-m-d
+     */
+    public function getTanggalResignAttribute($value)
+    {
+        return $value ? $this->asDate($value)->format('Y-m-d') : null;
+    }
 }

@@ -1287,11 +1287,8 @@
                     $('#gender').val(k.gender);
                     $('#birth_place').val(k.birth_place);
 
-                    // Format tanggal untuk input type="date" (YYYY-MM-DD)
-                    if (k.birth_date) {
-                        const birthDate = new Date(k.birth_date);
-                        $('#birth_date').val(birthDate.toISOString().split('T')[0]);
-                    }
+                    // Set tanggal lahir langsung (sudah dalam format Y-m-d dari API)
+                    $('#birth_date').val(k.birth_date || '');
 
                     $('#marital_status').val(k.marital_status);
                     $('#tanggungan_anak').val(k.tanggungan_anak || 0);
@@ -1312,20 +1309,16 @@
                     // Set dropdown value for Pendidikan Terakhir
                     $('#lulusan_sekolah').val(k.lulusan_sekolah);
 
-                    // Format tanggal bergabung
-                    if (k.join_date) {
-                        const joinDate = new Date(k.join_date);
-                        $('#join_date').val(joinDate.toISOString().split('T')[0]);
-                    }
+                    // Set tanggal bergabung langsung (sudah dalam format Y-m-d dari API)
+                    $('#join_date').val(k.join_date || '');
 
                     $('#employment_status').val(k.employment_status);
                     $('#work_schedule_id').val(k.work_schedule_id);
                     $('#status').val(k.status);
 
-                    // Toggle tanggal resign
+                    // Toggle tanggal resign - set langsung tanpa konversi timezone
                     if (k.status === 'resign' && k.tanggal_resign) {
-                        const resignDate = new Date(k.tanggal_resign);
-                        $('#tanggal_resign').val(resignDate.toISOString().split('T')[0]);
+                        $('#tanggal_resign').val(k.tanggal_resign);
                         $('#resignDateContainer').show();
                     } else {
                         $('#resignDateContainer').hide();
@@ -1365,7 +1358,7 @@
                 name: $('#name').val(),
                 gender: $('#gender').val(),
                 birth_place: $('#birth_place').val(),
-                birth_date: $('#birth_date').val(),
+                birth_date: formatDateForSubmission($('#birth_date').val()),
                 marital_status: $('#marital_status').val(),
                 tanggungan_anak: $('#tanggungan_anak').val() || 0,
                 agama: $('#agama').val(),
@@ -1378,11 +1371,11 @@
                 sub_department_id: $('#sub_department_id').val(),
                 position_id: $('#position_id').val(),
                 lulusan_sekolah: $('#lulusan_sekolah').val(), // Pendidikan Terakhir dari dropdown
-                join_date: $('#join_date').val(),
+                join_date: formatDateForSubmission($('#join_date').val()),
                 employment_status: $('#employment_status').val(),
                 work_schedule_id: $('#work_schedule_id').val(),
                 status: $('#status').val(),
-                tanggal_resign: $('#tanggal_resign').val(),
+                tanggal_resign: formatDateForSubmission($('#tanggal_resign').val()),
                 bank: $('#bank').val(),
                 nomor_rekening: $('#nomor_rekening').val(),
                 tax_npwp: $('#tax_npwp').val(),
@@ -1431,6 +1424,44 @@
             });
         }
 
+        // Format date from Y-m-d or ISO to dd-mm-yyyy (timezone-safe)
+        function formatDateToDisplay(dateString) {
+            if (!dateString || dateString === '-') return '-';
+
+            // Extract date part only (ignore time and timezone)
+            let datePart = dateString;
+            if (dateString.includes('T')) {
+                // ISO format: 2025-10-27T17:00:00.000000Z -> 2025-10-27
+                datePart = dateString.split('T')[0];
+            }
+
+            // Parse Y-m-d format manually (no timezone conversion)
+            const [year, month, day] = datePart.split('-');
+
+            // Return in dd-mm-yyyy format
+            return `${day}-${month}-${year}`;
+        }
+
+        // Helper function to ensure date is in Y-m-d format for form submission (timezone-safe)
+        function formatDateForSubmission(dateString) {
+            if (!dateString) return '';
+
+            // If already in Y-m-d format, return as is
+            if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+                return dateString;
+            }
+
+            // If it's a date object, format to Y-m-d
+            if (dateString instanceof Date) {
+                const year = dateString.getFullYear();
+                const month = String(dateString.getMonth() + 1).padStart(2, '0');
+                const day = String(dateString.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            return dateString;
+        }
+
         function showDetail(id) {
             $.ajax({
                 url: `/api/karyawan/${id}`,
@@ -1438,33 +1469,17 @@
                 success: function(response) {
                     const k = response.data;
 
-                    // Format tanggal lahir (hanya tanggal, tanpa jam)
-                    let birthDateFormatted = k.birth_date;
-                    if (k.birth_date) {
-                        const birthDate = new Date(k.birth_date);
-                        birthDateFormatted = birthDate.toISOString().split('T')[0];
-                    }
-
-                    // Format tanggal bergabung
-                    let joinDateFormatted = k.join_date;
-                    if (k.join_date) {
-                        const joinDate = new Date(k.join_date);
-                        joinDateFormatted = joinDate.toISOString().split('T')[0];
-                    }
-
-                    // Format tanggal resign
-                    let resignDateFormatted = '-';
-                    if (k.tanggal_resign) {
-                        const resignDate = new Date(k.tanggal_resign);
-                        resignDateFormatted = resignDate.toISOString().split('T')[0];
-                    }
+                    // Format tanggal ke dd-mm-yyyy
+                    const birthDateFormatted = formatDateToDisplay(k.birth_date);
+                    const joinDateFormatted = formatDateToDisplay(k.join_date);
+                    const resignDateFormatted = formatDateToDisplay(k.tanggal_resign);
 
                     // Data Pribadi
                     $('#detailEmployeeCode').text(k.employee_code);
                     $('#detailNik').text(k.nik || '-');
                     $('#detailName').text(k.name);
                     $('#detailGender').text(k.gender === 'L' ? 'Laki-laki' : 'Perempuan');
-                    $('#detailBirth').text(`${k.birth_place}, ${birthDateFormatted}`);
+                    $('#detailBirth').text(`${k.birth_place || '-'}, ${birthDateFormatted}`);
                     $('#detailAgama').text(k.agama || '-');
                     $('#detailBangsa').text(k.bangsa || '-');
                     $('#detailStatusKependudukan').text(k.status_kependudukan || '-');
