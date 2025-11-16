@@ -59,6 +59,11 @@
                             <div id="attendanceForm" style="display: none;">
                                 <!-- Check In Form -->
                                 <div id="checkInForm" class="mb-3" style="display: none;">
+                                    <div class="alert alert-info" id="statusLockedAlert" style="display: none;">
+                                        <i class='bx bx-lock-alt me-2'></i>
+                                        <strong>Status Terkunci:</strong> Status absensi tidak dapat diubah setelah data
+                                        tersimpan.
+                                    </div>
                                     <div class="mb-3">
                                         <label class="form-label">Status Absensi</label>
                                         <select class="form-select" id="attendanceStatus">
@@ -69,7 +74,7 @@
                                             <option value="cuti">Cuti</option>
                                             <option value="alpha">Alpha (Tanpa Keterangan)</option>
                                         </select>
-                                        <div class="form-text">Pilih status absensi karyawan</div>
+                                        <div class="form-text" id="statusHelpText">Pilih status absensi karyawan</div>
                                     </div>
                                     <div class="row mb-3" id="checkInTimeSection">
                                         <div class="col-md-6">
@@ -282,7 +287,8 @@
             // Load employees
             async function loadEmployees() {
                 try {
-                    const response = await fetch('/api/karyawan');
+                    // Load ALL employees without pagination limit
+                    const response = await fetch('/api/karyawan?per_page=1000&status=active');
                     const result = await response.json();
 
                     const select = document.getElementById('employeeSelect');
@@ -408,23 +414,45 @@
 
                         // Show/hide check-in and check-out forms
                         if (att.check_in && att.check_out) {
-                            // Sudah check-in dan check-out
+                            // Sudah check-in dan check-out - sembunyikan semua form
                             document.getElementById('checkInForm').style.display = 'none';
                             document.getElementById('checkOutForm').style.display = 'none';
-                        } else if (att.check_in) {
-                            // Sudah check-in, tampilkan form check-out
-                            document.getElementById('checkInForm').style.display = 'none';
-                            document.getElementById('checkOutForm').style.display = 'block';
+                        } else if (att.check_in || att.status) {
+                            // Sudah ada data absensi (check-in atau status sudah tercatat)
+                            // Jika status bukan hadir/terlambat, tidak perlu form check-out
+                            const statusesWithoutCheckOut = ['alpha', 'cuti', 'sakit', 'izin'];
+
+                            if (statusesWithoutCheckOut.includes(att.status.toLowerCase())) {
+                                // Status tanpa check-out, sembunyikan semua form
+                                document.getElementById('checkInForm').style.display = 'none';
+                                document.getElementById('checkOutForm').style.display = 'none';
+                            } else {
+                                // Status hadir/terlambat, tampilkan form check-out
+                                document.getElementById('checkInForm').style.display = 'none';
+                                document.getElementById('checkOutForm').style.display = 'block';
+                            }
                         } else {
                             // Belum check-in, tampilkan form check-in
                             document.getElementById('checkInForm').style.display = 'block';
                             document.getElementById('checkOutForm').style.display = 'none';
                         }
                     } else {
-                        // Tidak ada data attendance hari ini
+                        // Tidak ada data attendance - tampilkan form check-in
                         document.getElementById('statusToday').style.display = 'none';
                         document.getElementById('checkInForm').style.display = 'block';
                         document.getElementById('checkOutForm').style.display = 'none';
+
+                        // Reset dan enable status dropdown untuk input baru
+                        const statusDropdown = document.getElementById('attendanceStatus');
+                        statusDropdown.disabled = false;
+                        statusDropdown.value = 'hadir';
+
+                        // Hide locked alert
+                        document.getElementById('statusLockedAlert').style.display = 'none';
+
+                        // Show time section for default 'hadir'
+                        const timeSection = document.getElementById('checkInTimeSection');
+                        timeSection.style.display = 'flex';
                     }
                 } catch (error) {
                     console.error('Error checking attendance:', error);
@@ -474,10 +502,20 @@
                     const result = await response.json();
 
                     if (result.success) {
-                        toastr.success(result.message || 'Check in berhasil dicatat');
+                        toastr.success(result.message || 'Absensi berhasil dicatat');
+
+                        // Clear form
                         document.getElementById('checkInNotes').value = '';
                         document.getElementById('checkInTimeInput').value = '';
-                        document.getElementById('attendanceStatus').value = 'hadir';
+
+                        // Disable status dropdown after successful save
+                        const statusDropdown = document.getElementById('attendanceStatus');
+                        statusDropdown.disabled = true;
+
+                        // Show locked alert
+                        document.getElementById('statusLockedAlert').style.display = 'block';
+
+                        // Reload attendance data
                         checkAttendanceByDate();
                     } else {
                         Swal.fire('Error', result.message || 'Gagal melakukan check-in', 'error');
