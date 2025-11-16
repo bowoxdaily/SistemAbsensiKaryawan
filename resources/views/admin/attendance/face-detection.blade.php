@@ -43,6 +43,19 @@
                                 </select>
                             </div>
 
+                            <!-- Date Selection -->
+                            <div class="mb-3">
+                                <label class="form-label">Tanggal Absensi</label>
+                                <div class="input-group">
+                                    <input type="date" class="form-control" id="attendanceDate" />
+                                    <button type="button" class="btn btn-outline-primary" id="setTodayDate">
+                                        <i class='bx bx-calendar me-1'></i>
+                                        Hari Ini
+                                    </button>
+                                </div>
+                                <div class="form-text">Pilih tanggal untuk input atau koreksi absensi</div>
+                            </div>
+
                             <div id="attendanceForm" style="display: none;">
                                 <!-- Check In Form -->
                                 <div id="checkInForm" class="mb-3" style="display: none;">
@@ -141,6 +154,7 @@
                         <h6 class="card-title">Petunjuk Penggunaan</h6>
                         <ol class="mb-0">
                             <li>Pilih nama karyawan dari dropdown</li>
+                            <li>Pilih tanggal absensi (default: hari ini)</li>
                             <li>Data karyawan akan ditampilkan secara otomatis</li>
                             <li>Klik tombol "Check In" untuk masuk</li>
                             <li>Klik tombol "Check Out" untuk pulang</li>
@@ -149,7 +163,8 @@
                         </ol>
                         <div class="alert alert-warning mt-3 mb-0">
                             <i class='bx bx-info-circle me-2'></i>
-                            <strong>Catatan:</strong> Pastikan karyawan yang dipilih sudah benar sebelum melakukan absensi.
+                            <strong>Catatan:</strong> Pastikan karyawan dan tanggal yang dipilih sudah benar sebelum
+                            melakukan absensi.
                         </div>
                     </div>
                 </div>
@@ -161,6 +176,7 @@
         <script>
             let selectedEmployeeId = null;
             let allEmployees = [];
+            let selectedDate = null;
 
             // Update current time
             function updateTime() {
@@ -169,6 +185,31 @@
             }
             updateTime();
             setInterval(updateTime, 1000);
+
+            // Set default date to today
+            function setDefaultDate() {
+                const today = new Date();
+                const dateString = today.toISOString().split('T')[0];
+                document.getElementById('attendanceDate').value = dateString;
+                selectedDate = dateString;
+            }
+            setDefaultDate();
+
+            // Set today date button
+            document.getElementById('setTodayDate').addEventListener('click', function() {
+                setDefaultDate();
+                if (selectedEmployeeId) {
+                    checkAttendanceByDate();
+                }
+            });
+
+            // Date change handler
+            document.getElementById('attendanceDate').addEventListener('change', function() {
+                selectedDate = this.value;
+                if (selectedEmployeeId) {
+                    checkAttendanceByDate();
+                }
+            });
 
             // Load employees
             async function loadEmployees() {
@@ -219,8 +260,8 @@
                                         `${emp.employee_code} - ${emp.department.name} - ${emp.position.name}`;
                                     document.getElementById('employeeInfo').style.display = 'block';
 
-                                    // Check today's attendance
-                                    checkTodayAttendance();
+                                    // Check attendance by selected date
+                                    checkAttendanceByDate();
                                 } catch (error) {
                                     console.error('Error loading employee:', error);
                                     Swal.fire('Error', 'Gagal memuat data karyawan', 'error');
@@ -238,10 +279,15 @@
                 }
             }
 
-            // Check today's attendance
-            async function checkTodayAttendance() {
+            // Check attendance by date
+            async function checkAttendanceByDate() {
+                if (!selectedEmployeeId || !selectedDate) {
+                    return;
+                }
+
                 try {
-                    const response = await fetch(`/api/attendance/today/${selectedEmployeeId}`);
+                    const response = await fetch(
+                        `/api/attendance/by-date/${selectedEmployeeId}?date=${selectedDate}`);
                     const result = await response.json();
 
                     document.getElementById('attendanceForm').style.display = 'block';
@@ -315,6 +361,7 @@
                         },
                         body: JSON.stringify({
                             employee_id: selectedEmployeeId,
+                            date: selectedDate,
                             check_in_time: checkInTime,
                             notes: notes
                         })
@@ -326,7 +373,7 @@
                         toastr.success(result.message || 'Check in berhasil dicatat');
                         document.getElementById('checkInNotes').value = '';
                         document.getElementById('checkInTimeInput').value = '';
-                        checkTodayAttendance();
+                        checkAttendanceByDate();
                     } else {
                         Swal.fire('Error', result.message || 'Gagal melakukan check-in', 'error');
                     }
@@ -360,6 +407,7 @@
                         },
                         body: JSON.stringify({
                             employee_id: selectedEmployeeId,
+                            date: selectedDate,
                             check_out_time: checkOutTime,
                             notes: notes
                         })
@@ -371,7 +419,7 @@
                         toastr.success(result.message || 'Check out berhasil dicatat');
                         document.getElementById('checkOutNotes').value = '';
                         document.getElementById('checkOutTimeInput').value = '';
-                        checkTodayAttendance();
+                        checkAttendanceByDate();
                     } else {
                         Swal.fire('Error', result.message || 'Gagal melakukan check-out', 'error');
                     }

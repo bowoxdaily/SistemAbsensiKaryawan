@@ -118,15 +118,36 @@ class AttendanceController extends Controller
     }
 
     /**
+     * Get attendance by date for specific employee
+     */
+    public function getAttendanceByDate($employeeId, Request $request)
+    {
+        $date = $request->query('date', today()->format('Y-m-d'));
+
+        $attendance = Attendance::where('employee_id', $employeeId)
+            ->whereDate('attendance_date', $date)
+            ->first();
+
+        return response()->json([
+            'success' => true,
+            'data' => $attendance,
+            'date' => $date
+        ]);
+    }
+
+    /**
      * Check in with face detection
      */
     public function checkIn(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'employee_id' => 'required|exists:employees,id',
+            'date' => 'nullable|date',
+            'check_in_time' => 'nullable|date_format:H:i',
             'photo' => 'nullable|string', // Base64 image
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
+            'notes' => 'nullable|string|max:500',
         ]);
 
         if ($validator->fails()) {
@@ -138,36 +159,70 @@ class AttendanceController extends Controller
         }
 
         try {
-            // Check if already checked in today
+            // Use provided date or today
+            $attendanceDate = $request->date ? Carbon::parse($request->date)->startOfDay() : today();
+            $dateString = $attendanceDate->toDateString(); // Get Y-m-d format
+
+            // Check if already checked in on this date
             $existingAttendance = Attendance::where('employee_id', $request->employee_id)
-                ->whereDate('attendance_date', today())
+                ->whereDate('attendance_date', $dateString)
                 ->first();
 
             if ($existingAttendance && $existingAttendance->check_in) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Anda sudah melakukan check-in hari ini'
+                    'message' => 'Sudah melakukan check-in pada tanggal ini'
                 ], 400);
             }
 
             // Get employee
             $employee = Karyawans::findOrFail($request->employee_id);
 
-            // Save photo
-            $photoPath = $request->photo ? $this->saveBase64Image($request->photo, 'attendance/check-in') : null;
-
             // Get work schedule to check if late
-            $checkInTime = now();
+            // Use provided time or current time
+            if ($request->check_in_time) {
+                // Clean up the time string (remove any whitespace)
+                $timeString = trim($request->check_in_time);
+                $combinedDateTime = $dateString . ' ' . $timeString;
+
+                try {
+                    $checkInTime = Carbon::createFromFormat('Y-m-d H:i', $combinedDateTime);
+                } catch (\Exception $e) {
+                    \Log::error('Check-in time parsing error:', [
+                        'dateString' => $dateString,
+                        'timeString' => $timeString,
+                        'combined' => $combinedDateTime,
+                        'error' => $e->getMessage()
+                    ]);
+                    throw new \Exception('Format waktu check-in tidak valid: ' . $e->getMessage());
+                }
+            } else {
+                $checkInTime = now();
+            }
+
             $schedule = $employee->workSchedule;
 
             $lateMinutes = 0;
-            $status = 'hadir';
+            $status = 'hadir'; // Use Indonesian: 'hadir' instead of 'present'
 
             if ($schedule) {
-                $scheduledTime = Carbon::parse($schedule->check_in_time);
-                if ($checkInTime->gt($scheduledTime)) {
-                    $lateMinutes = $checkInTime->diffInMinutes($scheduledTime);
-                    $status = 'terlambat';
+                try {
+                    // Get start time in H:i format (remove seconds if present)
+                    $startTime = substr($schedule->start_time, 0, 5); // Get HH:MM only
+                    $scheduledTime = Carbon::createFromFormat('Y-m-d H:i', $dateString . ' ' . $startTime);
+
+                    if ($checkInTime->gt($scheduledTime)) {
+                        $lateMinutes = $scheduledTime->diffInMinutes($checkInTime, false);
+                        $status = 'terlambat'; // Use Indonesian: 'terlambat' instead of 'late'
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Schedule time parsing error:', [
+                        'dateString' => $dateString,
+                        'start_time' => $schedule->start_time,
+                        'startTime' => $startTime ?? null,
+                        'error' => $e->getMessage()
+                    ]);
+                    // Continue without late calculation if schedule parsing fails
                 }
             }
 
@@ -175,20 +230,21 @@ class AttendanceController extends Controller
             $attendance = Attendance::updateOrCreate(
                 [
                     'employee_id' => $request->employee_id,
-                    'attendance_date' => today()
+                    'attendance_date' => $dateString
                 ],
                 [
                     'check_in' => $checkInTime->format('H:i:s'),
-                    'photo_in' => $photoPath,
-                    'location_in' => $request->latitude && $request->longitude ? $request->latitude . ',' . $request->longitude : null,
+                    'photo_in' => null, // Always null for manual input
+                    'location_in' => null, // Always null for manual input
                     'status' => $status,
                     'late_minutes' => $lateMinutes,
+                    'notes' => $request->notes,
                 ]
             );
 
             return response()->json([
                 'success' => true,
-                'message' => 'Check-in berhasil',
+                'message' => 'Check-in berhasil dicatat',
                 'data' => [
                     'attendance' => $attendance,
                     'late_minutes' => $lateMinutes,
@@ -210,9 +266,12 @@ class AttendanceController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'employee_id' => 'required|exists:employees,id',
+            'date' => 'nullable|date',
+            'check_out_time' => 'nullable|date_format:H:i',
             'photo' => 'nullable|string', // Base64 image
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
+            'notes' => 'nullable|string|max:500',
         ]);
 
         if ($validator->fails()) {
@@ -224,38 +283,61 @@ class AttendanceController extends Controller
         }
 
         try {
-            // Check if checked in today
+            // Use provided date or today
+            $attendanceDate = $request->date ? Carbon::parse($request->date)->startOfDay() : today();
+            $dateString = $attendanceDate->toDateString(); // Get Y-m-d format
+
+            // Check if checked in on this date
             $attendance = Attendance::where('employee_id', $request->employee_id)
-                ->whereDate('attendance_date', today())
+                ->whereDate('attendance_date', $dateString)
                 ->first();
 
             if (!$attendance || !$attendance->check_in) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Anda belum melakukan check-in hari ini'
+                    'message' => 'Belum melakukan check-in pada tanggal ini'
                 ], 400);
             }
 
             if ($attendance->check_out) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Anda sudah melakukan check-out hari ini'
+                    'message' => 'Sudah melakukan check-out pada tanggal ini'
                 ], 400);
             }
 
-            // Save photo
-            $photoPath = $request->photo ? $this->saveBase64Image($request->photo, 'attendance/check-out') : null;
+            // Use provided time or current time
+            if ($request->check_out_time) {
+                // Clean up the time string (remove any whitespace)
+                $timeString = trim($request->check_out_time);
+                $combinedDateTime = $dateString . ' ' . $timeString;
+
+                try {
+                    $checkOutTime = Carbon::createFromFormat('Y-m-d H:i', $combinedDateTime);
+                } catch (\Exception $e) {
+                    \Log::error('Check-out time parsing error:', [
+                        'dateString' => $dateString,
+                        'timeString' => $timeString,
+                        'combined' => $combinedDateTime,
+                        'error' => $e->getMessage()
+                    ]);
+                    throw new \Exception('Format waktu check-out tidak valid: ' . $e->getMessage());
+                }
+            } else {
+                $checkOutTime = now();
+            }
 
             // Update attendance
             $attendance->update([
-                'check_out' => now()->format('H:i:s'),
-                'photo_out' => $photoPath,
-                'location_out' => $request->latitude && $request->longitude ? $request->latitude . ',' . $request->longitude : null,
+                'check_out' => $checkOutTime->format('H:i:s'),
+                'photo_out' => null, // Always null for manual input
+                'location_out' => null, // Always null for manual input
+                'notes' => $attendance->notes ? $attendance->notes . ' | ' . $request->notes : $request->notes,
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Check-out berhasil',
+                'message' => 'Check-out berhasil dicatat',
                 'data' => $attendance
             ]);
         } catch (\Exception $e) {
