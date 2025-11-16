@@ -144,6 +144,7 @@ class AttendanceController extends Controller
             'employee_id' => 'required|exists:employees,id',
             'date' => 'nullable|date',
             'check_in_time' => 'nullable|date_format:H:i',
+            'status' => 'nullable|in:hadir,terlambat,izin,sakit,alpha,cuti',
             'photo' => 'nullable|string', // Base64 image
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
@@ -179,7 +180,7 @@ class AttendanceController extends Controller
             $employee = Karyawans::findOrFail($request->employee_id);
 
             // Get work schedule to check if late
-            // Use provided time or current time
+            // For status like alpha, cuti, sakit, izin - check_in_time is optional
             if ($request->check_in_time) {
                 // Clean up the time string (remove any whitespace)
                 $timeString = trim($request->check_in_time);
@@ -197,32 +198,60 @@ class AttendanceController extends Controller
                     throw new \Exception('Format waktu check-in tidak valid: ' . $e->getMessage());
                 }
             } else {
-                $checkInTime = now();
+                // If no time provided, use null (for alpha, cuti, sakit, izin)
+                $checkInTime = null;
             }
 
             $schedule = $employee->workSchedule;
 
             $lateMinutes = 0;
-            $status = 'hadir'; // Use Indonesian: 'hadir' instead of 'present'
 
-            if ($schedule) {
-                try {
-                    // Get start time in H:i format (remove seconds if present)
-                    $startTime = substr($schedule->start_time, 0, 5); // Get HH:MM only
-                    $scheduledTime = Carbon::createFromFormat('Y-m-d H:i', $dateString . ' ' . $startTime);
+            // Use status from request if provided, otherwise calculate automatically
+            if ($request->status) {
+                $status = $request->status;
 
-                    if ($checkInTime->gt($scheduledTime)) {
-                        $lateMinutes = $scheduledTime->diffInMinutes($checkInTime, false);
-                        $status = 'terlambat'; // Use Indonesian: 'terlambat' instead of 'late'
+                // Only calculate late minutes for 'hadir' and 'terlambat' status (and if checkInTime exists)
+                if (in_array($status, ['hadir', 'terlambat']) && $schedule && $checkInTime) {
+                    try {
+                        // Get start time in H:i format (remove seconds if present)
+                        $startTime = substr($schedule->start_time, 0, 5); // Get HH:MM only
+                        $scheduledTime = Carbon::createFromFormat('Y-m-d H:i', $dateString . ' ' . $startTime);
+
+                        if ($checkInTime->gt($scheduledTime)) {
+                            $lateMinutes = $scheduledTime->diffInMinutes($checkInTime, false);
+                        }
+                    } catch (\Exception $e) {
+                        \Log::error('Schedule time parsing error:', [
+                            'dateString' => $dateString,
+                            'start_time' => $schedule->start_time,
+                            'startTime' => $startTime ?? null,
+                            'error' => $e->getMessage()
+                        ]);
                     }
-                } catch (\Exception $e) {
-                    \Log::error('Schedule time parsing error:', [
-                        'dateString' => $dateString,
-                        'start_time' => $schedule->start_time,
-                        'startTime' => $startTime ?? null,
-                        'error' => $e->getMessage()
-                    ]);
-                    // Continue without late calculation if schedule parsing fails
+                }
+            } else {
+                // Auto-calculate status based on schedule (only if checkInTime exists)
+                $status = 'hadir';
+
+                if ($schedule && $checkInTime) {
+                    try {
+                        // Get start time in H:i format (remove seconds if present)
+                        $startTime = substr($schedule->start_time, 0, 5); // Get HH:MM only
+                        $scheduledTime = Carbon::createFromFormat('Y-m-d H:i', $dateString . ' ' . $startTime);
+
+                        if ($checkInTime->gt($scheduledTime)) {
+                            $lateMinutes = $scheduledTime->diffInMinutes($checkInTime, false);
+                            $status = 'terlambat';
+                        }
+                    } catch (\Exception $e) {
+                        \Log::error('Schedule time parsing error:', [
+                            'dateString' => $dateString,
+                            'start_time' => $schedule->start_time,
+                            'startTime' => $startTime ?? null,
+                            'error' => $e->getMessage()
+                        ]);
+                        // Continue without late calculation if schedule parsing fails
+                    }
                 }
             }
 
@@ -233,7 +262,7 @@ class AttendanceController extends Controller
                     'attendance_date' => $dateString
                 ],
                 [
-                    'check_in' => $checkInTime->format('H:i:s'),
+                    'check_in' => $checkInTime ? $checkInTime->format('H:i:s') : null,
                     'photo_in' => null, // Always null for manual input
                     'location_in' => null, // Always null for manual input
                     'status' => $status,

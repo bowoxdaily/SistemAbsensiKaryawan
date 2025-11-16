@@ -59,7 +59,19 @@
                             <div id="attendanceForm" style="display: none;">
                                 <!-- Check In Form -->
                                 <div id="checkInForm" class="mb-3" style="display: none;">
-                                    <div class="row mb-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Status Absensi</label>
+                                        <select class="form-select" id="attendanceStatus">
+                                            <option value="hadir">Hadir</option>
+                                            <option value="terlambat">Terlambat</option>
+                                            <option value="izin">Izin</option>
+                                            <option value="sakit">Sakit</option>
+                                            <option value="cuti">Cuti</option>
+                                            <option value="alpha">Alpha (Tanpa Keterangan)</option>
+                                        </select>
+                                        <div class="form-text">Pilih status absensi karyawan</div>
+                                    </div>
+                                    <div class="row mb-3" id="checkInTimeSection">
                                         <div class="col-md-6">
                                             <label class="form-label">Jam Check In</label>
                                             <input type="time" class="form-control" id="checkInTimeInput" />
@@ -74,13 +86,13 @@
                                         </div>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Catatan Check In</label>
+                                        <label class="form-label">Catatan</label>
                                         <textarea class="form-control" id="checkInNotes" rows="2" placeholder="Masukkan catatan (opsional)"></textarea>
                                     </div>
                                     <div class="d-grid gap-2 mb-3">
                                         <button type="button" class="btn btn-success btn-lg" id="checkInBtn">
                                             <i class='bx bx-log-in me-2'></i>
-                                            Check In
+                                            Simpan Absensi
                                         </button>
                                     </div>
                                 </div>
@@ -161,6 +173,45 @@
                             <li>Tambahkan catatan jika diperlukan (opsional)</li>
                             <li>Sistem akan mencatat waktu otomatis</li>
                         </ol>
+
+                        <div class="mt-3">
+                            <h6 class="card-title">Keterangan Status Absensi</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled mb-0">
+                                        <li class="mb-2">
+                                            <span class="badge bg-success me-2">HADIR</span>
+                                            <small>Check-in tepat waktu</small>
+                                        </li>
+                                        <li class="mb-2">
+                                            <span class="badge bg-warning me-2">TERLAMBAT</span>
+                                            <small>Check-in melewati jam masuk</small>
+                                        </li>
+                                        <li class="mb-2">
+                                            <span class="badge bg-info me-2">IZIN</span>
+                                            <small>Izin dengan keterangan</small>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled mb-0">
+                                        <li class="mb-2">
+                                            <span class="badge bg-primary me-2">SAKIT</span>
+                                            <small>Sakit dengan surat dokter</small>
+                                        </li>
+                                        <li class="mb-2">
+                                            <span class="badge bg-secondary me-2">CUTI</span>
+                                            <small>Cuti yang disetujui</small>
+                                        </li>
+                                        <li class="mb-2">
+                                            <span class="badge bg-danger me-2">ALPHA</span>
+                                            <small>Tidak hadir tanpa keterangan</small>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="alert alert-warning mt-3 mb-0">
                             <i class='bx bx-info-circle me-2'></i>
                             <strong>Catatan:</strong> Pastikan karyawan dan tanggal yang dipilih sudah benar sebelum
@@ -208,6 +259,23 @@
                 selectedDate = this.value;
                 if (selectedEmployeeId) {
                     checkAttendanceByDate();
+                }
+            });
+
+            // Status change handler - show/hide time input
+            document.getElementById('attendanceStatus').addEventListener('change', function() {
+                const status = this.value;
+                const timeSection = document.getElementById('checkInTimeSection');
+                const timeInput = document.getElementById('checkInTimeInput');
+
+                // Only show time input for 'hadir' and 'terlambat'
+                if (status === 'hadir' || status === 'terlambat') {
+                    timeSection.style.display = 'flex';
+                    timeInput.required = true;
+                } else {
+                    timeSection.style.display = 'none';
+                    timeInput.required = false;
+                    timeInput.value = ''; // Clear the value
                 }
             });
 
@@ -297,7 +365,38 @@
                         document.getElementById('statusToday').style.display = 'block';
                         document.getElementById('checkInTime').textContent = att.check_in || '-';
                         document.getElementById('checkOutTime').textContent = att.check_out || '-';
-                        document.getElementById('statusBadge').textContent = att.status.toUpperCase();
+
+                        // Set status badge with appropriate color
+                        const statusBadge = document.getElementById('statusBadge');
+                        const statusText = att.status.toUpperCase();
+                        statusBadge.textContent = statusText;
+
+                        // Remove all badge color classes
+                        statusBadge.className = 'badge';
+
+                        // Add appropriate color based on status
+                        switch (att.status.toLowerCase()) {
+                            case 'hadir':
+                                statusBadge.classList.add('bg-success');
+                                break;
+                            case 'terlambat':
+                                statusBadge.classList.add('bg-warning');
+                                break;
+                            case 'izin':
+                                statusBadge.classList.add('bg-info');
+                                break;
+                            case 'sakit':
+                                statusBadge.classList.add('bg-primary');
+                                break;
+                            case 'cuti':
+                                statusBadge.classList.add('bg-secondary');
+                                break;
+                            case 'alpha':
+                                statusBadge.classList.add('bg-danger');
+                                break;
+                            default:
+                                statusBadge.classList.add('bg-label-primary');
+                        }
 
                         if (att.late_minutes > 0) {
                             document.getElementById('lateBadge').textContent =
@@ -344,14 +443,18 @@
                     return;
                 }
 
+                const status = document.getElementById('attendanceStatus').value;
                 const checkInTime = document.getElementById('checkInTimeInput').value;
-                if (!checkInTime) {
+
+                // Validate time input only for 'hadir' and 'terlambat'
+                if ((status === 'hadir' || status === 'terlambat') && !checkInTime) {
                     Swal.fire('Error', 'Masukkan jam check in terlebih dahulu', 'error');
                     return;
                 }
 
                 try {
                     const notes = document.getElementById('checkInNotes').value;
+                    const status = document.getElementById('attendanceStatus').value;
 
                     const response = await fetch('/api/attendance/check-in', {
                         method: 'POST',
@@ -363,6 +466,7 @@
                             employee_id: selectedEmployeeId,
                             date: selectedDate,
                             check_in_time: checkInTime,
+                            status: status,
                             notes: notes
                         })
                     });
@@ -373,6 +477,7 @@
                         toastr.success(result.message || 'Check in berhasil dicatat');
                         document.getElementById('checkInNotes').value = '';
                         document.getElementById('checkInTimeInput').value = '';
+                        document.getElementById('attendanceStatus').value = 'hadir';
                         checkAttendanceByDate();
                     } else {
                         Swal.fire('Error', result.message || 'Gagal melakukan check-in', 'error');
